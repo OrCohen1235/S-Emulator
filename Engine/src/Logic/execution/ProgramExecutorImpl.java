@@ -4,6 +4,8 @@ import Logic.Instruction;
 import Logic.Program;
 import Logic.label.*;
 
+import java.util.Objects;
+
 public class ProgramExecutorImpl{
 
     private final Program program;
@@ -21,10 +23,13 @@ public class ProgramExecutorImpl{
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++;
-            } else if (nextLabel != FixedLabel.EXIT) {
+            }
+            else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
                 currentInstruction = program.getInstractionByLabel(nextLabel);
                 index = program.getIndexInstraction(currentInstruction);
             }
+            else
+                break;
         } while (nextLabel != FixedLabel.EXIT);
 
         return program.getY();

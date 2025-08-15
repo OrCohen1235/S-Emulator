@@ -8,7 +8,6 @@ import java.util.*;
 public abstract class Instruction {
     private Program program;
     private InstructionData instructionData;
-    private List<Variable> args = new ArrayList<Variable>();
     private Variable var;
     private Label label;
     private int degree;
@@ -29,10 +28,6 @@ public abstract class Instruction {
 
     public String getName() {
         return instructionData.getName();
-    }
-
-    public List<Variable> getArgs() {
-        return args;
     }
 
     public Variable getVar() {

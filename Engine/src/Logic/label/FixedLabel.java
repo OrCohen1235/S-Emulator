@@ -17,4 +17,9 @@ public enum FixedLabel implements Label{
 
     @Override
     public abstract String getLabelRepresentation();
+
+    @Override
+    public String toString() {
+        return "FixedLabel{}";
+    }
 }
