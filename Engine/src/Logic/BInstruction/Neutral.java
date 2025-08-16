@@ -1,4 +1,4 @@
-package Logic.BInstraction;
+package Logic.BInstruction;
 
 import Logic.Instruction;
 import Logic.InstructionData;
@@ -10,11 +10,12 @@ import Logic.variable.Variable;
 public class Neutral extends Instruction implements BaseInstruction {
 
     public Neutral(Program program, Variable variable, Label label) {
-        super(program, InstructionData.DECREASE, variable, label);
+        super(program, InstructionData.NEUTRAL, variable, label);
     }
     public Neutral(Program program, Variable variable) {
-        super(program,InstructionData.DECREASE, variable, FixedLabel.EMPTY);
+        super(program,InstructionData.NEUTRAL, variable, FixedLabel.EMPTY);
     }
+
     @Override
     public int getDegree() {
         return 0;
@@ -22,11 +23,11 @@ public class Neutral extends Instruction implements BaseInstruction {
 
     @Override
     public int calcCycles() {
-        return 0;
+        return InstructionData.NEUTRAL.getCycles();
     }
 
     @Override
-    public Label calculateInstraction() {
+    public Label calculateInstruction() {
         return FixedLabel.EMPTY;
     }
 }

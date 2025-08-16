@@ -36,5 +36,4 @@ public enum VariableType {
             default  -> throw new IllegalStateException("Unexpected: " + c);
         };
     }
-
 }

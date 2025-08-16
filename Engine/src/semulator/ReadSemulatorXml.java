@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import semulator.SProgram;
 
 public class ReadSemulatorXml {
@@ -21,7 +20,7 @@ public class ReadSemulatorXml {
             throw new IllegalArgumentException("XML file not found: " + file.getAbsolutePath());
         }
         this.xmlFile = file;
-        loadFiles(); // נריץ כאן; אם יש בעיה נעטוף ל-RuntimeException
+        loadFiles();
     }
 
     private void loadFiles() {

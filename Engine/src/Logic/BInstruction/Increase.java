@@ -1,4 +1,4 @@
-package Logic.BInstraction;
+package Logic.BInstruction;
 
 import Logic.Instruction;
 import Logic.InstructionData;
@@ -10,11 +10,12 @@ import Logic.variable.Variable;
 public class Increase extends Instruction implements BaseInstruction {
 
     public Increase(Program program, Variable variable, Label label) {
-        super(program, InstructionData.DECREASE, variable, label);
+        super(program, InstructionData.INCREASE, variable, label);
     }
     public Increase(Program program, Variable variable) {
-        super(program,InstructionData.DECREASE, variable, FixedLabel.EMPTY);
+        super(program,InstructionData.INCREASE, variable, FixedLabel.EMPTY);
     }
+
     @Override
     public int getDegree() {
         return 0;
@@ -22,14 +23,14 @@ public class Increase extends Instruction implements BaseInstruction {
 
     @Override
     public int calcCycles() {
-        return 1;
+        return InstructionData.INCREASE.getCycles();
     }
 
     @Override
-    public Label calculateInstraction() {
+    public Label calculateInstruction() {
         Long returnVal = super.getVarValueFromMap();
-        returnVal = returnVal + 1;
-        setVarValueFromMap(returnVal);
+        returnVal++;
+        setVarValueInMap(returnVal);
 
         return FixedLabel.EMPTY;
     }

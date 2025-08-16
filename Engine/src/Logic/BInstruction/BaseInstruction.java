@@ -1,4 +1,4 @@
-package Logic.BInstraction;
+package Logic.BInstruction;
 
 public interface BaseInstruction {
 }

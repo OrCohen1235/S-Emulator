@@ -6,8 +6,15 @@ import java.util.stream.Collectors;
 public enum InstructionData {
     INCREASE("INCREASE", 1),
     DECREASE("DECREASE", 1),
-    Neutral("Neutral", 0),
-    JUMP_NOT_ZERO("JUMP_NOT_ZERO", 3);
+    NEUTRAL("NEUTRAL", 0),
+    JUMP_NOT_ZERO("JUMP_NOT_ZERO", 3),
+    ZERO_VARIABLE ("ZERO_VARIABLE", 1),
+    GOTO_LABEL ("GOTO_LABEL", 1),
+    ASSIGNMENT ("ASSIGNMENT", 4),
+    CONSTANT_ASSIGNMENT ("CONSTANT_ASSIGNMENT", 2),
+    JUMP_ZERO ("JUMP_ZERO", 2),
+    JUMP_EQUAL_CONSTANT ("JUMP_EQUAL_CONSTANT", 2),
+    JUMP_EQUAL_VARIABLE ("JUMP_EQUAL_VARIABLE", 2);
 
     private final String name;
     private final int cycles;
@@ -19,7 +26,6 @@ public enum InstructionData {
     public String getName()   { return name; }
     public int getCycles()    { return cycles; }
 
-    // --- מיפוי יעיל מ-name -> enum ---
     private static final Map<String, InstructionData> BY_NAME =
             Arrays.stream(values())
                     .collect(Collectors.toMap(v -> v.name, v -> v));
@@ -29,7 +35,6 @@ public enum InstructionData {
         String key = s.trim();
         InstructionData v = BY_NAME.get(key);
         if (v == null) {
-            // נסה גם case-insensitive
             v = BY_NAME.entrySet().stream()
                     .filter(e -> e.getKey().equalsIgnoreCase(key))
                     .map(Map.Entry::getValue)

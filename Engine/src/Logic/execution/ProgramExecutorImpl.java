@@ -18,15 +18,15 @@ public class ProgramExecutorImpl{
         int index =0;
         Label nextLabel;
         do {
-            Instruction currentInstruction = program.getInstraction(index);
-            nextLabel = currentInstruction.calculateInstraction(); //  L1: y-- /n L2: go to L3 /n l5: x1-- /n L4: goto l1
+            Instruction currentInstruction = program.getInstruction(index);
+            nextLabel = currentInstruction.calculateInstruction();
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++;
             }
             else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
-                currentInstruction = program.getInstractionByLabel(nextLabel);
-                index = program.getIndexInstraction(currentInstruction);
+                currentInstruction = program.getInstructionByLabel(nextLabel);
+                index = program.getIndexInstruction(currentInstruction);
             }
             else
                 break;

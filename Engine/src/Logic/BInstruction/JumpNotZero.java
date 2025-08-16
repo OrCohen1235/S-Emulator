@@ -1,4 +1,4 @@
-package Logic.BInstraction;
+package Logic.BInstruction;
 
 import Logic.Instruction;
 import Logic.InstructionData;
@@ -7,10 +7,12 @@ import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
-public class JumpNotZero extends Instruction implements BaseInstruction {
-    private Label jnzlabel;
+import java.util.Optional;
 
-    public JumpNotZero(Program program, Variable variable, Label jnzlabel, Label label) {
+public class JumpNotZero extends Instruction implements BaseInstruction {
+    private final Label jnzlabel;
+
+    public JumpNotZero (Program program, Variable variable, Label jnzlabel, Label label) {
         super(program, InstructionData.JUMP_NOT_ZERO, variable, label);
         this.jnzlabel = jnzlabel;
     }
@@ -27,14 +29,14 @@ public class JumpNotZero extends Instruction implements BaseInstruction {
 
     @Override
     public int calcCycles() {
-        return 2;
+        return InstructionData.JUMP_NOT_ZERO.getCycles();
     }
 
     @Override
-    public Label calculateInstraction() {
-        if (super.getVarValueFromMap() != 0) {
-            return jnzlabel;
-        }
-        return FixedLabel.EMPTY;
+    public Label calculateInstruction() {
+        return Optional.ofNullable(super.getVarValueFromMap()).
+                filter(v -> v != 0L).
+                map(v ->jnzlabel).
+                orElse(FixedLabel.EMPTY);
     }
 }

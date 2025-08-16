@@ -1,4 +1,4 @@
-package Logic.BInstraction;
+package Logic.BInstruction;
 import Logic.Instruction;
 import Logic.Program;
 import Logic.InstructionData;
@@ -22,15 +22,15 @@ public class Decrease extends Instruction implements BaseInstruction {
 
     @Override
     public int calcCycles() {
-        return 1;
+        return InstructionData.DECREASE.getCycles();
     }
 
     @Override
-    public Label calculateInstraction() {
+    public Label calculateInstruction() {
         Long returnVal = super.getVarValueFromMap();
         if (returnVal != 0) {
-            returnVal = returnVal - 1;
-            setVarValueFromMap(returnVal);
+            returnVal--;
+            setVarValueInMap(returnVal);
         }
         return FixedLabel.EMPTY;
     }

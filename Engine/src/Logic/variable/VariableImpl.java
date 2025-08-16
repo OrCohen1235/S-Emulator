@@ -1,6 +1,7 @@
 package Logic.variable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class VariableImpl implements Variable {
 
@@ -13,13 +14,11 @@ public class VariableImpl implements Variable {
     }
 
     public VariableImpl(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("name is null");
-        }
-        String t = name.trim();
-        if (t.isEmpty()) {
-            throw new IllegalArgumentException("name is empty");
-        }
+        String t = Optional.ofNullable(name)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .orElseThrow(() -> new IllegalArgumentException("name is null or empty"));
+
 
         char prefix = Character.toLowerCase(t.charAt(0));
         switch (prefix) {
@@ -44,25 +43,18 @@ public class VariableImpl implements Variable {
     }
 
     private int parseIndex(String s, int from) {
-        if (s.length() <= from) {
-            throw new IllegalArgumentException("Missing numeric index in: " + s);
-        }
-        for (int i = from; i < s.length(); i++) {
-            if (!Character.isDigit(s.charAt(i))) {
-                throw new IllegalArgumentException("Index must be numeric. Got: " + s.substring(from) + " in " + s);
-            }
-        }
-        try {
-            int idx = Integer.parseInt(s.substring(from));
-            if (idx < 0) {
-                throw new IllegalArgumentException("Index must be non-negative. Got: " + idx);
-            }
-            return idx;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid numeric index in: " + s, e);
-        }
-    }
+        String numberPart = Optional.ofNullable(s)
+                .filter(str -> from >= 0 && from < str.length())
+                .map(str -> str.substring(from))
+                .filter(part -> part.chars().allMatch(Character::isDigit))
+                .orElseThrow(() -> new IllegalArgumentException("Missing or non-numeric index in: " + s));
 
+        int idx = Integer.parseInt(numberPart);
+        if (idx < 0) {
+            throw new IllegalArgumentException("Index must be non-negative. Got: " + idx);
+        }
+        return idx;
+    }
 
     @Override
     public VariableType getType() {

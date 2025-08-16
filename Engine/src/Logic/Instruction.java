@@ -3,13 +3,11 @@ package Logic;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
-import java.util.*;
-
 public abstract class Instruction {
-    private Program program;
-    private InstructionData instructionData;
-    private Variable var;
-    private Label label;
+    private final Program program;
+    private final InstructionData instructionData;
+    private final Variable var;
+    private final Label label;
     private int degree;
 
     public Instruction(Program program, InstructionData instructionData, Variable var,Label label) {
@@ -18,13 +16,12 @@ public abstract class Instruction {
         this.var = var;
         this.label = label;
     }
-    public Instruction(){};
 
     public abstract int getDegree();
 
     public abstract int calcCycles();
 
-    public abstract Label calculateInstraction();
+    public abstract Label calculateInstruction();
 
     public String getName() {
         return instructionData.getName();
@@ -50,7 +47,15 @@ public abstract class Instruction {
         };
     }
 
-    public void setVarValueFromMap(long newValToSet) {
+    public Long getVariableValueFromMap(Variable variable) {
+        return switch (variable.getType()) {
+            case INPUT -> program.getXVirablesFromMap(variable);
+            case WORK -> program.getZVirablesFromMap(variable);
+            case RESULT -> program.getY();
+        };
+    }
+
+    public void setVarValueInMap(long newValToSet) {
           switch (var.getType()) {
               case INPUT     -> this.program.setxVirablesToMap(this.var,newValToSet);
               case WORK     -> this.program.setzVirablesToMap(this.var,newValToSet);
