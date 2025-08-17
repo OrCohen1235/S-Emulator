@@ -25,10 +25,6 @@ public class JumpEqualConstant extends Instruction implements SyntheticInstructi
         this.constantValue = constantValue;
     }
 
-    @Override
-    public int getDegree() {
-        return 0;
-    }
 
     @Override
     public int calcCycles() { return InstructionData.JUMP_EQUAL_CONSTANT.getCycles(); }

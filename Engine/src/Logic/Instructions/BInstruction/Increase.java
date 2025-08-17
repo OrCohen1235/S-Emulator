@@ -36,6 +36,6 @@ public class Increase extends Instruction implements BaseInstruction {
     }
 
     public String getCommand() {
-        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " +1";
+        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " + 1";
     }
 }

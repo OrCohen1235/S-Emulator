@@ -53,19 +53,22 @@ public class Menu {
     }
 
     private void cmdRun() {
-        System.out.println("Max Degree is: "+ programDTO.getMaxDegree());
+        System.out.println("Max Degree is: "+ engine.getMaxDegree());
         programDTO.getVariables().forEach(variable -> {
             System.out.println("Variable: " + variable);
         });
         System.out.print("Enter comma-separated numbers: ");
         String line = in.nextLine();
         List<Long> values = parseCsvLongs(line);
-        engine.loadInputVars((ArrayList<Long>) values);
+        engine.loadInputVars(values);
 
         System.out.println(engine.runProgramExecutor());
     }
 
     private void cmdExpand() {
+        engine.loadExpasion();
+        System.out.println("Max Degree is: "+ engine.getMaxDegree());
+        engine.getExpandedInstructions();
     }
 
     private void cmdShowProgram() {
@@ -137,9 +140,9 @@ public class Menu {
         }
     }
 
-    public ArrayList<Long> parseCsvLongs(String raw) {
+    public List<Long> parseCsvLongs(String raw) {
         if (raw == null || raw.isBlank()) return null;
-        ArrayList<Long> out = new ArrayList<>();
+        List<Long> out = new ArrayList<>();
         for (String part : raw.split(",")) {
             String t = part.trim();
             if (t.isEmpty()) continue;

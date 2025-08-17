@@ -22,7 +22,7 @@ public class Decrease extends Instruction implements BaseInstruction {
 
     @Override
     public String getCommand() {
-        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " -1";
+        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " - 1";
     }
 
     @Override

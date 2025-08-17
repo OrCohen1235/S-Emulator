@@ -24,7 +24,6 @@ public abstract class Instruction {
         this.label = label;
     }
 
-    public abstract int getDegree();
 
     public abstract int calcCycles();
 
@@ -38,6 +37,10 @@ public abstract class Instruction {
 
     public Variable getVar() {
         return var;
+    }
+
+    public int getDegree() {
+        return degree;
     }
 
     public Label getLabel() {
@@ -75,4 +78,10 @@ public abstract class Instruction {
     public InstructionData getInstructionData() {
         return instructionData;
     }
+
+    public void setDegree(int degree) {
+        this.degree = degree;
+    }
+
+
 }

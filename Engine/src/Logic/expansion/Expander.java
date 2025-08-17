@@ -28,7 +28,6 @@ public class Expander {
     }
 
     public List<Instruction> expand(Instruction inst) {
-        //if (!(inst instanceof SyntheticInstruction)) return List.of(inst);
         return switch (inst.getInstructionData()) {
             case ASSIGNMENT -> expandAssignment((Assignment) inst);
             case CONSTANT_ASSIGNMENT ->  expandConstantAssignment((ConstantAssignment) inst);
@@ -41,8 +40,8 @@ public class Expander {
             case INCREASE -> List.of(inst);
             case DECREASE -> List.of(inst);
             case NEUTRAL -> List.of(inst);
-            default -> throw new IllegalArgumentException("No expander for " + inst.getInstructionData());
         };
+
     }
 
     private List<Instruction> expandAssignment(Assignment instruction) {
@@ -51,6 +50,8 @@ public class Expander {
         Variable v1 = instruction.getAssignedVariable();
         Variable z1 = context.freshWork();
         Label L1 = context.freshLabel(), L2 = context.freshLabel(), L3 = context.freshLabel();
+
+
 
         return List.of(
                 new ZeroVariable(program, v, instructionLabel),
@@ -75,6 +76,7 @@ public class Expander {
         Label instructionLabel = instruction.getLabel();
         Long constant = instruction.getConstantValue();
 
+
         List<Instruction> out = new ArrayList<>();
         out.add(new ZeroVariable(program, v, instructionLabel));
 
@@ -92,6 +94,7 @@ public class Expander {
         Label jumpLabel = instruction.calculateInstruction();
         Label instructionLabel = instruction.getLabel();
 
+
         return List.of(
                 new Increase(program, z1, instructionLabel),
                 new JumpNotZero(program, z1, jumpLabel, FixedLabel.EMPTY)
@@ -105,6 +108,7 @@ public class Expander {
         Label instructionLabel = instruction.getLabel();
         Variable z1 = context.freshWork();
         Label L1 = context.freshLabel();
+
 
         List<Instruction> out = new ArrayList<>();
         out.add(new Assignment(program, z1, v, instructionLabel));
@@ -132,6 +136,7 @@ public class Expander {
         Variable z1 = context.freshWork(), z2 = context.freshWork();
         Label L1 = context.freshLabel(), L2 = context.freshLabel(), L3 = context.freshLabel();
 
+
         return List.of(
                 new Assignment(program, z1, v, instructionLabel),
                 new Assignment(program, z2, v1, FixedLabel.EMPTY),
@@ -151,6 +156,7 @@ public class Expander {
         Label jumpLable = instruction.getJnzlabel();
         Label L1 = context.freshLabel();
 
+
         return List.of(
                 new JumpNotZero(program, v, L1, instructionLabel),
                 new GotoLabel(program, jumpLable, FixedLabel.EMPTY),
@@ -161,17 +167,21 @@ public class Expander {
     private List<Instruction> expandZeroVariable(ZeroVariable instruction) {
         Variable v = instruction.getVar();
         Label instructionLabel = instruction.getLabel();
-        Label L1;
 
-        L1 = Optional.ofNullable(instructionLabel)
-                .filter(l -> l != FixedLabel.EMPTY)
-                .orElseGet(context::freshLabel);
+
+        Label L1 = Optional.ofNullable(instructionLabel)
+                .filter(l -> {
+                    String t = l.getLabelRepresentation();
+                    return t.matches("(?i)L\\d+") && Integer.parseInt(t.substring(1)) > 1;
+                }).orElseGet(context::freshLabel);
 
         return List.of(
-              new Decrease(program, v, L1),
-              new JumpNotZero(program, v, L1)
+                new Decrease(program, v, L1),
+                new JumpNotZero(program, v, L1)
         );
     }
+
+
 
 
 }

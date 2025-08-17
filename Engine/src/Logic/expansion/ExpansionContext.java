@@ -10,7 +10,6 @@ import Logic.variable.VariableType;
 public class ExpansionContext {
     private final Program program;
     private int nextWorkIdx;
-    private int nextInputIdx;
     private int nextLabelIdx;
 
     public ExpansionContext(Program program, int startWorkIdx, int startLabelIdx) {
@@ -23,10 +22,6 @@ public class ExpansionContext {
 
     public Variable freshWork() {
         return new VariableImpl(VariableType.WORK, ++nextWorkIdx); // z{n+1}
-    }
-
-    public Variable freshInput() {
-        return new VariableImpl(VariableType.INPUT, ++nextInputIdx); // x{n+1}
     }
 
     public Label freshLabel() {

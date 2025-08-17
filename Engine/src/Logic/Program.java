@@ -40,11 +40,11 @@ public class Program {
       y.put(Variable.RESULT, 0L);
    }
 
-   public void loadInputVars(Long... vars ) {
-      IntStream.range(0, vars.length)
+   public void loadInputVars(List<Long> varsInput ) {
+      IntStream.range(0, varsInput.size())
               .forEach(i -> {
                  Variable x = new VariableImpl(VariableType.INPUT, i + 1);
-                 xVariables.put(x, vars[i]);
+                 xVariables.put(x, varsInput.get(i));
               });
    }
 

@@ -1,9 +1,11 @@
 package Logic.DTO;
 
 import Logic.Instructions.BInstruction.BaseInstruction;
+import Logic.Instructions.SInstruction.SyntheticInstruction;
 import Logic.Program;
 import Logic.label.Label;
 import Logic.variable.Variable;
+import Logic.variable.VariableType;
 import semulator.ReadSemulatorXml;
 
 import java.io.File;
@@ -21,12 +23,20 @@ public class ProgramDTO {
     }
 
     public List<String> getVariables() {
-        Set<String> argsNames = new LinkedHashSet<>();
+        Set<String> names = new LinkedHashSet<>();
         program.getInstrutions().forEach(instr -> {
-            argsNames.add(instr.getVar().getRepresentation());
+            var v = instr.getVar();
+            if (v != null && v.getType() == VariableType.INPUT) {
+                String rep = v.getRepresentation();
+                if (rep != null) {
+                    names.add(rep);
+                }
+            }
         });
-        return new ArrayList<>(argsNames);
+        return new ArrayList<>(names);
     }
+
+
 
 
     public List<String> getLabels()
@@ -49,17 +59,13 @@ public class ProgramDTO {
             String label = program.getInstrutions().get(number).getLabel().getLabelRepresentation();
             String command = program.getInstrutions().get(number).getCommand();
             int cycles = program.getInstrutions().get(number).getCycles();
-            String result = String.format("# %d (%s) [%s] %s (%d)",
+            String result = String.format("#%d (%s) [%-3.5s] %s (%d)",
                     number+1, type, label, command, cycles);
             commands.add(result);
         }
         return commands;
     }
 
-    public int getMaxDegree()
-    {
-        return 10; // return max Degree
-    }
 
 
 }

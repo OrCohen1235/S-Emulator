@@ -21,11 +21,6 @@ public class Assignment extends Instruction implements SyntheticInstruction {
     }
 
     @Override
-    public int getDegree() {
-        return 0;
-    }
-
-    @Override
     public int calcCycles() { return InstructionData.ASSIGNMENT.getCycles(); }
 
     @Override

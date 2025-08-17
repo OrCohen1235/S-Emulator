@@ -22,8 +22,6 @@ public class JumpZero extends Instruction implements SyntheticInstruction {
         super(program, InstructionData.JUMP_ZERO, variable, FixedLabel.EMPTY);
         this.jnzlabel = jnzlabel;
     }
-    @Override
-    public int getDegree() { return 0; }
 
     @Override
     public int calcCycles() { return InstructionData.JUMP_ZERO.getCycles(); }

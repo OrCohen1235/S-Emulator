@@ -20,8 +20,6 @@ public class ConstantAssignment extends Instruction implements SyntheticInstruct
         this.constantValue = constantValue;
     }
 
-    @Override
-    public int getDegree() { return 0; }
 
     @Override
     public int calcCycles() { return InstructionData.CONSTANT_ASSIGNMENT.getCycles(); }

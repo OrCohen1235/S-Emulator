@@ -31,7 +31,9 @@ public final class LabelImpl implements Label {
                     "Expected EXIT, EMPTY, or L<number>. Got: " + token);
         }
     }
-
+    public int getIndexLabelNumber() {
+        return Integer.parseInt(this.label.substring(1));
+    }
     @Override
     public String getLabelRepresentation() {
         return label;

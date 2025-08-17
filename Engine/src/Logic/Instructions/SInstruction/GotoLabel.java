@@ -21,9 +21,6 @@ public class GotoLabel extends Instruction implements SyntheticInstruction {
     }
 
     @Override
-    public int getDegree() { return 0; }
-
-    @Override
     public int calcCycles() { return InstructionData.GOTO_LABEL.getCycles(); }
 
     @Override
