@@ -38,4 +38,8 @@ public class Assignment extends Instruction implements SyntheticInstruction {
     public String getCommand() {
         return super.getVar().getRepresentation()+ " <- " +assignedVariable.getRepresentation();
     }
+
+    public Variable getAssignedVariable() {
+        return assignedVariable;
+    }
 }

@@ -36,4 +36,8 @@ public class ConstantAssignment extends Instruction implements SyntheticInstruct
         return super.getVar().getRepresentation()+ " <- "+constantValue;
     }
 
+    public Long getConstantValue() {
+        return constantValue;
+    }
+
 }
