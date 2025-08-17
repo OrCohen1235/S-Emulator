@@ -35,9 +35,9 @@ public class Main {
         ReadSemulatorXml read = new ReadSemulatorXml(xmlFIle);
 
         program.loadProgram(read);
-        program.loadInputVars(8L, 6L, 1L, 2L, 3L, 4L, 5L);
+       // program.loadInputVars(8L, 6L, 1L, 2L, 3L, 4L, 5L);
         ProgramDTO PrintEverything = new ProgramDTO(program);
-        printDetails(PrintEverything);
+        //printDetails(PrintEverything);
 
         ProgramExecutorImpl pRun=new ProgramExecutorImpl(program);
         Object ress = pRun.run();
@@ -46,23 +46,7 @@ public class Main {
 
     }
 
-    public static void printDetails(ProgramDTO program) {
-        System.out.println("ProgramName: \n"+program.getProgramName());
-        List<String> outVars= program.printVariables();
-        System.out.println("\nVariables: ");
-        for (String outVar : outVars) {
-            System.out.println(outVar);
-        }
-        System.out.println("\nLabels: ");
-        List<String> outLables=program.printLabels();
-        for (String outLable : outLables) {
-            System.out.println(outLable);
-        }
-        List<String> outCommands=program.getCommands();
-        for (String outCommand : outCommands) {
-            System.out.println(outCommand);
-        }
-    }
+
 
 
 }

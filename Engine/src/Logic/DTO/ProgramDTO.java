@@ -20,7 +20,7 @@ public class ProgramDTO {
         return program.getNameOfProgram();
     }
 
-    public List<String> printVariables() {
+    public List<String> getVariables() {
         Set<String> argsNames = new LinkedHashSet<>();
         program.getInstrutions().forEach(instr -> {
             argsNames.add(instr.getVar().getRepresentation());
@@ -29,7 +29,7 @@ public class ProgramDTO {
     }
 
 
-    public List<String> printLabels()
+    public List<String> getLabels()
     {
         List<String> argsLabelsNames=new ArrayList<String>();
         program.getInstrutions().forEach(instr -> {
@@ -55,5 +55,11 @@ public class ProgramDTO {
         }
         return commands;
     }
+
+    public int getMaxDegree()
+    {
+        return 10; // return max Degree
+    }
+
 
 }
