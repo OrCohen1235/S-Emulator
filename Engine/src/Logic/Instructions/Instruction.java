@@ -1,5 +1,6 @@
-package Logic;
+package Logic.Instructions;
 
+import Logic.Program;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
@@ -22,6 +23,8 @@ public abstract class Instruction {
     public abstract int calcCycles();
 
     public abstract Label calculateInstruction();
+
+    public abstract String getCommand();
 
     public String getName() {
         return instructionData.getName();

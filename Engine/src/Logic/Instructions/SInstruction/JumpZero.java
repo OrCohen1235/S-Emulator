@@ -1,7 +1,7 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -32,5 +32,9 @@ public class JumpZero extends Instruction implements SyntheticInstruction {
     public Label calculateInstruction() {
         return Optional.ofNullable(super.getVarValueFromMap()).
                 filter(v -> v == 0L).map(v -> jnzlabel).orElse(FixedLabel.EMPTY);
+    }
+
+    public String getCommand() {
+        return "IF " +super.getVar().getRepresentation()+ " = 0" +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
 }

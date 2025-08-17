@@ -1,10 +1,12 @@
 package Logic;
 
-import Logic.BInstruction.Decrease;
-import Logic.BInstruction.Increase;
-import Logic.BInstruction.JumpNotZero;
-import Logic.BInstruction.Neutral;
-import Logic.SInstruction.*;
+import Logic.Instructions.BInstruction.Decrease;
+import Logic.Instructions.BInstruction.Increase;
+import Logic.Instructions.BInstruction.JumpNotZero;
+import Logic.Instructions.BInstruction.Neutral;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
+import Logic.Instructions.SInstruction.*;
 import Logic.label.Label;
 import Logic.label.LabelImpl;
 import Logic.variable.Variable;
@@ -23,6 +25,8 @@ public class Program {
    private Map<Variable, Long> zVirables = new LinkedHashMap();
    private Long y = 0L;
    private int countCycles = 0;
+
+
 
    public void loadProgram(ReadSemulatorXml read) {
       nameOfProgram = read.getProgramName();

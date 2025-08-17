@@ -1,4 +1,4 @@
-package Logic;
+package Logic.Instructions;
 
 import java.util.*;
 import java.util.stream.Collectors;

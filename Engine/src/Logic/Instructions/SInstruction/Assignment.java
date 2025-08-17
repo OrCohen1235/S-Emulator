@@ -1,7 +1,7 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -33,5 +33,9 @@ public class Assignment extends Instruction implements SyntheticInstruction {
         Long assignedVariableValue = getVariableValueFromMap(assignedVariable);
         super.setVarValueInMap(assignedVariableValue);
         return FixedLabel.EMPTY;
+    }
+
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- " +assignedVariable.getRepresentation();
     }
 }

@@ -1,7 +1,7 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -31,4 +31,9 @@ public class ConstantAssignment extends Instruction implements SyntheticInstruct
         super.setVarValueInMap(constantValue);
         return FixedLabel.EMPTY;
     }
+
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- "+constantValue;
+    }
+
 }

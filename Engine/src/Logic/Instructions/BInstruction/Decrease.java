@@ -1,7 +1,7 @@
-package Logic.BInstruction;
-import Logic.Instruction;
+package Logic.Instructions.BInstruction;
+import Logic.Instructions.Instruction;
 import Logic.Program;
-import Logic.InstructionData;
+import Logic.Instructions.InstructionData;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;
@@ -18,6 +18,11 @@ public class Decrease extends Instruction implements BaseInstruction {
     @Override
     public int getDegree() {
         return 0;
+    }
+
+    @Override
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " -1";
     }
 
     @Override

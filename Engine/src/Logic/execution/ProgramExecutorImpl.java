@@ -1,6 +1,6 @@
 package Logic.execution;
 
-import Logic.Instruction;
+import Logic.Instructions.Instruction;
 import Logic.Program;
 import Logic.label.*;
 

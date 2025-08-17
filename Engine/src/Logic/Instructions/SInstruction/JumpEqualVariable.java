@@ -1,7 +1,7 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -38,5 +38,9 @@ public class JumpEqualVariable extends Instruction implements SyntheticInstructi
                 filter(v -> v.equals(super.getVariableValueFromMap(variableName))).
                 map(v -> jeVariableLabel).
                 orElse(FixedLabel.EMPTY);
+    }
+
+    public String getCommand() {
+        return "IF " +super.getVar().getRepresentation()+ " = "+variableName.getRepresentation() +" GOTO "+jeVariableLabel.getLabelRepresentation();
     }
 }

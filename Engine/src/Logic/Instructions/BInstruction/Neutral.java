@@ -1,7 +1,7 @@
-package Logic.BInstruction;
+package Logic.Instructions.BInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -29,5 +29,9 @@ public class Neutral extends Instruction implements BaseInstruction {
     @Override
     public Label calculateInstruction() {
         return FixedLabel.EMPTY;
+    }
+
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation();
     }
 }

@@ -1,7 +1,7 @@
-package Logic.BInstruction;
+package Logic.Instructions.BInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -33,5 +33,9 @@ public class Increase extends Instruction implements BaseInstruction {
         setVarValueInMap(returnVal);
 
         return FixedLabel.EMPTY;
+    }
+
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- " +super.getVar().getRepresentation()+ " +1";
     }
 }

@@ -1,13 +1,14 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
 public class ZeroVariable extends Instruction implements SyntheticInstruction {
+
 
     public ZeroVariable(Program program, Variable variable, Label label) {
         super(program, InstructionData.ZERO_VARIABLE, variable, label);
@@ -26,5 +27,9 @@ public class ZeroVariable extends Instruction implements SyntheticInstruction {
     public Label calculateInstruction() {
         setVarValueInMap(0);
         return FixedLabel.EMPTY;
+    }
+
+    public String getCommand() {
+        return super.getVar().getRepresentation()+ " <- 0";
     }
 }

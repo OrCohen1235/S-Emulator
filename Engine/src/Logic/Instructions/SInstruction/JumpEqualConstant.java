@@ -1,13 +1,12 @@
-package Logic.SInstruction;
+package Logic.Instructions.SInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public class JumpEqualConstant extends Instruction implements SyntheticInstruction {
@@ -41,4 +40,9 @@ public class JumpEqualConstant extends Instruction implements SyntheticInstructi
                 map(v -> jeConstantLabel).
                 orElse(FixedLabel.EMPTY);
     }
+
+    public String getCommand() {
+        return "IF" +super.getVar().getRepresentation()+ " = "+constantValue +" GOTO "+ jeConstantLabel.getLabelRepresentation();
+    }
+
 }

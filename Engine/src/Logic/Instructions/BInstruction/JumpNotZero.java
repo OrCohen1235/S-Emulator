@@ -1,7 +1,7 @@
-package Logic.BInstruction;
+package Logic.Instructions.BInstruction;
 
-import Logic.Instruction;
-import Logic.InstructionData;
+import Logic.Instructions.Instruction;
+import Logic.Instructions.InstructionData;
 import Logic.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
@@ -38,5 +38,9 @@ public class JumpNotZero extends Instruction implements BaseInstruction {
                 filter(v -> v != 0L).
                 map(v ->jnzlabel).
                 orElse(FixedLabel.EMPTY);
+    }
+
+    public String getCommand() {
+        return "IF " +super.getVar().getRepresentation()+ " !=0 " +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
 }
