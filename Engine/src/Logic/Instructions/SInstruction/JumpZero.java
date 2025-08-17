@@ -14,12 +14,12 @@ public class JumpZero extends Instruction implements SyntheticInstruction {
     private final Label jnzlabel;
 
     public JumpZero (Program program, Variable variable, Label jnzlabel, Label label) {
-        super(program, InstructionData.JUMP_NOT_ZERO, variable, label);
+        super(program, InstructionData.JUMP_ZERO, variable, label);
         this.jnzlabel = jnzlabel;
     }
 
     public JumpZero (Program program, Variable variable, Label jnzlabel) {
-        super(program, InstructionData.JUMP_NOT_ZERO, variable, FixedLabel.EMPTY);
+        super(program, InstructionData.JUMP_ZERO, variable, FixedLabel.EMPTY);
         this.jnzlabel = jnzlabel;
     }
     @Override
@@ -36,5 +36,9 @@ public class JumpZero extends Instruction implements SyntheticInstruction {
 
     public String getCommand() {
         return "IF " +super.getVar().getRepresentation()+ " = 0" +" GOTO "+ jnzlabel.getLabelRepresentation();
+    }
+
+    public Label getJnzlabel() {
+        return jnzlabel;
     }
 }

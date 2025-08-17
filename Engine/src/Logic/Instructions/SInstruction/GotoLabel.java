@@ -10,13 +10,13 @@ import Logic.variable.Variable;
 public class GotoLabel extends Instruction implements SyntheticInstruction {
     private final Label gotoLabel;
 
-    public GotoLabel (Program program, Variable variable, Label gotoLabel, Label label) {
-        super(program, InstructionData.GOTO_LABEL, variable, label);
+    public GotoLabel (Program program, Label gotoLabel, Label label) {
+        super(program, InstructionData.GOTO_LABEL, label);
         this.gotoLabel = gotoLabel;
     }
 
-    public GotoLabel (Program program, Variable variable, Label gotoLabel) {
-        super(program, InstructionData.GOTO_LABEL, variable, FixedLabel.EMPTY);
+    public GotoLabel (Program program, Label gotoLabel) {
+        super(program, InstructionData.GOTO_LABEL, FixedLabel.EMPTY);
         this.gotoLabel = gotoLabel;
     }
 

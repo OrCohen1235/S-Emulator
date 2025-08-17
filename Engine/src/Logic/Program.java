@@ -21,9 +21,9 @@ import java.util.stream.IntStream;
 public class Program {
    private String nameOfProgram;
    private List<Instruction> instructions = new ArrayList<Instruction>();
-   private Map<Variable, Long> xVirables = new LinkedHashMap();
-   private Map<Variable, Long> zVirables = new LinkedHashMap();
-   private Long y = 0L;
+   private Map<Variable, Long> xVariables = new LinkedHashMap();
+   private Map<Variable, Long> zVariables = new LinkedHashMap();
+   private Map<Variable, Long>  y = new LinkedHashMap();
    private int countCycles = 0;
 
 
@@ -36,13 +36,15 @@ public class Program {
                       .map(this::createInstruction)
                       .toList()
       );
+
+      y.put(Variable.RESULT, 0L);
    }
 
    public void loadInputVars(Long... vars ) {
       IntStream.range(0, vars.length)
               .forEach(i -> {
                  Variable x = new VariableImpl(VariableType.INPUT, i + 1);
-                 xVirables.put(x, vars[i]);
+                 xVariables.put(x, vars[i]);
               });
    }
 
@@ -59,15 +61,15 @@ public class Program {
    }
 
    public Long getXVirablesFromMap(Variable key) {
-      return xVirables.computeIfAbsent(key, k -> 0L);
+      return xVariables.computeIfAbsent(key, k -> 0L);
    }
 
    public Long getZVirablesFromMap(Variable key) {
-      return zVirables.computeIfAbsent(key, k -> 0L);
+      return zVariables.computeIfAbsent(key, k -> 0L);
    }
 
    public Long getY() {
-      return y;
+      return y.get(Variable.RESULT);
    }
 
    public int getCountCycles() {
@@ -75,15 +77,15 @@ public class Program {
    }
 
    public void setxVirablesToMap(Variable keyVal,Long returnVal) {
-      xVirables.put(keyVal, returnVal);
+      xVariables.put(keyVal, returnVal);
    }
 
    public void setzVirablesToMap(Variable keyVal,Long returnVal) {
-      zVirables.put(keyVal, returnVal);
+      zVariables.put(keyVal, returnVal);
    }
 
-   public void setY(Long y) {
-      this.y = y;
+   public void setY(Long value) {
+      this.y.put(Variable.RESULT, value);
    }
 
    public Instruction getInstruction(int index) {
@@ -141,7 +143,7 @@ public class Program {
          }
          case GOTO_LABEL -> {
             Label jumpLabel = new LabelImpl(getArgument(inst));
-            yield new GotoLabel(this, newVar, jumpLabel, newLabel);
+            yield new GotoLabel(this, jumpLabel, newLabel);
          }
          case JUMP_ZERO -> {
             Label jumpLabel = new LabelImpl(getArgument(inst));

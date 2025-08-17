@@ -1,9 +1,14 @@
 import Logic.DTO.ProgramDTO;
+import Logic.Instructions.BInstruction.BaseInstruction;
+import Logic.Instructions.Instruction;
 import Logic.Program;
 import Logic.execution.ProgramExecutorImpl;
+import Logic.expansion.Expander;
+import Logic.expansion.ExpansionContext;
 import semulator.ReadSemulatorXml;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -24,7 +29,8 @@ public class Main {
         program.setInstructions(inst1, inst2, inst3,inst5, inst6);*/
 
         //String name = "C:\\Users\\orcoh\\source\\repos\\S-Emulator\\S-Emuletor\\Engine\\src\\semulator\\badic.xml";
-        String name = "C:\\Users\\orcoh\\source\\repos\\S-Emulator\\S-Emuletor\\Engine\\src\\semulator\\synthetic.xml";
+        //String name = "C:\\Users\\orcoh\\source\\repos\\S-Emulator\\S-Emuletor\\Engine\\src\\semulator\\synthetic.xml";
+        String name = "/Users/yuvalharel/Desktop/ degree/second year/Java/S-Emulator/Engine/src/semulator/synthetic.xml";
         File xmlFIle = new File(name);
         ReadSemulatorXml read = new ReadSemulatorXml(xmlFIle);
 
@@ -36,6 +42,7 @@ public class Main {
         ProgramExecutorImpl pRun=new ProgramExecutorImpl(program);
         Object ress = pRun.run();
         System.out.println(ress);
+
 
     }
 

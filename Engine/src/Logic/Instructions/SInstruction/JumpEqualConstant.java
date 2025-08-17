@@ -45,4 +45,11 @@ public class JumpEqualConstant extends Instruction implements SyntheticInstructi
         return "IF" +super.getVar().getRepresentation()+ " = "+constantValue +" GOTO "+ jeConstantLabel.getLabelRepresentation();
     }
 
+    public Long getConstantValue() {
+        return constantValue;
+    }
+
+    public Label getJeConstantLabel() {
+        return jeConstantLabel;
+    }
 }

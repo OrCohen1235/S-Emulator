@@ -7,7 +7,7 @@ import Logic.variable.Variable;
 public abstract class Instruction {
     private final Program program;
     private final InstructionData instructionData;
-    private final Variable var;
+    private Variable var;
     private final Label label;
     private int degree;
 
@@ -15,6 +15,12 @@ public abstract class Instruction {
         this.program = program;
         this.instructionData = instructionData;
         this.var = var;
+        this.label = label;
+    }
+
+    public Instruction(Program program, InstructionData instructionData ,Label label) {
+        this.program = program;
+        this.instructionData = instructionData;
         this.label = label;
     }
 
@@ -66,4 +72,7 @@ public abstract class Instruction {
         };
     }
 
+    public InstructionData getInstructionData() {
+        return instructionData;
+    }
 }

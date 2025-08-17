@@ -43,4 +43,12 @@ public class JumpEqualVariable extends Instruction implements SyntheticInstructi
     public String getCommand() {
         return "IF " +super.getVar().getRepresentation()+ " = "+variableName.getRepresentation() +" GOTO "+jeVariableLabel.getLabelRepresentation();
     }
+
+    public Label getJeVariableLabel() {
+        return jeVariableLabel;
+    }
+
+    public Variable getVariableName() {
+        return variableName;
+    }
 }
