@@ -26,40 +26,41 @@ public class Menu {
         System.out.println("4) Run program" + (hasProgram ? "" : "      (disabled: no program loaded)"));
         System.out.println("5) Show history" + (hasProgram ? "" : "     (disabled: no program loaded)"));
         System.out.println("6) Exit");
-        System.out.print("Choose an option: ");
     }
 
     public void run() {
         boolean hasProgram = false;
         do {
             printMainMenu(hasProgram); // אפשר לשקול להעביר כאן engine.getLoaded()
-            String choice = in.nextLine().trim();
+            int choice = askIntInRange("Choose an option (1-6): \n",1,6);
 
             switch (choice) {
-                case "1" -> cmdLoadXml();
-                case "2" -> { if (ensureProgramLoaded()) cmdShowProgram(); }
-                case "3" -> { if (ensureProgramLoaded()) cmdExpand(); }
-                case "4" -> { if (ensureProgramLoaded()) cmdRun(); }
-                case "5" -> { if (ensureProgramLoaded()) cmdHistory(); }
-                case "6" -> { System.out.println("Bye!"); return; }
-                default -> System.out.println("Invalid option. Please try again.");
+                case 1 -> cmdLoadXml();
+                case 2 -> { if (ensureProgramLoaded()) cmdShowProgram(); }
+                case 3 -> { if (ensureProgramLoaded()) cmdExpand(); }
+                case 4 -> { if (ensureProgramLoaded()) cmdRun(); }
+                case 5 -> { if (ensureProgramLoaded()) cmdHistory(); }
+                case 6 -> { System.out.println("Bye!"); return; }
+                default -> System.out.println("Invalid option. Please try again.\n");
             }
             System.out.println();
-            hasProgram = engine.getLoaded();
         } while (true);
     }
 
     private void cmdHistory() {
+        System.out.println("History:");
     }
 
     private void cmdRun() {
+        engine.loadExpasion();
         System.out.println("Max Degree is: "+ engine.getMaxDegree());
+
         programDTO.getVariables().forEach(variable -> {
             System.out.println("Variable: " + variable);
         });
         System.out.print("Enter comma-separated numbers: ");
         String line = in.nextLine();
-        List<Long> values = parseCsvLongs(line);
+        List<Long> values = readCsvLongsFromUser();
         engine.loadInputVars(values);
 
         System.out.println(engine.runProgramExecutor());
@@ -67,8 +68,10 @@ public class Menu {
 
     private void cmdExpand() {
         engine.loadExpasion();
-        System.out.println("Max Degree is: "+ engine.getMaxDegree());
-        engine.getExpandedInstructions();
+        int maxDegree = engine.getMaxDegree();
+        System.out.println("Max Degree is: "+maxDegree);
+        int max = askIntInRange("Choose a degree between 0 and:" +maxDegree,0, maxDegree);
+        //engine.getExpandedInstructions();
     }
 
     private void cmdShowProgram() {
@@ -91,44 +94,87 @@ public class Menu {
     }
 
     private void cmdLoadXml() {
-        System.out.print("Enter full path to XML file: ");
-        String path = in.nextLine().trim();
+        // ננסה שוב ושוב עד הצלחה או ביטול
+        while (true) {
+            System.out.print("Enter full path to XML file (leave empty to cancel): ");
+            String raw = in.nextLine();
+            if (raw == null) raw = "";
+            String path = raw.trim();
 
-        if (!path.toLowerCase(Locale.ROOT).endsWith(".xml")) {
-            System.out.println("Error: file must end with .xml");
-            return;
-        }
-        File f = new File(path);
-        if (!f.exists() || !f.isFile()) {
-            System.out.println("Error: file does not exist or path is invalid.");
-            return;
-        }
-        Pattern englishPath = Pattern.compile("^[A-Za-z0-9_ .:/\\\\-]+$");
-        if (!englishPath.matcher(path).matches()) {
-            System.out.println("Error: path must contain English letters/digits (spaces allowed).");
-            return;
-        }
+            // ביטול
+            if (path.isEmpty()) {
+                System.out.println("Load cancelled.");
+                return;
+            }
 
-        this.engine = new Engine(f);
-        engine.setLoaded(true);
-        if (engine.getLoaded()) {
-            this.programDTO = engine.getProgramDTO();
-            System.out.println("✓ Program loaded successfully: " + programDTO.getProgramName());
-        } else {
-            System.out.println(f.toString()+"Invalid XML (application-wise).");
-            System.out.println("The previous valid program (if existed) remains active.");
+            // הסרת מירכאות עוטפות (Windows/CLI לפעמים מוסיף)
+            if ((path.startsWith("\"") && path.endsWith("\"")) ||
+                    (path.startsWith("'")  && path.endsWith("'"))) {
+                path = path.substring(1, path.length() - 1).trim();
+            }
+
+            // בדיקות בסיסיות על הנתיב
+            if (!path.toLowerCase(Locale.ROOT).endsWith(".xml")) {
+                System.out.println("Error: file must end with .xml (case-insensitive).");
+                continue;
+            }
+
+            // תווים באנגלית/ספרות/סימני נתיב/רווחים (כדרישת התרגיל)
+            Pattern englishPath = Pattern.compile("^[A-Za-z0-9_ .:/\\\\-]+$");
+            if (!englishPath.matcher(path).matches()) {
+                System.out.println("Error: path must contain only English letters/digits (spaces allowed).");
+                continue;
+            }
+
+            File f = new File(path);
+            if (!f.exists()) {
+                System.out.println("Error: file does not exist.");
+                continue;
+            }
+            if (!f.isFile()) {
+                System.out.println("Error: path is not a file.");
+                continue;
+            }
+            if (!f.canRead()) {
+                System.out.println("Error: file is not readable (permissions).");
+                continue;
+            }
+            if (f.length() == 0L) {
+                System.out.println("Error: file is empty.");
+                continue;
+            }
+            try {
+                Engine temp = new Engine(f);
+
+                if (temp.getLoaded()) {
+                    engine=new Engine(f);
+                    programDTO=engine.getProgramDTO();
+                    System.out.println("✓ Program loaded successfully: " + programDTO.getProgramName());
+                    return; // הצלחה
+                } else {
+                    System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.");
+                    continue;
+                }
+
+            } catch (Exception e) {
+                System.out.println("✗ Failed to load XML: " + e.getClass().getSimpleName() +
+                        (e.getMessage() != null ? " - " + e.getMessage() : ""));
+                System.out.println("The previous valid program (if existed) remains active.");
+                continue;
+            }
         }
     }
 
+
     private boolean ensureProgramLoaded() {
-        if (!engine.getLoaded()) {
+        if (engine == null || !engine.getLoaded() ) {
             System.out.println("No valid program is currently loaded.");
             return false;
         }
         return true;
     }
 
-    private int askIntInRange(String prompt, int min, int max) {
+    private int askIntInRange(String prompt,int min, int max) {
         while (true) {
             System.out.print(prompt);
             String s = in.nextLine().trim();
@@ -140,20 +186,44 @@ public class Menu {
         }
     }
 
-    public List<Long> parseCsvLongs(String raw) {
-        if (raw == null || raw.isBlank()) return null;
-        List<Long> out = new ArrayList<>();
-        for (String part : raw.split(",")) {
-            String t = part.trim();
-            if (t.isEmpty()) continue;
-            try {
-                out.add(Long.parseLong(t));   // אם אתה רוצה int: Integer.parseInt
-            } catch (NumberFormatException ignored) {
-                // אפשר גם להזהיר כאן: System.out.println("Warning: '" + t + "' is not a number");
+    private static final Pattern CSV_INTS_LINE =
+            Pattern.compile("^\\s*\\d+(\\s*,\\s*\\d+)*\\s*,?\\s*$");
+
+    private List<Long> readCsvLongsFromUser() {
+        while (true) {
+            System.out.print("Enter comma-separated integers (e.g., 1,2,3,): ");
+            String raw = in.nextLine();
+            if (raw == null) raw = "";
+            raw = raw.trim();
+
+            // בדיקת פורמט כללי (רק ספרות ופסיקים; רווחים מותר)
+            if (!CSV_INTS_LINE.matcher(raw).matches()) {
+                System.out.println("Invalid input. Use only integers separated by commas, e.g. 1,2,3,");
+                continue;
             }
+
+            // בשלב הזה הפורמט תקין; מפצל לפסיקים (רווחים ייחתכו)
+            String[] parts = raw.split("\\s*,\\s*"); // לא שומר אלמנט ריק מסיום בפסיק
+            List<Long> out = new ArrayList<>(parts.length);
+
+            boolean ok = true;
+            for (String p : parts) {
+                try {
+                    // כאן בטוח ספרות בלבד; עדיין עלול לזרוק אם חורג מטווח long
+                    out.add(Long.parseLong(p));
+                } catch (NumberFormatException ex) {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok) return out; // הצלחה
+
+            System.out.println("Invalid number detected. Please enter only 64-bit integers like: 1,2,3,");
         }
-        return out;
     }
+
+
 
 
 }

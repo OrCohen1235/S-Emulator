@@ -26,14 +26,20 @@ public class Engine {
     Expander expander;
 
 
-    public Engine(File file){
-         readSem = new ReadSemulatorXml(file);
-         program=new Program();
-         program.loadProgram(readSem);
-         programDTO=new ProgramDTO(program);
-         programExecutor=new ProgramExecutorImpl(program);
-         expansionContext=new ExpansionContext(program,1,getMaxLabelNumber()+1);
-         expander=new Expander(expansionContext);
+    public Engine(File file) {
+        try{
+        readSem = new ReadSemulatorXml(file);
+        isLoaded=true;
+    }
+        catch(Exception e){
+        }
+
+        program=new Program();
+        program.loadProgram(readSem);
+        programDTO=new ProgramDTO(program);
+        programExecutor=new ProgramExecutorImpl(program);
+        expansionContext=new ExpansionContext(program,1,getMaxLabelNumber()+1);
+        expander=new Expander(expansionContext);
     }
     public void getExpandedInstructions() {
 
