@@ -1,4 +1,4 @@
-package menu;
+package menu.context;
 
 import Logic.DTO.ProgramDTO;
 import engine.Engine;
@@ -12,7 +12,7 @@ public class AppContext {
     public Engine engine;
     public ProgramDTO programDTO;
     public int runDegreeATM = 0;
-    public final List<History> history = new ArrayList<>();
+    public final List<HistoryContext> historyContext = new ArrayList<>();
     public int historySize = 0;
 
     public AppContext(Scanner in) { this.in = in; }

@@ -1,6 +1,7 @@
 package menu;
 
 import menu.actions.*;
+import menu.context.AppContext;
 import menu.view.HistoryPrinter;
 import menu.view.MainMenuPrinter;
 import menu.view.ProgramPrinter;

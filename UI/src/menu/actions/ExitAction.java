@@ -1,6 +1,6 @@
 package menu.actions;
 
-import menu.AppContext;
+import menu.context.AppContext;
 
 public class ExitAction implements MenuAction {
     @Override public String label() { return "Exit"; }

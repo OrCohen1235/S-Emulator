@@ -1,7 +1,7 @@
 package menu.actions;
 
-import menu.AppContext;
-import menu.History;
+import menu.context.AppContext;
+import menu.context.HistoryContext;
 import util.InputHelper;
 
 import java.util.List;
@@ -36,15 +36,15 @@ public class RunAction implements MenuAction {
         );
         System.out.println("\nTotal Cycles: " + ctx.engine.getSumOfCycles());
 
-        History newHistory = new History();
-        newHistory.setxValues(values);
-        newHistory.setDegree(ctx.runDegreeATM);
-        newHistory.setFinalResult(finalResult);
-        newHistory.setFinalCycles(ctx.engine.getSumOfCycles());
-        newHistory.setNumberofPrograms(ctx.historySize + 1);
+        HistoryContext newHistoryContext = new HistoryContext();
+        newHistoryContext.setxValues(values);
+        newHistoryContext.setDegree(ctx.runDegreeATM);
+        newHistoryContext.setFinalResult(finalResult);
+        newHistoryContext.setFinalCycles(ctx.engine.getSumOfCycles());
+        newHistoryContext.setNumberofPrograms(ctx.historySize + 1);
 
 
-        ctx.history.add(newHistory);
+        ctx.historyContext.add(newHistoryContext);
         ctx.engine.ResetSumOfCycles();
         ctx.historySize++;
     }

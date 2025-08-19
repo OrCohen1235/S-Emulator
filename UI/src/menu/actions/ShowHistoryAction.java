@@ -1,6 +1,6 @@
 package menu.actions;
 
-import menu.AppContext;
+import menu.context.AppContext;
 import menu.view.HistoryPrinter;
 
 public class ShowHistoryAction implements MenuAction {
@@ -13,6 +13,6 @@ public class ShowHistoryAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        printer.printList(ctx.history);
+        printer.printList(ctx.historyContext);
     }
 }

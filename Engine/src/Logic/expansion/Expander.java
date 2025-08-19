@@ -103,8 +103,8 @@ public class Expander {
 
     private List<Instruction> expandJumpEqualsConstant(JumpEqualConstant instruction) {
         Variable v         = instruction.getVar();
-        Label    jumpLabel = instruction.getJeConstantLabel();  // L
-        Long     constantL = instruction.getConstantValue();    // K (נניח >= 0)
+        Label    jumpLabel = instruction.getJeConstantLabel(); 
+        Long     constantL = instruction.getConstantValue();
         Label    instrLbl  = instruction.getLabel();
 
         if (constantL == null || constantL < 0) {
@@ -113,11 +113,11 @@ public class Expander {
         long constant = constantL;
 
         Variable z1 = context.freshWork();
-        Label L1 = context.freshLabel();                        // not equal sink
+        Label L1 = context.freshLabel();
 
         List<Instruction> out = new ArrayList<>();
 
-        // z1 <- V    (נושא את התווית המקורית)
+        // z1 <- V
         out.add(new Assignment(program, z1, v, instrLbl));
 
         // K iterations: IF z1 = 0 GOTO L1; z1 <- z1 - 1
@@ -140,27 +140,27 @@ public class Expander {
 
 
     private List<Instruction> expandJumpEqualsVariable(JumpEqualVariable instruction) {
-        Variable v         = instruction.getVar();              // V
-        Variable v1        = instruction.getVariableName();     // V'
-        Label   instrLabel = instruction.getLabel();            // תווית המקור (אם יש)
-        Label   jumpLabel  = instruction.getJeVariableLabel();  // L (לאן לקפוץ אם שווים)
+        Variable v         = instruction.getVar();
+        Variable v1        = instruction.getVariableName();
+        Label   instrLabel = instruction.getLabel();
+        Label   jumpLabel  = instruction.getJeVariableLabel();
 
         Variable z1 = context.freshWork();
         Variable z2 = context.freshWork();
-        Label L1 = context.freshLabel();   // not-equal sink
-        Label L2 = context.freshLabel();   // loop start
-        Label L3 = context.freshLabel();   // check z2 after z1 reached 0
+        Label L1 = context.freshLabel();
+        Label L2 = context.freshLabel();
+        Label L3 = context.freshLabel();
 
         return List.of(
                 // z1 <- V, z2 <- V'
                 new Assignment(program, z1, v,  instrLabel),
                 new Assignment(program, z2, v1, FixedLabel.EMPTY),
 
-                // L2: IF z1 = 0 GOTO L3   (else: fall-through לשורה הבאה)
+                // L2: IF z1 = 0 GOTO L3
                 new Neutral(program, Variable.RESULT, L2),
                 new JumpZero(program, z1, L3, FixedLabel.EMPTY),
 
-                // IF z2 = 0 GOTO L1       (else: ממשיכים להפחתות)
+                // IF z2 = 0 GOTO L1
                 new JumpZero(program, z2, L1, FixedLabel.EMPTY),
 
                 // z1 <- z1 - 1 ; z2 <- z2 - 1 ; GOTO L2
@@ -172,7 +172,6 @@ public class Expander {
                 new Neutral(program, Variable.RESULT, L3),
                 new JumpZero(program, z2, jumpLabel, L1),
 
-                // L1: עוגן (no-op)
                 new Neutral(program, Variable.RESULT, L1)
         );
     }

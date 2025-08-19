@@ -1,8 +1,8 @@
-package menu;
+package menu.context;
 
 import java.util.List;
 
-public class History {
+public class HistoryContext {
     private int numberofPrograms;
     private int degree;
     private List<Long> xValues;

@@ -1,6 +1,6 @@
 package menu.view;
 
-import menu.AppContext;
+import menu.context.AppContext;
 
 public class MainMenuPrinter {
     public void print(AppContext ctx) {

@@ -1,6 +1,6 @@
 package menu.actions;
 
-import menu.AppContext;
+import menu.context.AppContext;
 
 public interface MenuAction {
     String label();

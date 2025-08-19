@@ -1,6 +1,6 @@
 package menu.actions;
 
-import menu.AppContext;
+import menu.context.AppContext;
 import menu.view.ProgramPrinter;
 
 import java.util.List;

@@ -1,16 +1,16 @@
 package menu.view;
 
-import menu.History;
+import menu.context.HistoryContext;
 
 import java.util.List;
 
 public class HistoryPrinter {
-    public void printList(List<History> history) {
-        if (history == null || history.isEmpty()) {
+    public void printList(List<HistoryContext> historyContext) {
+        if (historyContext == null || historyContext.isEmpty()) {
             System.out.println("No runs recorded for the current program.");
             return;
         }
-        for (History h : history) {
+        for (HistoryContext h : historyContext) {
             System.out.println("===== Run History Entry =====");
             System.out.println("Run #:      " + h.getNumberofPrograms());
             System.out.println("Degree:     " + h.getDegree());
