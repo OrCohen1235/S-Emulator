@@ -62,7 +62,7 @@ public class Program {
     public String getProgramName() { return nameOfProgram; }
 
     public List<Instruction> getInstructions() { return instructions; }
-    /** תאימות לשם הישן (עם השגיאת כתיב) */
+
     @Deprecated public List<Instruction> getInstrutions() { return getInstructions(); }
 
     public int getCountCycles() { return countCycles; }
@@ -149,6 +149,10 @@ public class Program {
 
     public void setY(Long value) {
         this.y.put(Variable.RESULT, value);
+    }
+
+    public void resetZMapVariables() {
+        zVariables.clear();
     }
 
     // ==================== Parsing S-Instruction -> Instruction ====================
@@ -241,4 +245,29 @@ public class Program {
         }
         return Integer.MAX_VALUE;
     }
+
+    public List<String> getLabels()
+    {
+        List<String> argsLabelsNames=new ArrayList<String>();
+        getInstructions().forEach(instr -> {
+            if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
+                argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
+            }
+        });
+        argsLabelsNames.add("EXIT");
+        return argsLabelsNames;
+    }
+
+    public List<String> getLabelsFromExpandList()
+    {
+        List<String> argsLabelsNames=new ArrayList<String>();
+        getExpandInstructionsByDegree().forEach(instr -> {
+            if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
+                argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
+            }
+        });
+        argsLabelsNames.add("EXIT");
+        return argsLabelsNames;
+    }
+
 }

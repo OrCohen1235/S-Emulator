@@ -29,7 +29,7 @@ public class Menu {
     public void run() {
         while (true) {
             mainMenuPrinter.print(ctx);
-            int choice = input.askIntInRange(ctx.in, "Choose an option (1-6): \n", 1, 6);
+            int choice = input.askIntInRange(ctx.getIn(), "Choose an option (1-6): \n", 1, 6);
             MenuAction action = actions.get(choice - 1);
 
             if (!action.enabled(ctx)) {

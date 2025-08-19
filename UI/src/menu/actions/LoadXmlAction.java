@@ -16,16 +16,16 @@ public class LoadXmlAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        String path = input.readValidXmlPathOrCancel(ctx.in);
+        String path = input.readValidXmlPathOrCancel(ctx.getIn());
         if (path == null) return;
 
         File f = new File(path);
         try {
             Engine temp = new Engine(f);
             if (temp.getLoaded()) {
-                ctx.engine = new Engine(f);
-                ctx.programDTO = ctx.engine.getProgramDTO();
-                System.out.println("✓ Program loaded successfully: " + ctx.programDTO.getProgramName());
+                ctx.setEngine(new Engine(f));
+                ctx.setProgramDTO(ctx.getEngine().getProgramDTO());
+                System.out.println("✓ Program loaded successfully: " + ctx.getProgramDTO().getProgramName());
             } else {
                 System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.");
             }

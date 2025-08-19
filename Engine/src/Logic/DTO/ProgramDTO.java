@@ -37,17 +37,23 @@ public class ProgramDTO {
         return new ArrayList<>(names);
     }
 
-    public List<String> getLabels()
-    {
-        List<String> argsLabelsNames=new ArrayList<String>();
-        program.getInstrutions().forEach(instr -> {
-            if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
-                argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
+
+    public List<String> getListOfExpandCommands(int degree) {
+        List<String> prints = new ArrayList<>();
+        List<Instruction> flattened = program.getExpandInstructionsByDegree();
+        int index = 0;
+        for (Instruction i : flattened) {
+            if (degree != 0) {
+                prints.add(getSingleCommandAndFather(index, i));
+            } else {
+                prints.add(getSingleCommand(index, i));
             }
-        });
-        argsLabelsNames.add("EXIT");
-        return argsLabelsNames;
+            index++;
+        }
+        return prints;
     }
+
+
     public List<String> getCommands(List<Instruction> listToPrint)
     {
         return getCommandsFromList(listToPrint);
@@ -86,6 +92,7 @@ public class ProgramDTO {
                     getSingleCommandAndFather(1+index,instr.getFather()), 1+index, type, label, command, cycles);
         }
     }
+
 
     public Map<String,Long> getVarsValues() {
         return program.getVariablesValues();

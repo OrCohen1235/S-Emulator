@@ -15,6 +15,6 @@ public class ShowHistoryAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        printer.printList(ctx.historyContext);
+        printer.printList(ctx.getHistoryContext());
     }
 }

@@ -2,6 +2,7 @@ package menu.actions;
 
 import menu.context.AppContext;
 import menu.context.HistoryContext;
+import menu.view.ProgramPrinter;
 import util.InputHelper;
 
 import java.util.List;
@@ -16,35 +17,37 @@ public class RunAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        ctx.engine.loadExpansion();
-        System.out.println("Max Degree is: " + ctx.engine.getMaxDegree());
-        ctx.runDegreeATM = input.askIntInRange(ctx.in, "Choose degree: ", 0, ctx.engine.getMaxDegree());
+        ctx.getEngine().loadExpansion();
+        System.out.println("Max Degree is: " + ctx.getEngine().getMaxDegree());
+        ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(), "Choose degree: ", 0, ctx.getEngine().getMaxDegree()));
 
-        if (ctx.runDegreeATM != 0) { ctx.engine.loadExpansionByDegree(ctx.runDegreeATM); }
+        if (ctx.getRunDegreeATM() != 0) { ctx.getEngine().loadExpansionByDegree(ctx.getRunDegreeATM()); }
 
-        ctx.programDTO.getVariables().forEach(variable ->
+        ctx.getProgramDTO().getVariables().forEach(variable ->
                 System.out.println("Variable: " + variable)
         );
 
-        List<Long> values = input.readCsvLongsFromUser(ctx.in);
-        ctx.engine.loadInputVars(values);
+        List<Long> values = input.readCsvLongsFromUser(ctx.getIn());
+        ctx.getEngine().loadInputVars(values);
 
-        Long finalResult = ctx.engine.runProgramExecutor(ctx.runDegreeATM);
-
-        ctx.programDTO.getVarsValues().forEach((name, val) ->
+        Long finalResult = ctx.getEngine().runProgramExecutor(ctx.getRunDegreeATM());
+        ShowProgramAction showProgramAction = new ShowProgramAction(new ProgramPrinter());
+        showProgramAction.execute(ctx);
+        ctx.getProgramDTO().getVarsValues().forEach((name, val) ->
                 System.out.println(name + " = " + val)
         );
-        System.out.println("\nTotal Cycles: " + ctx.engine.getSumOfCycles());
+        System.out.println("\nTotal Cycles: " + ctx.getEngine().getSumOfCycles());
 
         HistoryContext newHistoryContext = new HistoryContext();
         newHistoryContext.setxValues(values);
-        newHistoryContext.setDegree(ctx.runDegreeATM);
+        newHistoryContext.setDegree(ctx.getRunDegreeATM());
         newHistoryContext.setFinalResult(finalResult);
-        newHistoryContext.setFinalCycles(ctx.engine.getSumOfCycles());
-        newHistoryContext.setNumberofPrograms(ctx.historySize + 1);
+        newHistoryContext.setFinalCycles(ctx.getEngine().getSumOfCycles());
+        newHistoryContext.setNumberofPrograms(ctx.getHistorySize() + 1);
 
-        ctx.historyContext.add(newHistoryContext);
-        ctx.engine.ResetSumOfCycles();
-        ctx.historySize++;
+        ctx.getHistoryContext().add(newHistoryContext);
+        ctx.getEngine().resetZMapVariables();
+        ctx.getEngine().ResetSumOfCycles();
+        ctx.setHistorySize(ctx.getHistorySize() + 1);
     }
 }
