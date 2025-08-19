@@ -1,19 +1,13 @@
 package engine;
 
 import Logic.DTO.ProgramDTO;
-import Logic.Instructions.BInstruction.BaseInstruction;
-import Logic.Instructions.Instruction;
-import Logic.Instructions.SInstruction.SyntheticInstruction;
 import Logic.Program;
 import Logic.execution.ProgramExecutorImpl;
-import Logic.expansion.Expander;
-import Logic.expansion.ExpansionContext;
+import Logic.expansion.ExpanderExecute;
 import semulator.ReadSemulatorXml;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Engine {
 
@@ -23,8 +17,7 @@ public class Engine {
     private final ProgramDTO programDTO;
     private Boolean isLoaded = false;
     private final ProgramExecutorImpl programExecutor;
-    private ExpansionContext expansionContext;
-    private Expander expander;
+    private ExpanderExecute expanderExecute;
 
     // -------------------- Constructor --------------------
     public Engine(File file) {
@@ -41,8 +34,7 @@ public class Engine {
         programDTO = new ProgramDTO(program);
         programExecutor = new ProgramExecutorImpl(program);
 
-        // uses programDTO labels to compute next fresh label index
-
+        expanderExecute = new ExpanderExecute(program);
     }
 
     // -------------------- Basic accessors --------------------
@@ -63,16 +55,11 @@ public class Engine {
         program.loadInputVars(input);
     }
 
-    // -------------------- Expansion: compute degrees (full) --------------------
-    /** Computes expansion tree and degrees for all instructions (no list is returned). */
-
-
-
 
     // -------------------- Cycles --------------------
 
-    public int getSumOfCycles() {
-        return programExecutor.getSumOfCycles();
+    public ExpanderExecute getExpanderExecute() {
+        return expanderExecute;
     }
 
     /** Better name; keeps logic identical. */
@@ -88,8 +75,5 @@ public class Engine {
     /** Alias used elsewhere (e.g., Menu). */
     public void setSumOfCycles() { resetSumOfCycles(); }
 
-    public void resetZMapVariables() {
-        program.resetZMapVariables();
-    }
 
 }

@@ -45,7 +45,7 @@ public class HistoryContext {
         return numberOfProgram;
     }
 
-    public void setNumberofPrograms(int numberofPrograms) {
-        this.numberOfProgram = numberofPrograms;
+    public void setNumberOfPrograms(int numberOfPrograms) {
+        this.numberOfProgram = numberOfPrograms;
     }
 }

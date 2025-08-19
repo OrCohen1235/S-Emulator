@@ -1,5 +1,6 @@
 package menu;
 
+import Logic.DTO.EngineDTO;
 import menu.actions.*;
 import menu.context.AppContext;
 import menu.view.HistoryPrinter;

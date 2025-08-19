@@ -17,10 +17,14 @@ public class ProgramDTO {
 
     public ProgramDTO(Program program) {
         this.program = program;
-
     }
+
     public String getProgramName() {
         return program.getNameOfProgram();
+    }
+
+    public List<String> getLabels() {
+        return program.getLabels();
     }
 
     public List<String> getVariables() {
@@ -93,8 +97,15 @@ public class ProgramDTO {
         }
     }
 
-
     public Map<String,Long> getVarsValues() {
         return program.getVariablesValues();
+    }
+
+    public int getNumOfCycles() {
+        return program.getCountCycles();
+    }
+
+    public void resetZMapVariables() {
+        program.resetZMapVariables();
     }
 }

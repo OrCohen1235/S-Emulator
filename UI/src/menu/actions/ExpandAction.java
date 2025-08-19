@@ -16,13 +16,13 @@ public class ExpandAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        ctx.getEngine().loadExpansion();
-        int maxDegree = ctx.getEngine().getMaxDegree();
+        ctx.getEngineDTO().loadExpansion();
+        int maxDegree = ctx.getEngineDTO().getMaxDegree();
         System.out.println("Max Degree is: " + maxDegree);
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(),
                 "Choose a degree between 0 and" + maxDegree + ":", 0, maxDegree));
 
-        List<String> resultExpandCommands = ctx.getEngine().getListOfExpandCommands(ctx.getRunDegreeATM());
+        List<String> resultExpandCommands = ctx.getProgramDTO().getListOfExpandCommands(ctx.getRunDegreeATM());
         System.out.println("Expand commands:");
         for (String s : resultExpandCommands) System.out.println(s);
     }

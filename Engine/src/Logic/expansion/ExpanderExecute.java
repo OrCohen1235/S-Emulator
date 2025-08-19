@@ -3,7 +3,6 @@ package Logic.expansion;
 import Logic.Instructions.Instruction;
 import Logic.Instructions.SInstruction.SyntheticInstruction;
 import Logic.Program;
-import engine.Engine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,6 @@ public class ExpanderExecute {
         expander = new Expander(expansionContext);
     }
 
-
-
     public void loadExpansion() {
         loadFullExpansion(program.getInstrutions());
     }
@@ -37,23 +34,22 @@ public class ExpanderExecute {
                 }
                 loadFullExpansion(lst);
                 if (instruction instanceof SyntheticInstruction) {
-                    instruction.setDegree(getMaxDegreeRecursive(lst) + 1);
+                    instruction.setDegree(calcMaxDegree(lst) + 1);
                 }
             }
         }
     }
 
     // -------------------- Expansion: by degree (build linear list) --------------------
-    public List<Instruction> loadExpansionByDegree(int degree) {
+    public void loadExpansionByDegree(int degree) {
         List<Instruction> out = new ArrayList<>();
         for (Instruction instruction : program.getInstrutions()) {
-            expandLimited(instruction, degree, out);
+            expandWithLimitedDegree(instruction, degree, out);
         }
         program.setExpandInstructionsByDegree(out);
-        return out;
     }
 
-    private void expandLimited(Instruction instruction, int remaining, List<Instruction> out) {
+    private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out) {
         boolean isSynthetic = instruction instanceof SyntheticInstruction;
 
         if (remaining == 0 || !isSynthetic) {
@@ -64,7 +60,7 @@ public class ExpanderExecute {
         List<Instruction> children = expander.expand(instruction);
         for (Instruction child : children) {
             child.setFather(instruction);
-            expandLimited(child, remaining - 1, out);
+            expandWithLimitedDegree(child, remaining - 1, out);
         }
 
         if (isSynthetic) {
@@ -80,12 +76,12 @@ public class ExpanderExecute {
 
     //we dont use getMaxDegree() and we have getMaxDegreeRecursive(), do we need both of them?
     public int getMaxDegree() {
-        int max = getMaxDegreeRecursive(program.getInstrutions());
+        int max = calcMaxDegree(program.getInstrutions());
         program.setMaxDegree(max);
         return max;
     }
 
-    private int getMaxDegreeRecursive(List<Instruction> instList) {
+    private int calcMaxDegree(List<Instruction> instList) {
         int maxDegree = 0;
         for (Instruction inst : instList) {
             if (maxDegree < inst.getDegree()) {
@@ -108,6 +104,4 @@ public class ExpanderExecute {
                 .max()
                 .orElse(0);
     }
-
-
 }

@@ -1,5 +1,7 @@
 package menu.actions;
 
+import Logic.DTO.EngineDTO;
+import Logic.DTO.ProgramDTO;
 import engine.Engine;
 import menu.context.AppContext;
 import util.InputHelper;
@@ -21,16 +23,17 @@ public class LoadXmlAction implements MenuAction {
 
         File f = new File(path);
         try {
-            Engine temp = new Engine(f);
+            EngineDTO temp = new EngineDTO(f);
             if (temp.getLoaded()) {
-                ctx.setEngine(new Engine(f));
-                ctx.setProgramDTO(ctx.getEngine().getProgramDTO());
+                EngineDTO currentEngineDTO = new EngineDTO(f);
+                ctx.setEngineDTO(currentEngineDTO);
+                ctx.setProgramDTO(currentEngineDTO.getProgramDTO());
                 System.out.println("✓ Program loaded successfully: " + ctx.getProgramDTO().getProgramName());
             } else {
                 System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.");
             }
         } catch (Exception e) {
-            System.out.println("✗ Failed to load XML: " + e.getClass().getSimpleName() +
+            System.out.println("Failed to load XML: " + e.getClass().getSimpleName() +
                     (e.getMessage() != null ? " - " + e.getMessage() : ""));
             System.out.println("The previous valid program (if existed) remains active.");
         }

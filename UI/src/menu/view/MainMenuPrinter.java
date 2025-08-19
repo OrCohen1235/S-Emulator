@@ -5,6 +5,7 @@ import menu.context.AppContext;
 public class MainMenuPrinter {
     public void print(AppContext ctx) {
         boolean hasProgram = ctx.hasProgram();
+
         System.out.println("=====================================");
         System.out.println("Menu:");
         System.out.println("1) Load XML");

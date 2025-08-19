@@ -1,5 +1,6 @@
 package menu.context;
 
+import Logic.DTO.EngineDTO;
 import Logic.DTO.ProgramDTO;
 import engine.Engine;
 
@@ -10,7 +11,7 @@ import java.util.Scanner;
 
 public class AppContext {
     private final Scanner in;
-    private Engine engine;
+    private EngineDTO engineDTO;
     private ProgramDTO programDTO;
     private int runDegreeATM = 0; //what is runDegreeATM?
     private final List<HistoryContext> historyContext = new ArrayList<>();
@@ -18,26 +19,34 @@ public class AppContext {
 
     public AppContext(Scanner in) { this.in = in; }
 
-    public boolean hasProgram() { return engine != null && engine.getLoaded(); }
+    public boolean hasProgram() {
+        if (engineDTO == null){
+            return false;
+        }
+        return engineDTO.getLoaded(); }
 
     public Scanner getIn() {
         return in;
     }
 
-    public Engine getEngine() {
-        return engine;
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
+    public void setEngine(EngineDTO engine) {
+        this.engineDTO = engine;
     }
 
     public ProgramDTO getProgramDTO() {
         return programDTO;
     }
 
+    public EngineDTO getEngineDTO() {
+        return engineDTO;
+    }
+
     public void setProgramDTO(ProgramDTO programDTO) {
         this.programDTO = programDTO;
+    }
+
+    public void setEngineDTO(EngineDTO engineDTO) {
+        this.engineDTO = engineDTO;
     }
 
     public int getRunDegreeATM() {
