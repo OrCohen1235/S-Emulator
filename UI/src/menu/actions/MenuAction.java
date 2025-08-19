@@ -3,7 +3,7 @@ package menu.actions;
 import menu.context.AppContext;
 
 public interface MenuAction {
-    String label();
+    String title();
     boolean enabled(AppContext ctx);
     void execute(AppContext ctx);
 }

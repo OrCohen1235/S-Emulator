@@ -12,7 +12,7 @@ public class HistoryPrinter {
         }
         for (HistoryContext h : historyContext) {
             System.out.println("===== Run History Entry =====");
-            System.out.println("Run #:      " + h.getNumberofPrograms());
+            System.out.println("Run #:      " + h.getNumberOfProgram()); 
             System.out.println("Degree:     " + h.getDegree());
             System.out.println("Inputs:     " + formatInputs(h.getxValues()));
             System.out.println("y (result): " + (h.getFinalResult() == null ? "null" : h.getFinalResult()));

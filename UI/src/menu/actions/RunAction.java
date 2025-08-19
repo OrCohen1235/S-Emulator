@@ -11,7 +11,7 @@ public class RunAction implements MenuAction {
 
     public RunAction(InputHelper input) { this.input = input; }
 
-    @Override public String label() { return "Run program"; }
+    @Override public String title() { return "Run program"; }
     @Override public boolean enabled(AppContext ctx) { return ctx.hasProgram(); }
 
     @Override
@@ -32,7 +32,7 @@ public class RunAction implements MenuAction {
         Long finalResult = ctx.engine.runProgramExecutor(ctx.runDegreeATM);
 
         ctx.programDTO.getVarsValues().forEach((name, val) ->
-                System.out.println("Variable: " + name + " = " + val)
+                System.out.println(name + " = " + val)
         );
         System.out.println("\nTotal Cycles: " + ctx.engine.getSumOfCycles());
 
@@ -42,7 +42,6 @@ public class RunAction implements MenuAction {
         newHistoryContext.setFinalResult(finalResult);
         newHistoryContext.setFinalCycles(ctx.engine.getSumOfCycles());
         newHistoryContext.setNumberofPrograms(ctx.historySize + 1);
-
 
         ctx.historyContext.add(newHistoryContext);
         ctx.engine.ResetSumOfCycles();

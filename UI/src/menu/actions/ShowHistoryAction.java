@@ -8,8 +8,10 @@ public class ShowHistoryAction implements MenuAction {
 
     public ShowHistoryAction(HistoryPrinter printer) { this.printer = printer; }
 
-    @Override public String label() { return "Show history"; }
+    @Override public String title() { return "Show history"; }
+
     @Override public boolean enabled(AppContext ctx) { return ctx.hasProgram(); }
+    // we can show the history without running the program?
 
     @Override
     public void execute(AppContext ctx) {

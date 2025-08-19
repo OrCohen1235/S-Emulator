@@ -3,7 +3,8 @@ package menu.actions;
 import menu.context.AppContext;
 
 public class ExitAction implements MenuAction {
-    @Override public String label() { return "Exit"; }
+    @Override public String title() { return "Exit"; }
+
     @Override public boolean enabled(AppContext ctx) { return true; }
 
     @Override

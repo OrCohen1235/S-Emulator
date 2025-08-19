@@ -11,7 +11,7 @@ public class LoadXmlAction implements MenuAction {
 
     public LoadXmlAction(InputHelper input) { this.input = input; }
 
-    @Override public String label() { return "Load XML"; }
+    @Override public String title() { return "Load XML"; }
     @Override public boolean enabled(AppContext ctx) { return true; }
 
     @Override

@@ -7,14 +7,12 @@ import Logic.Instructions.BInstruction.Neutral;
 import Logic.Instructions.Instruction;
 import Logic.Instructions.InstructionData;
 import Logic.Instructions.SInstruction.*;
-import Logic.expansion.Expander;
 import Logic.label.Label;
 import Logic.label.LabelImpl;
 import Logic.variable.Variable;
 import Logic.variable.VariableImpl;
 import Logic.variable.VariableType;
 import semulator.ReadSemulatorXml;
-import semulator.SInstruction;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -31,7 +29,7 @@ public class Program {
 
     private int countCycles = 0;
 
-    private List<Instruction> expansionByDegree = new ArrayList<Instruction>();
+    private List<Instruction> expandInstructionsByDegree = new ArrayList<Instruction>();
     private int maxDegree = 0;
 
     // ==================== Load / Init ====================
@@ -72,13 +70,13 @@ public class Program {
     public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; }
 
     // ==================== Expansion (flattened list) ====================
-    public List<Instruction> getExpansionByDegree() {
-        return expansionByDegree;
+    public List<Instruction> getExpandInstructionsByDegree() {
+        return expandInstructionsByDegree;
     }
 
-    public void setExpansionByDegree(List<Instruction> instructions) {
-        this.expansionByDegree.clear();
-        this.expansionByDegree.addAll(instructions);
+    public void setExpandInstructionsByDegree(List<Instruction> instructions) {
+        this.expandInstructionsByDegree.clear();
+        this.expandInstructionsByDegree.addAll(instructions);
     }
 
     public Instruction getInstruction(int index) {
@@ -86,7 +84,7 @@ public class Program {
     }
 
     public Instruction getInstructionByDegree(int index) {
-        return expansionByDegree.get(index);
+        return expandInstructionsByDegree.get(index);
     }
 
     // ==================== Lookups by label / index ====================
@@ -98,7 +96,7 @@ public class Program {
     }
 
     public Instruction getInstructionByLabelFromDegreeList(Label label) {
-        return expansionByDegree.stream()
+        return expandInstructionsByDegree.stream()
                 .filter(inst -> label.equals(inst.getLabel()))
                 .findFirst()
                 .orElse(null);
@@ -111,7 +109,7 @@ public class Program {
     @Deprecated public int getIndexInstruction(Instruction inst) { return indexOfInstruction(inst); }
 
     public int indexOfInstructionInDegree(Instruction inst) {
-        int index = expansionByDegree.indexOf(inst);
+        int index = expandInstructionsByDegree.indexOf(inst);
         if (index == -1) {
             System.err.println("WARNING: Instruction " + inst + " not found in expansion by " + nameOfProgram);
         }

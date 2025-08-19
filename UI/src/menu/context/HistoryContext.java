@@ -3,7 +3,7 @@ package menu.context;
 import java.util.List;
 
 public class HistoryContext {
-    private int numberofPrograms;
+    private int numberOfProgram;
     private int degree;
     private List<Long> xValues;
     private Long finalResult;
@@ -41,11 +41,11 @@ public class HistoryContext {
         this.finalCycles = finalCycles;
     }
 
-    public int getNumberofPrograms() {
-        return numberofPrograms;
+    public int getNumberOfProgram() {
+        return numberOfProgram;
     }
 
     public void setNumberofPrograms(int numberofPrograms) {
-        this.numberofPrograms = numberofPrograms;
+        this.numberOfProgram = numberofPrograms;
     }
 }

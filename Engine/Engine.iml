@@ -20,5 +20,6 @@
         <jarDirectory url="file://$USER_HOME$/Downloads/jaxb-ri-4.0.5/jaxb-ri-4.0.5/mod" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="jakarta.activation-api" level="project" />
   </component>
 </module>

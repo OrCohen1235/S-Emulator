@@ -8,7 +8,7 @@ import Logic.label.Label;
 import java.awt.*;
 import java.util.Objects;
 
-public class ProgramExecutorImpl{
+public class ProgramExecutorImpl {
 
     private final Program program;
     private int sumOfCycles;
@@ -69,7 +69,5 @@ public class ProgramExecutorImpl{
 
         return program.getY();
     }
-
-
 
 }

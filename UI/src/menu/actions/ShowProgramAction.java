@@ -10,7 +10,8 @@ public class ShowProgramAction implements MenuAction {
 
     public ShowProgramAction(ProgramPrinter printer) { this.printer = printer; }
 
-    @Override public String label() { return "Show program"; }
+    @Override public String title() { return "Show program"; }
+
     @Override public boolean enabled(AppContext ctx) { return ctx.hasProgram(); }
 
     @Override

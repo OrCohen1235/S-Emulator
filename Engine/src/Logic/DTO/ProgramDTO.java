@@ -37,9 +37,6 @@ public class ProgramDTO {
         return new ArrayList<>(names);
     }
 
-
-
-
     public List<String> getLabels()
     {
         List<String> argsLabelsNames=new ArrayList<String>();
