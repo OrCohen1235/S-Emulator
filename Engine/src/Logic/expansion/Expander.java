@@ -103,7 +103,7 @@ public class Expander {
 
     private List<Instruction> expandJumpEqualsConstant(JumpEqualConstant instruction) {
         Variable v         = instruction.getVar();
-        Label    jumpLabel = instruction.getJeConstantLabel(); 
+        Label    jumpLabel = instruction.getJeConstantLabel();
         Long     constantL = instruction.getConstantValue();
         Label    instrLbl  = instruction.getLabel();
 
