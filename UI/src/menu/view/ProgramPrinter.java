@@ -1,0 +1,20 @@
+package menu.view;
+
+import Logic.DTO.ProgramDTO;
+
+import java.util.List;
+
+public class ProgramPrinter {
+    public void printProgram(ProgramDTO dto, List<String> expandedCommands) {
+        System.out.println("ProgramName: \n" + dto.getProgramName());
+
+        System.out.println("\nVariables: ");
+        dto.getVariables().forEach(System.out::println);
+
+        System.out.println("\nLabels: ");
+        dto.getLabels().forEach(System.out::println);
+
+        System.out.println("Expand commands:");
+        for (String line : expandedCommands) System.out.println(line);
+    }
+}

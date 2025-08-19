@@ -1,0 +1,38 @@
+package menu.actions;
+
+import engine.Engine;
+import menu.AppContext;
+import util.InputHelper;
+
+import java.io.File;
+
+public class LoadXmlAction implements MenuAction {
+    private final InputHelper input;
+
+    public LoadXmlAction(InputHelper input) { this.input = input; }
+
+    @Override public String label() { return "Load XML"; }
+    @Override public boolean enabled(AppContext ctx) { return true; }
+
+    @Override
+    public void execute(AppContext ctx) {
+        String path = input.readValidXmlPathOrCancel(ctx.in);
+        if (path == null) return;
+
+        File f = new File(path);
+        try {
+            Engine temp = new Engine(f);
+            if (temp.getLoaded()) {
+                ctx.engine = new Engine(f);
+                ctx.programDTO = ctx.engine.getProgramDTO();
+                System.out.println("✓ Program loaded successfully: " + ctx.programDTO.getProgramName());
+            } else {
+                System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.");
+            }
+        } catch (Exception e) {
+            System.out.println("✗ Failed to load XML: " + e.getClass().getSimpleName() +
+                    (e.getMessage() != null ? " - " + e.getMessage() : ""));
+            System.out.println("The previous valid program (if existed) remains active.");
+        }
+    }
+}

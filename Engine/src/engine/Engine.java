@@ -1,7 +1,6 @@
 package engine;
 
 import Logic.DTO.ProgramDTO;
-import Logic.Instructions.BInstruction.BaseInstruction;
 import Logic.Instructions.Instruction;
 import Logic.Instructions.SInstruction.SyntheticInstruction;
 import Logic.Program;
@@ -15,141 +14,79 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static java.util.Arrays.stream;
-
 public class Engine {
+
+    // -------------------- Fields --------------------
     private ReadSemulatorXml readSem;
     private final Program program;
     private final ProgramDTO programDTO;
-    private Boolean isLoaded=false;
+    private Boolean isLoaded = false;
     private final ProgramExecutorImpl programExecutor;
     private ExpansionContext expansionContext;
     Expander expander;
 
-
+    // -------------------- Constructor --------------------
     public Engine(File file) {
-        try{
-        readSem = new ReadSemulatorXml(file);
-        isLoaded=true;
-    }
-        catch(Exception e){
+        try {
+            readSem = new ReadSemulatorXml(file);
+            isLoaded = true;
+        } catch (Exception e) {
+            // intentionally swallowed per original logic
         }
 
-        program=new Program();
+        program = new Program();
         program.loadProgram(readSem);
-        programDTO=new ProgramDTO(program);
-        programExecutor=new ProgramExecutorImpl(program);
-        expansionContext=new ExpansionContext(program,1,getMaxLabelNumber()+1);
-        expander=new Expander(expansionContext);
-    }
-    public void getExpandedInstructions() {
 
-        List<Instruction> lst = expander.expand(program.getInstruction(0));
-        for (Instruction i : lst) {
-            System.out.println("\n"+i.getCommand());
-        }
+        programDTO = new ProgramDTO(program);
+        programExecutor = new ProgramExecutorImpl(program);
 
-        List<Instruction> lst1 = expander.expand(program.getInstruction(1));
-        for (Instruction j : lst1) {
-            System.out.println("\n"+j.getCommand());
-        }
-    }
-    public int getMaxLabelNumber() {
-        return programDTO.getLabels().stream()                 // או printLabels() אם זה השם אצלך
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(lbl -> !"EXIT".equalsIgnoreCase(lbl))
-                .filter(lbl -> lbl.startsWith("L")
-                        && lbl.length() > 1
-                        && lbl.substring(1).chars().allMatch(Character::isDigit))
-                .mapToInt(lbl -> Integer.parseInt(lbl.substring(1)))
-                .max()
-                .orElse(0);
+        // uses programDTO labels to compute next fresh label index
+        expansionContext = new ExpansionContext(program, 1, getMaxLabelNumber() + 1);
+        expander = new Expander(expansionContext);
     }
 
+    // -------------------- Basic accessors --------------------
+    public Boolean getLoaded() { return isLoaded; }
+    public void setLoaded(Boolean isLoaded) { this.isLoaded = isLoaded; }
+    public ProgramDTO getProgramDTO() { return programDTO; }
 
-    public Boolean getLoaded() {
-        return isLoaded;
-    }
-    public void setLoaded(Boolean isLoaded) {
-        this.isLoaded = isLoaded;
-    }
-
-    public ProgramDTO getProgramDTO() {
-        return programDTO;
-    }
-
-    public Long runProgramExecutor(int degree){
+    // -------------------- Run / Inputs --------------------
+    public Long runProgramExecutor(int degree) {
         if (degree == 0) {
             return programExecutor.run();
-        }
-        else {
+        } else {
             return programExecutor.runByDegree();
         }
     }
-    public void loadInputVars(List<Long> input){
+
+    public void loadInputVars(List<Long> input) {
         program.loadInputVars(input);
     }
 
-    public void loadExpansion(){
+    // -------------------- Expansion: compute degrees (full) --------------------
+    /** Computes expansion tree and degrees for all instructions (no list is returned). */
+    public void loadExpansion() {
         loadExpansionRecursive(program.getInstrutions());
     }
-    private void loadExpansionRecursive(List<Instruction> ListOfexpansion)
-    {
-        if (ListOfexpansion.size()== 1) {
-        }
-        else {
-            for (Instruction i : ListOfexpansion) {
-                    List<Instruction> lst = expander.expand(i);
-                    for (Instruction j : lst) {
-                        j.setFather(i);
-                    }
-                    loadExpansionRecursive(lst);
-                    if (i instanceof SyntheticInstruction) {
-                        i.setDegree(getMaxDegreeRecursive(lst) + 1);
-                    }
+
+    private void loadExpansionRecursive(List<Instruction> listOfExpansion) {
+        if (listOfExpansion.size() == 1) {
+            // no-op (per original logic)
+        } else {
+            for (Instruction i : listOfExpansion) {
+                List<Instruction> lst = expander.expand(i);
+                for (Instruction j : lst) {
+                    j.setFather(i);
+                }
+                loadExpansionRecursive(lst);
+                if (i instanceof SyntheticInstruction) {
+                    i.setDegree(getMaxDegreeRecursive(lst) + 1);
                 }
             }
-    }
-
-
-
-
-    public int getMaxDegree()
-    {
-        int max = getMaxDegreeRecursive(program.getInstrutions());
-        program.setMaxDegree(max);
-        return max;
-    }
-    private int getMaxDegreeRecursive(List<Instruction> instList)
-    {
-        int maxDegree = 0 ;
-        for (Instruction inst : instList){
-            if (maxDegree<inst.getDegree()){
-                maxDegree = inst.getDegree();
-            }
         }
-        return maxDegree;
     }
 
-
-    public List<String> getListOfExpandCommands(int degree){
-        List<String> getPrintsValues = new ArrayList<>();
-        List<Instruction> returnlst = new ArrayList<>();
-       returnlst = loadExpansionByDegree(degree);
-       int index=0;
-        for (Instruction i : returnlst) {
-            if (degree!= 0 ) {
-                getPrintsValues.add(programDTO.getSingleCommandAndFather(index, i));
-            }
-            else {
-                getPrintsValues.add(programDTO.getSingleCommand(index, i));
-            }
-            index++;
-        }
-        return getPrintsValues;
-    }
-
+    // -------------------- Expansion: by degree (build linear list) --------------------
     public List<Instruction> loadExpansionByDegree(int degree) {
         int target = Math.max(0, degree);
         List<Instruction> out = new ArrayList<>();
@@ -183,15 +120,66 @@ public class Engine {
         }
     }
 
+    // -------------------- Expansion: queries (max degree, label max, pretty print) --------------------
+    public int getMaxDegree() {
+        int max = getMaxDegreeRecursive(program.getInstrutions());
+        program.setMaxDegree(max);
+        return max;
+    }
+
+    private int getMaxDegreeRecursive(List<Instruction> instList) {
+        int maxDegree = 0;
+        for (Instruction inst : instList) {
+            if (maxDegree < inst.getDegree()) {
+                maxDegree = inst.getDegree();
+            }
+        }
+        return maxDegree;
+    }
+
+    public int getMaxLabelNumber() {
+        return programDTO.getLabels().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(lbl -> !"EXIT".equalsIgnoreCase(lbl))
+                .filter(lbl -> lbl.startsWith("L")
+                        && lbl.length() > 1
+                        && lbl.substring(1).chars().allMatch(Character::isDigit))
+                .mapToInt(lbl -> Integer.parseInt(lbl.substring(1)))
+                .max()
+                .orElse(0);
+    }
+
+    public List<String> getListOfExpandCommands(int degree) {
+        List<String> prints = new ArrayList<>();
+        List<Instruction> flattened = loadExpansionByDegree(degree);
+        int index = 0;
+        for (Instruction i : flattened) {
+            if (degree != 0) {
+                prints.add(programDTO.getSingleCommandAndFather(index, i));
+            } else {
+                prints.add(programDTO.getSingleCommand(index, i));
+            }
+            index++;
+        }
+        return prints;
+    }
+
+    // -------------------- Cycles --------------------
     public int getSumOfCycles() {
         return programExecutor.getSumOfCycles();
     }
 
-    public void setSumOfCycles()
-    {
+    /** Better name; keeps logic identical. */
+    public void resetSumOfCycles() {
         programExecutor.setSumOfCycles(0);
     }
 
+    // ---- Backwards-compat wrappers (do not change logic) ----
+    /** Legacy name kept for compatibility. */
+    @Deprecated
+    public void ResetSumOfCycles() { resetSumOfCycles(); }
 
-
+    /** Alias used elsewhere (e.g., Menu). */
+    public void setSumOfCycles() { resetSumOfCycles(); }
 }
