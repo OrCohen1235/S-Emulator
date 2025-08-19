@@ -4,7 +4,6 @@ import Logic.DTO.ProgramDTO;
 import engine.Engine;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -15,8 +14,12 @@ public class Menu {
     private final Scanner in = new Scanner(System.in);
     private Engine engine;
     private ProgramDTO programDTO;
+    private int runDegreeATM=0;
+    private List<History> history=new ArrayList<>();
+    private int historySize=0;
 
     public Menu() {}
+
     private void printMainMenu(boolean hasProgram) {
         System.out.println("=====================================");
         System.out.println("Menu:");
@@ -31,7 +34,7 @@ public class Menu {
     public void run() {
         boolean hasProgram = false;
         do {
-            printMainMenu(hasProgram); // אפשר לשקול להעביר כאן engine.getLoaded()
+            printMainMenu(hasProgram);
             int choice = askIntInRange("Choose an option (1-6): \n",1,6);
 
             switch (choice) {
@@ -47,31 +50,89 @@ public class Menu {
         } while (true);
     }
 
+    // inside Menu (or any UI class)
     private void cmdHistory() {
-        System.out.println("History:");
+        if (history == null) {
+            System.out.println("No history to show.");
+            return;
+        }
+        System.out.println("===== Run History Entry =====");
+        for (History h : history) {
+            System.out.println("Run #:     " + h.getNumberofPrograms());
+            System.out.println("Degree:    " + h.getDegree());
+            System.out.println("Inputs:    " + formatInputs(h.getxValues()));
+            System.out.println("y (result): " + (h.getFinalResult() == null ? "null" : h.getFinalResult()));
+            System.out.println("Cycles:    " + h.getFinalCycles());
+            System.out.println("=============================");
+        }
     }
 
-    private void cmdRun() {
-        engine.loadExpasion();
-        System.out.println("Max Degree is: "+ engine.getMaxDegree());
+    // helper to format the inputs list as CSV
+    private static String formatInputs(java.util.List<Long> xs) {
+        if (xs == null || xs.isEmpty()) return "[]";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < xs.size(); i++) {
+            if (i > 0) sb.append(',');
+            Long v = xs.get(i);
+            sb.append(v == null ? "null" : v.toString());
+        }
+        return sb.toString();
+    }
 
+
+    private void cmdRun() {
+        engine.loadExpansion();
+        System.out.println("Max Degree is: "+ engine.getMaxDegree());
+        runDegreeATM=askIntInRange("Choose degree: ",0,engine.getMaxDegree());
+        History newHistory = new History();
+
+        if (runDegreeATM!=0){engine.loadExpansionByDegree(runDegreeATM);}
         programDTO.getVariables().forEach(variable -> {
             System.out.println("Variable: " + variable);
         });
-        System.out.print("Enter comma-separated numbers: ");
-        String line = in.nextLine();
+
         List<Long> values = readCsvLongsFromUser();
+
+
         engine.loadInputVars(values);
 
-        System.out.println(engine.runProgramExecutor());
+        Long finalResult=engine.runProgramExecutor(runDegreeATM);
+
+        programDTO.getVarsValues().forEach((name, val) ->
+                System.out.println("Variable: " + name + " = " + val)
+        );
+        System.out.println("\nTotal Cycles: " + engine.getSumOfCycles());
+
+
+        newHistory.setxValues(values);
+        newHistory.setDegree(runDegreeATM);
+        newHistory.setFinalResult(finalResult);
+
+        newHistory.setFinalCycles(engine.getSumOfCycles());
+
+        newHistory.setNumberofPrograms(historySize+1);
+        history.add(newHistory);
+        engine.setSumOfCycles();
+        historySize++;
     }
 
     private void cmdExpand() {
-        engine.loadExpasion();
+        engine.loadExpansion();
         int maxDegree = engine.getMaxDegree();
         System.out.println("Max Degree is: "+maxDegree);
-        int max = askIntInRange("Choose a degree between 0 and:" +maxDegree,0, maxDegree);
-        //engine.getExpandedInstructions();
+        runDegreeATM = askIntInRange("Choose a degree between 0 and:" +maxDegree,0, maxDegree);
+
+       List<String> resultExpandCommands = engine.getListOfExpandCommands(runDegreeATM);
+       printResultExpandsCommands(resultExpandCommands);
+
+    }
+
+    private void printResultExpandsCommands(List<String> lstExpandCommands) {
+        System.out.println("Expand commands:");
+        for (String expandCommand : lstExpandCommands) {
+            System.out.println(expandCommand);
+        }
+
     }
 
     private void cmdShowProgram() {
@@ -86,40 +147,34 @@ public class Menu {
         for (String outLable : outLables) {
             System.out.println(outLable);
         }
-        List<String> outCommands=programDTO.getCommands();
-        System.out.println("\nCommands: ");
-        for (String outCommand : outCommands) {
-            System.out.println(outCommand);
-        }
+        List<String> resultExpandCommands = engine.getListOfExpandCommands(runDegreeATM);
+        printResultExpandsCommands(resultExpandCommands);
+
+        //System.out.println("\nSumOfCycles: "+history.getLast().getFinalCycles());
     }
 
     private void cmdLoadXml() {
-        // ננסה שוב ושוב עד הצלחה או ביטול
         while (true) {
             System.out.print("Enter full path to XML file (leave empty to cancel): ");
             String raw = in.nextLine();
             if (raw == null) raw = "";
             String path = raw.trim();
 
-            // ביטול
             if (path.isEmpty()) {
                 System.out.println("Load cancelled.");
                 return;
             }
 
-            // הסרת מירכאות עוטפות (Windows/CLI לפעמים מוסיף)
             if ((path.startsWith("\"") && path.endsWith("\"")) ||
                     (path.startsWith("'")  && path.endsWith("'"))) {
                 path = path.substring(1, path.length() - 1).trim();
             }
 
-            // בדיקות בסיסיות על הנתיב
             if (!path.toLowerCase(Locale.ROOT).endsWith(".xml")) {
                 System.out.println("Error: file must end with .xml (case-insensitive).");
                 continue;
             }
 
-            // תווים באנגלית/ספרות/סימני נתיב/רווחים (כדרישת התרגיל)
             Pattern englishPath = Pattern.compile("^[A-Za-z0-9_ .:/\\\\-]+$");
             if (!englishPath.matcher(path).matches()) {
                 System.out.println("Error: path must contain only English letters/digits (spaces allowed).");
@@ -218,7 +273,6 @@ public class Menu {
             }
 
             if (ok) return out; // הצלחה
-
             System.out.println("Invalid number detected. Please enter only 64-bit integers like: 1,2,3,");
         }
     }

@@ -1,6 +1,7 @@
 package Logic.DTO;
 
 import Logic.Instructions.BInstruction.BaseInstruction;
+import Logic.Instructions.Instruction;
 import Logic.Instructions.SInstruction.SyntheticInstruction;
 import Logic.Program;
 import Logic.label.Label;
@@ -50,22 +51,46 @@ public class ProgramDTO {
         argsLabelsNames.add("EXIT");
         return argsLabelsNames;
     }
+    public List<String> getCommands(List<Instruction> listToPrint)
+    {
+        return getCommandsFromList(listToPrint);
+    }
 
-    public List<String> getCommands() {
-        int numberOfCommands = program.getInstrutions().size();
+    public List<String> getCommandsFromList(List<Instruction> instrList) {
+        int numberOfCommands = instrList.size();
         List<String> commands = new ArrayList<>(numberOfCommands);
         for (int number =0; number < numberOfCommands; number++) {
-            String type = (program.getInstrutions().get(number) instanceof BaseInstruction) ? "B" : "S";
-            String label = program.getInstrutions().get(number).getLabel().getLabelRepresentation();
-            String command = program.getInstrutions().get(number).getCommand();
-            int cycles = program.getInstrutions().get(number).getCycles();
-            String result = String.format("#%d (%s) [%-3.5s] %s (%d)",
-                    number+1, type, label, command, cycles);
+            String result = getSingleCommandAndFather(number, instrList.get(number));
             commands.add(result);
         }
         return commands;
     }
 
+    public String getSingleCommand(int index,Instruction instr) {
+        String type = instr instanceof BaseInstruction ? "B" : "S";
+        String label = instr.getLabel().getLabelRepresentation();
+        String command = instr.getCommand();
+        int cycles = instr.getCycles();
+        return String.format("#%d (%s) [%-3.5s] %s (%d)",
+                index+1, type, label, command, cycles);
 
+    }
+    public String getSingleCommandAndFather(int index,Instruction instr) {
+        String type = instr instanceof BaseInstruction ? "B" : "S";
+        String label = instr.getLabel().getLabelRepresentation();
+        String command = instr.getCommand();
+        int cycles = instr.getCycles();
+        if (instr.getFather() == null) {
+            return String.format("#%d (%s) [%-3.5s] %s (%d)",
+                    index+1, type, label, command, cycles);
+        }
+        else {
+            return String.format("%s <<< #%d (%s) [%-3.5s] %s (%d)  ",
+                    getSingleCommandAndFather(1+index,instr.getFather()), 1+index, type, label, command, cycles);
+        }
+    }
 
+    public Map<String,Long> getVarsValues() {
+        return program.getVariablesValues();
+    }
 }

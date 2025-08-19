@@ -34,6 +34,7 @@ public class JumpNotZero extends Instruction implements BaseInstruction {
 
     @Override
     public Label calculateInstruction() {
+        Long check = super.getVarValueFromMap();
         return Optional.ofNullable(super.getVarValueFromMap()).
                 filter(v -> v != 0L).
                 map(v ->jnzlabel).
@@ -43,4 +44,5 @@ public class JumpNotZero extends Instruction implements BaseInstruction {
     public String getCommand() {
         return "IF " +super.getVar().getRepresentation()+ " != 0 " +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
+
 }

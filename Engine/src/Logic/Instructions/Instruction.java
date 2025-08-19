@@ -10,6 +10,7 @@ public abstract class Instruction {
     private Variable var;
     private final Label label;
     private int degree;
+    private Instruction father=null;
 
     public Instruction(Program program, InstructionData instructionData, Variable var,Label label) {
         this.program = program;
@@ -41,6 +42,14 @@ public abstract class Instruction {
 
     public int getDegree() {
         return degree;
+    }
+
+    public Instruction getFather() {
+        return father;
+    }
+
+    public void setFather(Instruction father) {
+        this.father = father;
     }
 
     public Label getLabel() {

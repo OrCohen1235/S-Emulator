@@ -102,53 +102,81 @@ public class Expander {
     }
 
     private List<Instruction> expandJumpEqualsConstant(JumpEqualConstant instruction) {
-        Variable v = instruction.getVar();
-        Label jumpLabel = instruction.getJeConstantLabel();
-        Long constant = instruction.getConstantValue();
-        Label instructionLabel = instruction.getLabel();
-        Variable z1 = context.freshWork();
-        Label L1 = context.freshLabel();
+        Variable v         = instruction.getVar();
+        Label    jumpLabel = instruction.getJeConstantLabel();  // L
+        Long     constantL = instruction.getConstantValue();    // K (נניח >= 0)
+        Label    instrLbl  = instruction.getLabel();
 
+        if (constantL == null || constantL < 0) {
+            throw new IllegalArgumentException("Constant must be non-negative");
+        }
+        long constant = constantL;
+
+        Variable z1 = context.freshWork();
+        Label L1 = context.freshLabel();                        // not equal sink
 
         List<Instruction> out = new ArrayList<>();
-        out.add(new Assignment(program, z1, v, instructionLabel));
 
-        LongStream.range(0, constant)
-                .boxed()
-                .flatMap(i -> Stream.of(
-                        new JumpZero( program, z1, L1, FixedLabel.EMPTY),
-                        new Decrease(program, z1, FixedLabel.EMPTY)
-                ))
-                .forEach(out::add);
+        // z1 <- V    (נושא את התווית המקורית)
+        out.add(new Assignment(program, z1, v, instrLbl));
 
-        out.add(new  JumpNotZero(program, z1, L1, FixedLabel.EMPTY));
+        // K iterations: IF z1 = 0 GOTO L1; z1 <- z1 - 1
+        for (long i = 0; i < constant; i++) {
+            out.add(new JumpZero(program, z1, L1, FixedLabel.EMPTY));
+            out.add(new Decrease(program, z1, FixedLabel.EMPTY));
+        }
+
+        // After loop: IF z1 != 0 GOTO L1
+        out.add(new JumpNotZero(program, z1, L1, FixedLabel.EMPTY));
+
+        // equal → GOTO L
         out.add(new GotoLabel(program, jumpLabel, FixedLabel.EMPTY));
+
+        // L1: anchor (not equal)
         out.add(new Neutral(program, Variable.RESULT, L1));
 
         return out;
     }
 
-    private List<Instruction> expandJumpEqualsVariable(JumpEqualVariable instruction) {
-        Variable v = instruction.getVar();
-        Label instructionLabel = instruction.getLabel();
-        Variable v1 = instruction.getVariableName();
-        Label jumpLabel = instruction.getJeVariableLabel();
-        Variable z1 = context.freshWork(), z2 = context.freshWork();
-        Label L1 = context.freshLabel(), L2 = context.freshLabel(), L3 = context.freshLabel();
 
+    private List<Instruction> expandJumpEqualsVariable(JumpEqualVariable instruction) {
+        Variable v         = instruction.getVar();              // V
+        Variable v1        = instruction.getVariableName();     // V'
+        Label   instrLabel = instruction.getLabel();            // תווית המקור (אם יש)
+        Label   jumpLabel  = instruction.getJeVariableLabel();  // L (לאן לקפוץ אם שווים)
+
+        Variable z1 = context.freshWork();
+        Variable z2 = context.freshWork();
+        Label L1 = context.freshLabel();   // not-equal sink
+        Label L2 = context.freshLabel();   // loop start
+        Label L3 = context.freshLabel();   // check z2 after z1 reached 0
 
         return List.of(
-                new Assignment(program, z1, v, instructionLabel),
+                // z1 <- V, z2 <- V'
+                new Assignment(program, z1, v,  instrLabel),
                 new Assignment(program, z2, v1, FixedLabel.EMPTY),
-                new JumpZero(program, z1, L3, L2),
+
+                // L2: IF z1 = 0 GOTO L3   (else: fall-through לשורה הבאה)
+                new Neutral(program, Variable.RESULT, L2),
+                new JumpZero(program, z1, L3, FixedLabel.EMPTY),
+
+                // IF z2 = 0 GOTO L1       (else: ממשיכים להפחתות)
                 new JumpZero(program, z2, L1, FixedLabel.EMPTY),
+
+                // z1 <- z1 - 1 ; z2 <- z2 - 1 ; GOTO L2
                 new Decrease(program, z1, FixedLabel.EMPTY),
                 new Decrease(program, z2, FixedLabel.EMPTY),
                 new GotoLabel(program, L2, FixedLabel.EMPTY),
-                new JumpZero(program, z2, jumpLabel, L3),
+
+                // L3: IF z2 = 0 GOTO L (equal) else GOTO L1 (not equal)
+                new Neutral(program, Variable.RESULT, L3),
+                new JumpZero(program, z2, jumpLabel, L1),
+
+                // L1: עוגן (no-op)
                 new Neutral(program, Variable.RESULT, L1)
         );
     }
+
 
     private List<Instruction> expandJumpZero(JumpZero instruction) {
         Variable v = instruction.getVar();
@@ -172,7 +200,7 @@ public class Expander {
         Label L1 = Optional.ofNullable(instructionLabel)
                 .filter(l -> {
                     String t = l.getLabelRepresentation();
-                    return t.matches("(?i)L\\d+") && Integer.parseInt(t.substring(1)) > 1;
+                    return t.matches("(?i)L\\d+") && Integer.parseInt(t.substring(1)) >= 1;
                 }).orElseGet(context::freshLabel);
 
         return List.of(
@@ -180,8 +208,5 @@ public class Expander {
                 new JumpNotZero(program, v, L1)
         );
     }
-
-
-
 
 }
