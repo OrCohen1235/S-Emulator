@@ -26,7 +26,11 @@ public class RunAction implements MenuAction {
         System.out.println("Max Degree is: " + engineDTO.getMaxDegree());
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(), "Choose degree: ", 0, engineDTO.getMaxDegree()));
 
-        if (ctx.getRunDegreeATM() != 0) { engineDTO.loadExpansionByDegree(ctx.getRunDegreeATM()); }
+        if (ctx.getRunDegreeATM() != 0) {
+            ctx.getEngineDTO().loadExpansionByDegree(ctx.getRunDegreeATM());
+            ctx.getProgramDTO().setProgramViewToExpanded();
+        }
+
 
         programDTO.getVariables().forEach(variable ->
                 System.out.println("Variable: " + variable)

@@ -2,7 +2,7 @@ package Logic.expansion;
 
 import Logic.Instructions.Instruction;
 import Logic.Instructions.SInstruction.SyntheticInstruction;
-import Logic.Program;
+import Program.Program;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class ExpanderExecute {
     }
 
     public void loadExpansion() {
-        loadFullExpansion(program.getInstrutions());
+        loadFullExpansion(program.getInstructions());
     }
 
     private void loadFullExpansion(List<Instruction> listOfExpansion) {
@@ -44,7 +44,7 @@ public class ExpanderExecute {
     public void loadExpansionByDegree(int degree) {
         List<Instruction> out = new ArrayList<>();
         int fatherindex=1;
-        for (Instruction instruction : program.getInstrutions()) {
+        for (Instruction instruction : program.getInstructions()) {
             expandWithLimitedDegree(instruction, degree, out,fatherindex);
             fatherindex++;
         }
@@ -78,7 +78,7 @@ public class ExpanderExecute {
 
     //we dont use getMaxDegree() and we have getMaxDegreeRecursive(), do we need both of them?
     public int getMaxDegree() {
-        int max = calcMaxDegree(program.getInstrutions());
+        int max = calcMaxDegree(program.getInstructions());
         program.setMaxDegree(max);
         return max;
     }

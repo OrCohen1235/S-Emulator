@@ -2,17 +2,13 @@ package Logic.DTO;
 
 import Logic.Instructions.BInstruction.BaseInstruction;
 import Logic.Instructions.Instruction;
-import Logic.Instructions.SInstruction.SyntheticInstruction;
-import Logic.Program;
-import Logic.label.Label;
-import Logic.variable.Variable;
+import Program.Program;
 import Logic.variable.VariableType;
-import semulator.ReadSemulatorXml;
 
-import java.io.File;
 import java.util.*;
 
 public class ProgramDTO {
+
     private Program program;
 
     public ProgramDTO(Program program) {
@@ -30,7 +26,7 @@ public class ProgramDTO {
 
     public List<String> getVariables() {
         Set<String> names = new LinkedHashSet<>();
-        program.getInstrutions().forEach(instr -> {
+        program.getInstructions().forEach(instr -> {
             var v = instr.getVar();
             if (v != null && v.getType() == VariableType.INPUT) {
                 String rep = v.getRepresentation();
@@ -43,19 +39,15 @@ public class ProgramDTO {
     }
 
 
-    public List<String> getListOfExpandCommands(int degree) {
+    public List<String> getListOfExpandCommands() {
         List<String> prints = new ArrayList<>();
         List<Instruction> flattened;
-        if (degree == 0 ) {
-            flattened=program.getInstrutions();
-        }
-        else {
-            flattened = program.getExpandInstructionsByDegree();
-        }
+
+        flattened = program.view().list();
         int index = 1;
         int fatherIndex=1;
         for (Instruction i : flattened) {
-            if (degree != 0) {
+            if (program.getMode() == "EXPANDED" ) {
                 prints.add(getSingleCommandAndFather(index, i,i.getIndexFatherLocation()));
             } else {
                 prints.add(getSingleCommand(index, i));
@@ -66,8 +58,7 @@ public class ProgramDTO {
     }
 
 
-    public List<String> getCommands(List<Instruction> listToPrint)
-    {
+    public List<String> getCommands(List<Instruction> listToPrint) {
         return getCommandsFromList(listToPrint);
     }
 
@@ -112,5 +103,13 @@ public class ProgramDTO {
 
     public void resetZMapVariables() {
         program.resetMapVariables();
+    }
+
+    public void setProgramViewToOriginal(){
+        program.useOriginalView();
+    }
+
+    public void setProgramViewToExpanded(){
+        program.useExpandedView();
     }
 }

@@ -1,6 +1,6 @@
 package Logic.Instructions.BInstruction;
 import Logic.Instructions.Instruction;
-import Logic.Program;
+import Program.Program;
 import Logic.Instructions.InstructionData;
 import Logic.label.FixedLabel;
 import Logic.label.Label;

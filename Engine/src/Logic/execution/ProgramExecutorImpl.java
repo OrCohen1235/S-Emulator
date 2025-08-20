@@ -1,11 +1,10 @@
 package Logic.execution;
 
 import Logic.Instructions.Instruction;
-import Logic.Program;
+import Program.Program;
 import Logic.label.*;
 import Logic.label.Label;
 
-import java.awt.*;
 import java.util.Objects;
 
 public class ProgramExecutorImpl {
@@ -30,7 +29,7 @@ public class ProgramExecutorImpl {
         int index =0;
         Label nextLabel;
         do {
-            Instruction currentInstruction = program.getInstruction(index);
+            Instruction currentInstruction = program.getActiveInstruction(index);
             sumOfCycles += currentInstruction.getCycles();
             nextLabel = currentInstruction.calculateInstruction();
 
@@ -38,8 +37,8 @@ public class ProgramExecutorImpl {
                 index++;
             }
             else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
-                currentInstruction = program.getInstructionByLabel(nextLabel);
-                index = program.getIndexInstruction(currentInstruction);
+                currentInstruction = program.getInstructionByLabelActive(nextLabel);
+                index = program.GetIndexByInstruction(currentInstruction);
             }
             else
                 break;
@@ -48,26 +47,26 @@ public class ProgramExecutorImpl {
         return program.getY();
     }
 
-    public long runByDegree(Long... input) {
-        int index =0;
-        Label nextLabel;
-        do {
-            Instruction currentInstruction = program.getInstructionByDegree(index);
-            sumOfCycles += currentInstruction.getCycles();
-            nextLabel = currentInstruction.calculateInstruction();
-
-            if (nextLabel == FixedLabel.EMPTY) {
-                index++;
-            }
-            else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
-                currentInstruction = program.getInstructionByLabelFromDegreeList(nextLabel);
-                index = program.getIndexInstructionByDegree(currentInstruction);
-            }
-            else
-                break;
-        } while (nextLabel != FixedLabel.EXIT);
-
-        return program.getY();
-    }
+//    public long runByDegree(Long... input) {
+//        int index =0;
+//        Label nextLabel;
+//        do {
+//            Instruction currentInstruction = program.getInstructionByDegree(index);
+//            sumOfCycles += currentInstruction.getCycles();
+//            nextLabel = currentInstruction.calculateInstruction();
+//
+//            if (nextLabel == FixedLabel.EMPTY) {
+//                index++;
+//            }
+//            else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
+//                currentInstruction = program.getInstructionByLabelFromDegreeList(nextLabel);
+//                index = program.getIndexInstructionByDegree(currentInstruction);
+//            }
+//            else
+//                break;
+//        } while (nextLabel != FixedLabel.EXIT);
+//
+//        return program.getY();
+//    }
 
 }

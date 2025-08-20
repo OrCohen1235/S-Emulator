@@ -1,6 +1,6 @@
 package Logic.Instructions;
 
-import Logic.Program;
+import Program.Program;
 import Logic.label.Label;
 import Logic.variable.Variable;
 
@@ -71,24 +71,24 @@ public abstract class Instruction {
 
     public Long getVarValueFromMap() {
         return switch (var.getType()) {
-            case INPUT -> program.getXVirablesFromMap(this.var);
-            case WORK -> program.getZVirablesFromMap(this.var);
+            case INPUT -> program.getXVariablesFromMap(this.var);
+            case WORK -> program.getZVariablesFromMap(this.var);
             case RESULT -> program.getY();
         };
     }
 
     public Long getVariableValueFromMap(Variable variable) {
         return switch (variable.getType()) {
-            case INPUT -> program.getXVirablesFromMap(variable);
-            case WORK -> program.getZVirablesFromMap(variable);
+            case INPUT -> program.getXVariablesFromMap(variable);
+            case WORK -> program.getZVariablesFromMap(variable);
             case RESULT -> program.getY();
         };
     }
 
     public void setVarValueInMap(long newValToSet) {
           switch (var.getType()) {
-              case INPUT     -> this.program.setxVirablesToMap(this.var,newValToSet);
-              case WORK     -> this.program.setzVirablesToMap(this.var,newValToSet);
+              case INPUT     -> this.program.setXVariablesToMap(this.var,newValToSet);
+              case WORK     -> this.program.setZVariablesToMap(this.var,newValToSet);
               case RESULT     -> this.program.setY(newValToSet);
         };
     }

@@ -21,8 +21,12 @@ public class ExpandAction implements MenuAction {
         System.out.println("Max Degree is: " + maxDegree);
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(),
                 "Choose a degree between 0 and" + maxDegree + ":", 0, maxDegree));
+        if (ctx.getRunDegreeATM() > 0) {
+            ctx.getEngineDTO().loadExpansionByDegree(ctx.getRunDegreeATM());
+            ctx.getProgramDTO().setProgramViewToExpanded();
+        }
 
-        List<String> resultExpandCommands = ctx.getProgramDTO().getListOfExpandCommands(ctx.getRunDegreeATM());
+        List<String> resultExpandCommands = ctx.getProgramDTO().getListOfExpandCommands();
         System.out.println("Expand commands:");
         for (String s : resultExpandCommands) System.out.println(s);
     }

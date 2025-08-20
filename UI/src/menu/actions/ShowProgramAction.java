@@ -16,7 +16,7 @@ public class ShowProgramAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        List<String> expanded = ctx.getProgramDTO().getListOfExpandCommands(ctx.getRunDegreeATM());
+        List<String> expanded = ctx.getProgramDTO().getListOfExpandCommands();
         printer.printProgram(ctx.getProgramDTO(), expanded);
     }
 }

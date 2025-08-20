@@ -1,15 +1,9 @@
 import Logic.DTO.ProgramDTO;
-import Logic.Instructions.BInstruction.BaseInstruction;
-import Logic.Instructions.Instruction;
-import Logic.Program;
+import Program.Program;
 import Logic.execution.ProgramExecutorImpl;
-import Logic.expansion.Expander;
-import Logic.expansion.ExpansionContext;
 import semulator.ReadSemulatorXml;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 

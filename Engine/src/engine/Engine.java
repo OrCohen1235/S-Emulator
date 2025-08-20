@@ -1,7 +1,7 @@
 package engine;
 
 import Logic.DTO.ProgramDTO;
-import Logic.Program;
+import Program.Program;
 import Logic.execution.ProgramExecutorImpl;
 import Logic.expansion.ExpanderExecute;
 import semulator.ReadSemulatorXml;
@@ -44,11 +44,7 @@ public class Engine {
 
     // -------------------- Run / Inputs --------------------
     public Long runProgramExecutor(int degree) {
-        if (degree == 0) {
-            return programExecutor.run();
-        } else {
-            return programExecutor.runByDegree();
-        }
+        return programExecutor.run();
     }
 
     public void loadInputVars(List<Long> input) {

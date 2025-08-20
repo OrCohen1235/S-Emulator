@@ -6,7 +6,7 @@ import Logic.Instructions.BInstruction.JumpNotZero;
 import Logic.Instructions.BInstruction.Neutral;
 import Logic.Instructions.Instruction;
 import Logic.Instructions.SInstruction.*;
-import Logic.Program;
+import Program.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;
@@ -14,8 +14,6 @@ import Logic.variable.Variable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 public class Expander {
 

@@ -2,7 +2,7 @@ package Logic.Instructions.SInstruction;
 
 import Logic.Instructions.Instruction;
 import Logic.Instructions.InstructionData;
-import Logic.Program;
+import Program.Program;
 import Logic.label.FixedLabel;
 import Logic.label.Label;
 import Logic.variable.Variable;

@@ -1,4 +1,4 @@
-package Logic;
+package Program;
 
 import Logic.Instructions.BInstruction.Decrease;
 import Logic.Instructions.BInstruction.Increase;
@@ -33,6 +33,36 @@ public class Program {
     private List<Instruction> expandInstructionsByDegree = new ArrayList<Instruction>();
     private int maxDegree = 0;
 
+    private final ProgramView views =
+            new ProgramView(() -> instructions, () -> expandInstructionsByDegree);
+
+    public void useOriginalView() { views.useOriginal(); }
+    public void useExpandedView() { views.useExpanded(); }
+    public ProgramView.InstructionsView view() { return views.active(); }
+
+    public String getMode(){
+        if (views.mode() == ProgramView.Mode.ORIGINAL) {
+            return "ORIGINAL";
+        }
+        else if (views.mode() == ProgramView.Mode.EXPANDED) {
+            return "EXPANDED";
+        }
+        return "";
+    }
+
+    public Instruction getActiveInstruction(int index) {
+        return view().getInstructionByIndex(index);
+    }
+    public int GetIndexByInstruction(Instruction inst) {
+        return view().getIndexByInstruction(inst);
+    }
+    public Instruction getInstructionByLabelActive(Label label) {
+        return view().getInstructionByLabel(label);
+    }
+
+
+
+
     // ==================== Load / Init ====================
     public void loadProgram(ReadSemulatorXml read) {
         nameOfProgram = read.getProgramName();
@@ -59,13 +89,8 @@ public class Program {
 
     // ==================== Basic getters/setters ====================
     public String getNameOfProgram() { return nameOfProgram; }
-    /** שם ברור יותר; שומר תאימות למי שמשתמש בשם הישן */
-    public String getProgramName() { return nameOfProgram; }
 
     public List<Instruction> getInstructions() { return instructions; }
-
-    @Deprecated public List<Instruction> getInstrutions() { return getInstructions(); }
-
 
     public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; }
 
@@ -88,60 +113,23 @@ public class Program {
     }
 
     // ==================== Lookups by label / index ====================
-    public Instruction getInstructionByLabel(Label label) {
-        return instructions.stream()
-                .filter(inst -> label.equals(inst.getLabel()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public Instruction getInstructionByLabelFromDegreeList(Label label) {
-        return expandInstructionsByDegree.stream()
-                .filter(inst -> label.equals(inst.getLabel()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public int indexOfInstruction(Instruction inst) {
-        return instructions.indexOf(inst);
-    }
-    /** תאימות לשם הישן */
-    @Deprecated public int getIndexInstruction(Instruction inst) { return indexOfInstruction(inst); }
-
-    public int indexOfInstructionInDegree(Instruction inst) {
-        int index = expandInstructionsByDegree.indexOf(inst);
-        if (index == -1) {
-            System.err.println("WARNING: Instruction " + inst + " not found in expansion by " + nameOfProgram);
-        }
-        return index;
-    }
-    /** תאימות לשם הישן */
-    @Deprecated public int getIndexInstructionByDegree(Instruction inst) { return indexOfInstructionInDegree(inst); }
 
     // ==================== Variables (get/set) ====================
     public Long getXVariablesFromMap(Variable key) {
         return xVariables.computeIfAbsent(key, k -> 0L);
     }
-    /** תאימות לשם הישן (שגיאת כתיב) */
-    @Deprecated public Long getXVirablesFromMap(Variable key) { return getXVariablesFromMap(key); }
 
     public Long getZVariablesFromMap(Variable key) {
         return zVariables.computeIfAbsent(key, k -> 0L);
     }
-    /** תאימות לשם הישן (שגיאת כתיב) */
-    @Deprecated public Long getZVirablesFromMap(Variable key) { return getZVariablesFromMap(key); }
 
     public void setXVariablesToMap(Variable keyVal, Long returnVal) {
         xVariables.put(keyVal, returnVal);
     }
-    /** תאימות לשם הישן (שגיאת כתיב) */
-    @Deprecated public void setxVirablesToMap(Variable keyVal, Long returnVal) { setXVariablesToMap(keyVal, returnVal); }
 
     public void setZVariablesToMap(Variable keyVal, Long returnVal) {
         zVariables.put(keyVal, returnVal);
     }
-    /** תאימות לשם הישן (שגיאת כתיב) */
-    @Deprecated public void setzVirablesToMap(Variable keyVal, Long returnVal) { setZVariablesToMap(keyVal, returnVal); }
 
     public Long getY() {
         return y.get(Variable.RESULT);
@@ -247,26 +235,17 @@ public class Program {
         return Integer.MAX_VALUE;
     }
 
-    public List<String> getLabels()
-    {
-        List<String> argsLabelsNames=new ArrayList<String>();
-        if (expandInstructionsByDegree.size() == 0) {
-            instructions.forEach(instr -> {
-                if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
-                    argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
-                }
-            });
-        }
-        else {
-            expandInstructionsByDegree.forEach(instr -> {
-                if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
-                    argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
-                }
-            });
-        }
-
-        return sortLabelsByNumber(argsLabelsNames);
+    public List<String> getLabels() {
+        List<String> names = new ArrayList<>();
+        view().stream().forEach(instr -> {
+            String lab = instr.getLabel().getLabelRepresentation();
+            if (lab != null && !lab.isEmpty() && !"EXIT".equalsIgnoreCase(lab)) {
+                names.add(lab);
+            }
+        });
+        return sortLabelsByNumber(names);
     }
+
 
 
     public static List<String> sortLabelsByNumber(List<String> labels) {

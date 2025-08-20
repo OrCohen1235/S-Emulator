@@ -1,6 +1,6 @@
 package Logic.expansion;
 
-import Logic.Program;
+import Program.Program;
 import Logic.label.Label;
 import Logic.label.LabelImpl;
 import Logic.variable.Variable;
