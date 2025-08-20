@@ -2,6 +2,7 @@ package engine;
 
 import Logic.DTO.ProgramDTO;
 import Program.Program;
+import Program.ProgramLoadException;
 import Logic.execution.ProgramExecutorImpl;
 import Logic.expansion.ExpanderExecute;
 import semulator.ReadSemulatorXml;
@@ -23,9 +24,13 @@ public class Engine {
     public Engine(File file) {
         try {
             readSem = new ReadSemulatorXml(file);
-            isLoaded = true;
+            if (!readSem.checkLabelValidity()){
+                throw new ProgramLoadException("Label validation failed");
+            } else {
+                isLoaded = true;
+            }
         } catch (Exception e) {
-            // intentionally swallowed per original logic
+            throw e;
         }
 
         program = new Program();

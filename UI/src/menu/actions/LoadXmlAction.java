@@ -2,6 +2,7 @@ package menu.actions;
 
 import Logic.DTO.EngineDTO;
 import Logic.DTO.ProgramDTO;
+import Program.ProgramLoadException;
 import engine.Engine;
 import menu.context.AppContext;
 import util.InputHelper;
@@ -30,8 +31,10 @@ public class LoadXmlAction implements MenuAction {
                 ctx.setProgramDTO(currentEngineDTO.getProgramDTO());
                 System.out.println("✓ Program loaded successfully: " + ctx.getProgramDTO().getProgramName());
             } else {
-                System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.");
+                System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.\n");
             }
+        } catch (ProgramLoadException e){
+            System.out.println(e.getMessage() + "\n");
         } catch (Exception e) {
             System.out.println("Failed to load XML: " + e.getClass().getSimpleName() +
                     (e.getMessage() != null ? " - " + e.getMessage() : ""));

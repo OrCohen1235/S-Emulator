@@ -24,12 +24,9 @@ public class Program {
     // ==================== Fields ====================
     private String nameOfProgram;
     private List<Instruction> instructions = new ArrayList<Instruction>();
-
     private Map<Variable, Long> xVariables = new LinkedHashMap();
     private Map<Variable, Long> zVariables = new LinkedHashMap();
-    private Map<Variable, Long> y         = new LinkedHashMap();
-
-
+    private Map<Variable, Long> y          = new LinkedHashMap();
     private List<Instruction> expandInstructionsByDegree = new ArrayList<Instruction>();
     private int maxDegree = 0;
 
@@ -37,7 +34,9 @@ public class Program {
             new ProgramView(() -> instructions, () -> expandInstructionsByDegree);
 
     public void useOriginalView() { views.useOriginal(); }
+
     public void useExpandedView() { views.useExpanded(); }
+
     public ProgramView.InstructionsView view() { return views.active(); }
 
     public String getMode(){
@@ -53,33 +52,64 @@ public class Program {
     public Instruction getActiveInstruction(int index) {
         return view().getInstructionByIndex(index);
     }
+
     public int GetIndexByInstruction(Instruction inst) {
         return view().getIndexByInstruction(inst);
     }
+
     public Instruction getInstructionByLabelActive(Label label) {
         return view().getInstructionByLabel(label);
     }
 
 
-
-
     // ==================== Load / Init ====================
     public void loadProgram(ReadSemulatorXml read) {
-        nameOfProgram = read.getProgramName();
+        Objects.requireNonNull(read, "ReadSemulatorXml must not be null");
 
+        try {
+            nameOfProgram = Objects.requireNonNull(read.getProgramName(), "Program name must not be null");
+
+            var sInstructions = Objects.requireNonNull(
+                    read.getSInstructionList(),
+                    "S-instruction list must not be null"
+            );
+
+        try{
         instructions.addAll(
                 read.getSInstructionList().stream()
                         .map(this::createInstruction)
                         .toList()
         );
+        } catch (ProgramLoadException e) {
+            throw new ProgramLoadException(e.getMessage());
+        }
+
         y.put(Variable.RESULT, 0L);
+
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ProgramLoadException("Failed to load program '" + read.getProgramName() + "': " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            throw new ProgramLoadException("Unexpected error while loading program '" + read.getProgramName() + "'", e);
+        }
     }
 
     public void loadInputVars(List<Long> varsInput) {
+        Objects.requireNonNull(varsInput, "varsInput must not be null");
+
         IntStream.range(0, varsInput.size())
                 .forEach(i -> {
+                    Long v = Objects.requireNonNull(varsInput.get(i),
+                            "Input variable at index " + i + " is null");
+
+                    if (v < 0) {
+                        throw new IllegalArgumentException(
+                                "Input variable x" + (i + 1) +
+                                        " must be 0 or a natural number, but was " + v
+                        );
+                    }
+
                     Variable x = new VariableImpl(VariableType.INPUT, i + 1);
-                    xVariables.put(x, varsInput.get(i));
+                    xVariables.put(x, v);
                 });
     }
 
@@ -167,6 +197,7 @@ public class Program {
                 .map(LabelImpl::new)
                 .orElse(new LabelImpl("EMPTY"));
 
+        try {
         return switch (InstructionData.fromName(inst.getName())) {
             case INCREASE -> new Increase(this, newVar, newLabel);
             case DECREASE -> new Decrease(this, newVar, newLabel);
@@ -204,6 +235,9 @@ public class Program {
                 yield new JumpEqualVariable(this, newVar, jumpLabel, variable, newLabel);
             }
         };
+        } catch (IllegalArgumentException e) {
+            throw new ProgramLoadException("Failed to load program '" + inst.getName() + "': " + e.getMessage(), e);
+        }
     }
 
     // ==================== Aggregated variables view ====================
@@ -246,8 +280,6 @@ public class Program {
         return sortLabelsByNumber(names);
     }
 
-
-
     public static List<String> sortLabelsByNumber(List<String> labels) {
         List<String> sorted = new ArrayList<>(labels);
         final Pattern LABEL = Pattern.compile("^L(\\d+)$", Pattern.CASE_INSENSITIVE);
@@ -261,7 +293,4 @@ public class Program {
         sorted.add("EXIT");
         return sorted;
     }
-
-
-
 }

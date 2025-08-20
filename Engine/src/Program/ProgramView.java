@@ -4,6 +4,7 @@ import Logic.Instructions.Instruction;
 import Logic.label.Label;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -32,27 +33,74 @@ public final class ProgramView {
         Instruction getInstructionByLabel(Label label);
         int getIndexByInstruction(Instruction inst);
     }
-
     private final InstructionsView originalView = new InstructionsView() {
-        public List<Instruction> list() { return originalSupplier.get(); }
-        public Instruction getInstructionByIndex(int index) { return originalSupplier.get().get(index); }
+        public List<Instruction> list() {
+            return originalSupplier.get();
+        }
+
+        public Instruction getInstructionByIndex(int index) {
+            List<Instruction> list = originalSupplier.get();
+            if (index < 0 || index >= list.size()) {
+                throw new IndexOutOfBoundsException(
+                        "Index " + index + " out of bounds for originalView (size=" + list.size() + ")"
+                );
+            }
+            return list.get(index);
+        }
+
         public Instruction getInstructionByLabel(Label label) {
+            Objects.requireNonNull(label, "Label must not be null");
             return originalSupplier.get().stream()
                     .filter(i -> label.equals(i.getLabel()))
-                    .findFirst().orElse(null);
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "No instruction found in originalView with label: " + label.getLabelRepresentation()
+                    ));
         }
-        public int getIndexByInstruction(Instruction inst) { return originalSupplier.get().indexOf(inst); }
+
+        public int getIndexByInstruction(Instruction inst) {
+            Objects.requireNonNull(inst, "Instruction must not be null");
+            int idx = originalSupplier.get().indexOf(inst);
+            if (idx == -1) {
+                throw new NoSuchElementException("Instruction not found in originalView: " + inst);
+            }
+            return idx;
+        }
     };
 
     private final InstructionsView expandedView = new InstructionsView() {
-        public List<Instruction> list() { return expandedSupplier.get(); }
-        public Instruction getInstructionByIndex(int index) { return expandedSupplier.get().get(index); }
+        public List<Instruction> list() {
+            return expandedSupplier.get();
+        }
+
+        public Instruction getInstructionByIndex(int index) {
+            List<Instruction> list = expandedSupplier.get();
+            if (index < 0 || index >= list.size()) {
+                throw new IndexOutOfBoundsException(
+                        "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")"
+                );
+            }
+            return list.get(index);
+        }
+
         public Instruction getInstructionByLabel(Label label) {
+            Objects.requireNonNull(label, "Label must not be null");
             return expandedSupplier.get().stream()
                     .filter(i -> label.equals(i.getLabel()))
-                    .findFirst().orElse(null);
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "No instruction found in expandedView with label: " + label.getLabelRepresentation()
+                    ));
         }
-        public int getIndexByInstruction(Instruction inst) { return expandedSupplier.get().indexOf(inst); }
+
+        public int getIndexByInstruction(Instruction inst) {
+            Objects.requireNonNull(inst, "Instruction must not be null");
+            int idx = expandedSupplier.get().indexOf(inst);
+            if (idx == -1) {
+                throw new NoSuchElementException("Instruction not found in expandedView: " + inst);
+            }
+            return idx;
+        }
     };
 
     public void useOriginal() { mode = Mode.ORIGINAL; }

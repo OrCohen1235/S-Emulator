@@ -5,6 +5,8 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public class ReadSemulatorXml {
     private SProgram semulator;
@@ -39,6 +41,33 @@ public class ReadSemulatorXml {
 
     public List<SInstruction> getSInstructionList() {
         return semulator.getSInstructions().getSInstruction();
+    }
+
+    public boolean checkLabelValidity() {
+        List<SInstruction> list = getSInstructionList();
+        for (SInstruction inst : list) {
+            if (inst.sInstructionArguments != null){
+                for (SInstructionArgument argument : inst.sInstructionArguments.getSInstructionArgument()) {
+                    if (checkIfLabel(argument.value)) {
+                        boolean found = false;
+                        for (SInstruction instruction : list){
+                            if (Objects.equals(instruction.sLabel, argument.value)){
+                                found = true;
+                            }
+                        }
+                        if (!found) {
+                            return false;
+                        }
+                    }
+
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean checkIfLabel(String str) {
+        return str.charAt(0) == 'L';
     }
 
 }

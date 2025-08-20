@@ -7,6 +7,7 @@ import java.util.List;
 
 public class ShowProgramAction implements MenuAction {
     private final ProgramPrinter printer;
+    private boolean isExpended =  false;
 
     public ShowProgramAction(ProgramPrinter printer) { this.printer = printer; }
 
@@ -16,7 +17,16 @@ public class ShowProgramAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
+        if (isExpended) {
+            ctx.getProgramDTO().setProgramViewToExpanded();
+        } else {
+            ctx.getProgramDTO().setProgramViewToOriginal();
+        }
         List<String> expanded = ctx.getProgramDTO().getListOfExpandCommands();
         printer.printProgram(ctx.getProgramDTO(), expanded);
+    }
+
+    public void setExpended(boolean expended) {
+        isExpended = expended;
     }
 }

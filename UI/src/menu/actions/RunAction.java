@@ -21,16 +21,16 @@ public class RunAction implements MenuAction {
     public void execute(AppContext ctx) {
         EngineDTO engineDTO = ctx.getEngineDTO();
         ProgramDTO programDTO = ctx.getProgramDTO();
+        ShowProgramAction showProgramAction = new ShowProgramAction(new ProgramPrinter());
 
         engineDTO.loadExpansion();
         System.out.println("Max Degree is: " + engineDTO.getMaxDegree());
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(), "Choose degree: ", 0, engineDTO.getMaxDegree()));
-
         if (ctx.getRunDegreeATM() != 0) {
+            showProgramAction.setExpended(true);
             ctx.getEngineDTO().loadExpansionByDegree(ctx.getRunDegreeATM());
             ctx.getProgramDTO().setProgramViewToExpanded();
         }
-
 
         programDTO.getVariables().forEach(variable ->
                 System.out.println("Variable: " + variable)
@@ -40,7 +40,6 @@ public class RunAction implements MenuAction {
         engineDTO.loadInputVars(values);
 
         Long finalResult = engineDTO.runProgramExecutor(ctx.getRunDegreeATM());
-        ShowProgramAction showProgramAction = new ShowProgramAction(new ProgramPrinter());
         showProgramAction.execute(ctx);
         programDTO.getVarsValues().forEach((name, val) ->
                 System.out.println(name + " = " + val)
