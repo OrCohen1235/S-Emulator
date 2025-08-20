@@ -29,16 +29,16 @@ public class LoadXmlAction implements MenuAction {
                 EngineDTO currentEngineDTO = new EngineDTO(f);
                 ctx.setEngineDTO(currentEngineDTO);
                 ctx.setProgramDTO(currentEngineDTO.getProgramDTO());
-                System.out.println("✓ Program loaded successfully: " + ctx.getProgramDTO().getProgramName());
+                System.out.println("Program loaded successfully: " + ctx.getProgramDTO().getProgramName() + "\n");
             } else {
-                System.out.println("✗ Invalid XML (application-wise). The previous valid program remains active.\n");
+                System.out.println("Invalid XML (application-wise). The previous valid program remains active.\n");
             }
         } catch (ProgramLoadException e){
             System.out.println(e.getMessage() + "\n");
         } catch (Exception e) {
             System.out.println("Failed to load XML: " + e.getClass().getSimpleName() +
                     (e.getMessage() != null ? " - " + e.getMessage() : ""));
-            System.out.println("The previous valid program (if existed) remains active.");
+            System.out.println("The previous valid program (if existed) remains active.\n");
         }
     }
 }

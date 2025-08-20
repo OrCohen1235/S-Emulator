@@ -8,8 +8,6 @@ import Logic.label.Label;
 import Logic.variable.Variable;
 
 public class ZeroVariable extends Instruction implements SyntheticInstruction {
-
-
     public ZeroVariable(Program program, Variable variable, Label label) {
         super(program, InstructionData.ZERO_VARIABLE, variable, label);
     }

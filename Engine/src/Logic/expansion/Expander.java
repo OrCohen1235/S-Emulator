@@ -49,8 +49,6 @@ public class Expander {
         Variable z1 = context.freshWork();
         Label L1 = context.freshLabel(), L2 = context.freshLabel(), L3 = context.freshLabel();
 
-
-
         return List.of(
                 new ZeroVariable(program, v, instructionLabel),
                 new JumpNotZero(program, v1, L1, FixedLabel.EMPTY),
@@ -73,7 +71,6 @@ public class Expander {
         Variable v = instruction.getVar();
         Label instructionLabel = instruction.getLabel();
         Long constant = instruction.getConstantValue();
-
 
         List<Instruction> out = new ArrayList<>();
         out.add(new ZeroVariable(program, v, instructionLabel));
@@ -106,7 +103,7 @@ public class Expander {
         Label    instrLbl  = instruction.getLabel();
 
         if (constantL == null || constantL < 0) {
-            throw new IllegalArgumentException("Constant must be non-negative");
+            throw new IllegalArgumentException("In command expandJumpEquals constant constant must be non-negative.\n");
         }
         long constant = constantL;
 

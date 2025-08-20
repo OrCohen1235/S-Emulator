@@ -1,5 +1,3 @@
 package Logic.Instructions.SInstruction;
 
-public interface SyntheticInstruction {
-
-}
+public interface SyntheticInstruction {}

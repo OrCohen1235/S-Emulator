@@ -7,7 +7,7 @@ import java.util.List;
 public class HistoryPrinter {
     public void printList(List<HistoryContext> historyContext) {
         if (historyContext == null || historyContext.isEmpty()) {
-            System.out.println("No runs recorded for the current program.");
+            System.out.println("No runs recorded for the current program.\n");
             return;
         }
         for (HistoryContext h : historyContext) {

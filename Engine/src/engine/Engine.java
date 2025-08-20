@@ -1,7 +1,7 @@
 package engine;
 
 import Logic.DTO.ProgramDTO;
-import Program.Program;
+import Program.*;
 import Program.ProgramLoadException;
 import Logic.execution.ProgramExecutorImpl;
 import Logic.expansion.ExpanderExecute;
@@ -9,12 +9,14 @@ import semulator.ReadSemulatorXml;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 public class Engine {
 
     // -------------------- Fields --------------------
     private ReadSemulatorXml readSem;
     private final Program program;
+    private final ProgramLoad programLoad;
     private final ProgramDTO programDTO;
     private Boolean isLoaded = false;
     private final ProgramExecutorImpl programExecutor;
@@ -24,8 +26,9 @@ public class Engine {
     public Engine(File file) {
         try {
             readSem = new ReadSemulatorXml(file);
-            if (!readSem.checkLabelValidity()){
-                throw new ProgramLoadException("Label validation failed");
+            String label = readSem.checkLabelValidity();
+            if (!Objects.equals(label, "")){
+                throw new ProgramLoadException("There is a jump command to label " + label + " that does not exist in the program.");
             } else {
                 isLoaded = true;
             }
@@ -34,8 +37,8 @@ public class Engine {
         }
 
         program = new Program();
-        program.loadProgram(readSem);
-
+        programLoad = new ProgramLoad(program);
+        programLoad.loadProgram(readSem);
         programDTO = new ProgramDTO(program);
         programExecutor = new ProgramExecutorImpl(program);
 
@@ -53,7 +56,7 @@ public class Engine {
     }
 
     public void loadInputVars(List<Long> input) {
-        program.loadInputVars(input);
+        programLoad.loadInputVars(input);
     }
 
 

@@ -2,14 +2,14 @@ package Logic.DTO;
 
 import Logic.Instructions.BInstruction.BaseInstruction;
 import Logic.Instructions.Instruction;
-import Program.Program;
+import Program.*;
 import Logic.variable.VariableType;
 
 import java.util.*;
 
 public class ProgramDTO {
 
-    private Program program;
+    private final Program program;
 
     public ProgramDTO(Program program) {
         this.program = program;
@@ -47,7 +47,7 @@ public class ProgramDTO {
         int index = 1;
         int fatherIndex=1;
         for (Instruction i : flattened) {
-            if (program.getMode() == "EXPANDED" ) {
+            if (Objects.equals(program.getMode(), "EXPANDED")) {
                 prints.add(getSingleCommandAndFather(index, i,i.getIndexFatherLocation()));
             } else {
                 prints.add(getSingleCommand(index, i));

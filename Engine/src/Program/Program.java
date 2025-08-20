@@ -1,23 +1,12 @@
 package Program;
 
-import Logic.Instructions.BInstruction.Decrease;
-import Logic.Instructions.BInstruction.Increase;
-import Logic.Instructions.BInstruction.JumpNotZero;
-import Logic.Instructions.BInstruction.Neutral;
 import Logic.Instructions.Instruction;
-import Logic.Instructions.InstructionData;
-import Logic.Instructions.SInstruction.*;
 import Logic.label.Label;
-import Logic.label.LabelImpl;
 import Logic.variable.Variable;
-import Logic.variable.VariableImpl;
-import Logic.variable.VariableType;
-import semulator.ReadSemulatorXml;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 public class Program {
 
@@ -63,55 +52,6 @@ public class Program {
 
 
     // ==================== Load / Init ====================
-    public void loadProgram(ReadSemulatorXml read) {
-        Objects.requireNonNull(read, "ReadSemulatorXml must not be null");
-
-        try {
-            nameOfProgram = Objects.requireNonNull(read.getProgramName(), "Program name must not be null");
-
-            var sInstructions = Objects.requireNonNull(
-                    read.getSInstructionList(),
-                    "S-instruction list must not be null"
-            );
-
-        try{
-        instructions.addAll(
-                read.getSInstructionList().stream()
-                        .map(this::createInstruction)
-                        .toList()
-        );
-        } catch (ProgramLoadException e) {
-            throw new ProgramLoadException(e.getMessage());
-        }
-
-        y.put(Variable.RESULT, 0L);
-
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new ProgramLoadException("Failed to load program '" + read.getProgramName() + "': " + e.getMessage(), e);
-        } catch (RuntimeException e) {
-            throw new ProgramLoadException("Unexpected error while loading program '" + read.getProgramName() + "'", e);
-        }
-    }
-
-    public void loadInputVars(List<Long> varsInput) {
-        Objects.requireNonNull(varsInput, "varsInput must not be null");
-
-        IntStream.range(0, varsInput.size())
-                .forEach(i -> {
-                    Long v = Objects.requireNonNull(varsInput.get(i),
-                            "Input variable at index " + i + " is null");
-
-                    if (v < 0) {
-                        throw new IllegalArgumentException(
-                                "Input variable x" + (i + 1) +
-                                        " must be 0 or a natural number, but was " + v
-                        );
-                    }
-
-                    Variable x = new VariableImpl(VariableType.INPUT, i + 1);
-                    xVariables.put(x, v);
-                });
-    }
 
     public void setInstructions(Instruction... instructions) {
         this.instructions.addAll(Arrays.asList(instructions));
@@ -123,6 +63,11 @@ public class Program {
     public List<Instruction> getInstructions() { return instructions; }
 
     public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; }
+
+    public void setNameOfProgram(String nameOfProgram) {
+        this.nameOfProgram = nameOfProgram;
+    }
+
 
     // ==================== Expansion (flattened list) ====================
     public List<Instruction> getExpandInstructionsByDegree() {
@@ -174,71 +119,7 @@ public class Program {
         setY(0L);
     }
 
-    // ==================== Parsing S-Instruction -> Instruction ====================
-    public String getArgument(semulator.SInstruction inst) {
-        return inst.getSInstructionArguments()
-                .getSInstructionArgument()
-                .getFirst()
-                .getValue();
-    }
 
-    private String getArgumentByName(semulator.SInstruction inst, String name) {
-        return inst.getSInstructionArguments().getSInstructionArgument().stream()
-                .filter(a -> name.equals(a.getName()))
-                .map(a -> a.getValue())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Missing argument: " + name));
-    }
-
-    public Instruction createInstruction(semulator.SInstruction inst) {
-        Variable newVar  = new VariableImpl(inst.getSVariable());
-
-        Label newLabel = Optional.ofNullable(inst.getSLabel())
-                .map(LabelImpl::new)
-                .orElse(new LabelImpl("EMPTY"));
-
-        try {
-        return switch (InstructionData.fromName(inst.getName())) {
-            case INCREASE -> new Increase(this, newVar, newLabel);
-            case DECREASE -> new Decrease(this, newVar, newLabel);
-            case NEUTRAL  -> new Neutral(this, newVar, newLabel);
-
-            case JUMP_NOT_ZERO -> {
-                Label jumpLabel = new LabelImpl(getArgument(inst));
-                yield new JumpNotZero(this, newVar, jumpLabel, newLabel);
-            }
-            case ASSIGNMENT -> {
-                Variable assignmentVariable = new VariableImpl(getArgument(inst));
-                yield new Assignment(this, newVar, assignmentVariable, newLabel);
-            }
-            case CONSTANT_ASSIGNMENT -> {
-                Long constant = Long.parseLong(getArgument(inst));
-                yield new ConstantAssignment(this, newVar, constant, newLabel);
-            }
-            case GOTO_LABEL -> {
-                Label jumpLabel = new LabelImpl(getArgument(inst));
-                yield new GotoLabel(this, jumpLabel, newLabel);
-            }
-            case JUMP_ZERO -> {
-                Label jumpLabel = new LabelImpl(getArgument(inst));
-                yield new JumpZero(this, newVar, jumpLabel, newLabel);
-            }
-            case ZERO_VARIABLE -> new ZeroVariable(this, newVar, newLabel);
-            case JUMP_EQUAL_CONSTANT -> {
-                Label jumpLabel = new LabelImpl(getArgumentByName(inst, "JEConstantLabel"));
-                Long constant   = Long.parseLong(getArgumentByName(inst, "constantValue"));
-                yield new JumpEqualConstant(this, newVar, jumpLabel, constant, newLabel);
-            }
-            case JUMP_EQUAL_VARIABLE -> {
-                Label jumpLabel   = new LabelImpl(getArgumentByName(inst, "JEVariableLabel"));
-                Variable variable = new VariableImpl(getArgumentByName(inst, "variableName"));
-                yield new JumpEqualVariable(this, newVar, jumpLabel, variable, newLabel);
-            }
-        };
-        } catch (IllegalArgumentException e) {
-            throw new ProgramLoadException("Failed to load program '" + inst.getName() + "': " + e.getMessage(), e);
-        }
-    }
 
     // ==================== Aggregated variables view ====================
     public Map<String, Long> getVariablesValues() {

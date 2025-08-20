@@ -17,28 +17,28 @@ public class VariableImpl implements Variable {
         String t = Optional.ofNullable(name)
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .orElseThrow(() -> new IllegalArgumentException("name is null or empty"));
+                .orElseThrow(() -> new IllegalArgumentException("Variable name is null or empty. \n"));
 
 
         char prefix = Character.toLowerCase(t.charAt(0));
         switch (prefix) {
             case 'y' -> {
                 if (t.length() != 1) {
-                    throw new IllegalArgumentException("RESULT ('y') must not have an index: " + name);
+                    throw new IllegalArgumentException("RESULT ('y') must not have an index while received: " + name + "\n");
                 }
                 this.type = VariableType.RESULT;
                 this.number = 0;
             }
             case 'x' -> {
                 this.type = VariableType.INPUT;
-                this.number = parseIndex(t, 1); // אחרי האות
+                this.number = parseIndex(t, 1);
             }
             case 'z' -> {
                 this.type = VariableType.WORK;
-                this.number = parseIndex(t, 1); // אחרי האות
+                this.number = parseIndex(t, 1);
             }
             default -> throw new IllegalArgumentException(
-                    "Unknown variable prefix '" + t.charAt(0) + "'. Expected x, y, or z. Got: " + name);
+                    "Unknown variable prefix '" + t.charAt(0) + "'. Expected x, y, or z. Got: " + name + "\n");
         }
     }
 
@@ -47,11 +47,11 @@ public class VariableImpl implements Variable {
                 .filter(str -> from >= 0 && from < str.length())
                 .map(str -> str.substring(from))
                 .filter(part -> part.chars().allMatch(Character::isDigit))
-                .orElseThrow(() -> new IllegalArgumentException("Missing or non-numeric index in: " + s));
+                .orElseThrow(() -> new IllegalArgumentException("Missing or non-numeric index in: " + s + "\n"));
 
         int idx = Integer.parseInt(numberPart);
         if (idx < 0) {
-            throw new IllegalArgumentException("Index must be non-negative. Got: " + idx);
+            throw new IllegalArgumentException("The variable number must be a positive number while the variable number received is: " + idx + "\n");
         }
         return idx;
     }

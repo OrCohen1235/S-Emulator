@@ -42,27 +42,27 @@ public final class ProgramView {
             List<Instruction> list = originalSupplier.get();
             if (index < 0 || index >= list.size()) {
                 throw new IndexOutOfBoundsException(
-                        "Index " + index + " out of bounds for originalView (size=" + list.size() + ")"
+                        "Index " + index + " out of bounds for originalView (size=" + list.size() + ")\n"
                 );
             }
             return list.get(index);
         }
 
         public Instruction getInstructionByLabel(Label label) {
-            Objects.requireNonNull(label, "Label must not be null");
+            Objects.requireNonNull(label, "Label must not be null\n");
             return originalSupplier.get().stream()
                     .filter(i -> label.equals(i.getLabel()))
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException(
-                            "No instruction found in originalView with label: " + label.getLabelRepresentation()
+                            "No instruction found in originalView with label: " + label.getLabelRepresentation() + "\n"
                     ));
         }
 
         public int getIndexByInstruction(Instruction inst) {
-            Objects.requireNonNull(inst, "Instruction must not be null");
+            Objects.requireNonNull(inst, "Instruction must not be null\n");
             int idx = originalSupplier.get().indexOf(inst);
             if (idx == -1) {
-                throw new NoSuchElementException("Instruction not found in originalView: " + inst);
+                throw new NoSuchElementException("Instruction not found in originalView: " + inst + "\n");
             }
             return idx;
         }
@@ -77,27 +77,27 @@ public final class ProgramView {
             List<Instruction> list = expandedSupplier.get();
             if (index < 0 || index >= list.size()) {
                 throw new IndexOutOfBoundsException(
-                        "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")"
+                        "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")\n"
                 );
             }
             return list.get(index);
         }
 
         public Instruction getInstructionByLabel(Label label) {
-            Objects.requireNonNull(label, "Label must not be null");
+            Objects.requireNonNull(label, "Label must not be null\n");
             return expandedSupplier.get().stream()
                     .filter(i -> label.equals(i.getLabel()))
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException(
-                            "No instruction found in expandedView with label: " + label.getLabelRepresentation()
+                            "No instruction found in expandedView with label: " + label.getLabelRepresentation() + "\n"
                     ));
         }
 
         public int getIndexByInstruction(Instruction inst) {
-            Objects.requireNonNull(inst, "Instruction must not be null");
+            Objects.requireNonNull(inst, "Instruction must not be null\n");
             int idx = expandedSupplier.get().indexOf(inst);
             if (idx == -1) {
-                throw new NoSuchElementException("Instruction not found in expandedView: " + inst);
+                throw new NoSuchElementException("Instruction not found in expandedView: " + inst + "\n");
             }
             return idx;
         }

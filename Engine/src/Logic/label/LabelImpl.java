@@ -11,14 +11,14 @@ public final class LabelImpl implements Label {
         this.label = Optional.of(number)
                 .filter(n -> n > 0)
                 .map(n -> "L" + n)
-                .orElseThrow(() -> new IllegalArgumentException("number must be > 0"));
+                .orElseThrow(() -> new IllegalArgumentException("The label number must be greater than 0 while it is " + number));
 
     }
 
     public LabelImpl(String token) {
         String t = Optional.ofNullable(token)
                 .map(String::trim)
-                .orElseThrow(() -> new IllegalArgumentException("token is null"));
+                .orElseThrow(() -> new IllegalArgumentException("Label token is missing (received null).\n"));
 
         if (t.isEmpty() || t.equalsIgnoreCase("EMPTY")) {
             this.label = "";            // EMPTY
@@ -28,9 +28,10 @@ public final class LabelImpl implements Label {
             this.label = "L" + t.substring(1);
         } else {
             throw new IllegalArgumentException(
-                    "Expected EXIT, EMPTY, or L<number>. Got: " + token);
+                    "The program should only have the following: EXIT, EMPTY, or L<number> While the label received is " + token + "\n");
         }
     }
+
     public int getIndexLabelNumber() {
         return Integer.parseInt(this.label.substring(1));
     }

@@ -1,5 +1,6 @@
 package semulator;
 
+import Logic.label.Label;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -13,9 +14,9 @@ public class ReadSemulatorXml {
     private File xmlFile;
 
     public ReadSemulatorXml(File file) {
-        if (file == null) throw new IllegalArgumentException("file is null");
+        if (file == null) throw new IllegalArgumentException("file " + file.getAbsolutePath() + " is null\n");
         if (!file.exists() || !file.isFile()) {
-            throw new IllegalArgumentException("XML file not found: " + file.getAbsolutePath());
+            throw new IllegalArgumentException("XML file not found: " + file.getAbsolutePath() + "\n");
         }
         this.xmlFile = file;
         loadFiles();
@@ -27,7 +28,7 @@ public class ReadSemulatorXml {
             Unmarshaller unmarshaller = context.createUnmarshaller();
             this.semulator = (SProgram) unmarshaller.unmarshal(xmlFile);
         } catch (JAXBException e) {
-            throw new RuntimeException("Failed to unmarshal XML from: " + xmlFile.getAbsolutePath(), e);
+            throw new RuntimeException("Failed to unmarshal XML from: " + xmlFile.getAbsolutePath() + "\n", e);
         }
     }
 
@@ -43,7 +44,8 @@ public class ReadSemulatorXml {
         return semulator.getSInstructions().getSInstruction();
     }
 
-    public boolean checkLabelValidity() {
+    public String checkLabelValidity() {
+        String label = "";
         List<SInstruction> list = getSInstructionList();
         for (SInstruction inst : list) {
             if (inst.sInstructionArguments != null){
@@ -56,14 +58,14 @@ public class ReadSemulatorXml {
                             }
                         }
                         if (!found) {
-                            return false;
+                            label = argument.value;
                         }
                     }
 
                 }
             }
         }
-        return true;
+        return label;
     }
 
     private boolean checkIfLabel(String str) {

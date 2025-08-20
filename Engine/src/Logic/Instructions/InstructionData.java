@@ -31,7 +31,7 @@ public enum InstructionData {
                     .collect(Collectors.toMap(v -> v.name, v -> v));
 
     public static InstructionData fromName(String s) {
-        if (s == null) throw new IllegalArgumentException("name is null");
+        if (s == null) throw new IllegalArgumentException("The program name does not exist in the xml file.\n");
         String key = s.trim();
         InstructionData v = BY_NAME.get(key);
         if (v == null) {
@@ -41,7 +41,7 @@ public enum InstructionData {
                     .findFirst()
                     .orElse(null);
         }
-        if (v == null) throw new IllegalArgumentException("Unknown instruction: " + s);
+        if (v == null) throw new IllegalArgumentException("Unknown instruction: " + s + "\n");
         return v;
     }
 }

@@ -33,7 +33,7 @@ public enum VariableType {
             case 'x' -> INPUT;
             case 'y' -> RESULT;
             case 'z' -> WORK;
-            default  -> throw new IllegalStateException("Unexpected: " + c);
+            default  -> throw new IllegalStateException("Unexpected variable type: " + c + "\n");
         };
     }
 }
