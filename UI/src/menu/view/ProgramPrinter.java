@@ -14,7 +14,7 @@ public class ProgramPrinter {
         System.out.println("\nLabels: ");
         dto.getLabels().forEach(System.out::println);
 
-        System.out.println("Expand commands:");
+        System.out.println("\nExpand commands:");
         for (String line : expandedCommands) System.out.println(line);
     }
 }

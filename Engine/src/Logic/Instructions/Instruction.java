@@ -11,6 +11,7 @@ public abstract class Instruction {
     private final Label label;
     private int degree;
     private Instruction father=null;
+    private int indexFatherLocation=1;
 
     public Instruction(Program program, InstructionData instructionData, Variable var,Label label) {
         this.program = program;
@@ -52,6 +53,14 @@ public abstract class Instruction {
         this.father = father;
     }
 
+    public int getIndexFatherLocation() {
+        return indexFatherLocation;
+    }
+
+    public void setIndexFatherLocation(int indexFatherLocation) {
+        this.indexFatherLocation = indexFatherLocation;
+    }
+
     public Label getLabel() {
         return this.label;
     }
@@ -91,6 +100,8 @@ public abstract class Instruction {
     public void setDegree(int degree) {
         this.degree = degree;
     }
+
+
 
 
 }

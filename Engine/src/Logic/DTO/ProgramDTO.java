@@ -27,6 +27,7 @@ public class ProgramDTO {
         return program.getLabels();
     }
 
+
     public List<String> getVariables() {
         Set<String> names = new LinkedHashSet<>();
         program.getInstrutions().forEach(instr -> {
@@ -44,11 +45,18 @@ public class ProgramDTO {
 
     public List<String> getListOfExpandCommands(int degree) {
         List<String> prints = new ArrayList<>();
-        List<Instruction> flattened = program.getExpandInstructionsByDegree();
-        int index = 0;
+        List<Instruction> flattened;
+        if (degree == 0 ) {
+            flattened=program.getInstrutions();
+        }
+        else {
+            flattened = program.getExpandInstructionsByDegree();
+        }
+        int index = 1;
+        int fatherIndex=1;
         for (Instruction i : flattened) {
             if (degree != 0) {
-                prints.add(getSingleCommandAndFather(index, i));
+                prints.add(getSingleCommandAndFather(index, i,i.getIndexFatherLocation()));
             } else {
                 prints.add(getSingleCommand(index, i));
             }
@@ -67,7 +75,7 @@ public class ProgramDTO {
         int numberOfCommands = instrList.size();
         List<String> commands = new ArrayList<>(numberOfCommands);
         for (int number =0; number < numberOfCommands; number++) {
-            String result = getSingleCommandAndFather(number, instrList.get(number));
+            String result = getSingleCommandAndFather(number, instrList.get(number),number);
             commands.add(result);
         }
         return commands;
@@ -82,18 +90,18 @@ public class ProgramDTO {
                 index+1, type, label, command, cycles);
 
     }
-    public String getSingleCommandAndFather(int index,Instruction instr) {
+    public String getSingleCommandAndFather(int index,Instruction instr,int fatherIndex) {
         String type = instr instanceof BaseInstruction ? "B" : "S";
         String label = instr.getLabel().getLabelRepresentation();
         String command = instr.getCommand();
         int cycles = instr.getCycles();
         if (instr.getFather() == null) {
             return String.format("#%d (%s) [%-3.5s] %s (%d)",
-                    index+1, type, label, command, cycles);
+                    index, type, label, command, cycles);
         }
         else {
             return String.format("%s <<< #%d (%s) [%-3.5s] %s (%d)  ",
-                    getSingleCommandAndFather(1+index,instr.getFather()), 1+index, type, label, command, cycles);
+                    getSingleCommandAndFather(instr.getIndexFatherLocation(),instr.getFather(),index), index, type, label, command, cycles);
         }
     }
 
@@ -101,11 +109,8 @@ public class ProgramDTO {
         return program.getVariablesValues();
     }
 
-    public int getNumOfCycles() {
-        return program.getCountCycles();
-    }
 
     public void resetZMapVariables() {
-        program.resetZMapVariables();
+        program.resetMapVariables();
     }
 }

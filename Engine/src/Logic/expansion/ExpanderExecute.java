@@ -43,24 +43,26 @@ public class ExpanderExecute {
     // -------------------- Expansion: by degree (build linear list) --------------------
     public void loadExpansionByDegree(int degree) {
         List<Instruction> out = new ArrayList<>();
+        int fatherindex=1;
         for (Instruction instruction : program.getInstrutions()) {
-            expandWithLimitedDegree(instruction, degree, out);
+            expandWithLimitedDegree(instruction, degree, out,fatherindex);
+            fatherindex++;
         }
         program.setExpandInstructionsByDegree(out);
     }
 
-    private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out) {
+    private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out,int fatherindex) {
         boolean isSynthetic = instruction instanceof SyntheticInstruction;
 
         if (remaining == 0 || !isSynthetic) {
             out.add(instruction);
             return;
         }
-
         List<Instruction> children = expander.expand(instruction);
         for (Instruction child : children) {
             child.setFather(instruction);
-            expandWithLimitedDegree(child, remaining - 1, out);
+            expandWithLimitedDegree(child, remaining - 1, out,fatherindex+1);
+            child.setIndexFatherLocation(fatherindex);
         }
 
         if (isSynthetic) {

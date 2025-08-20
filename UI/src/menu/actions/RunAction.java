@@ -41,11 +41,12 @@ public class RunAction implements MenuAction {
         programDTO.getVarsValues().forEach((name, val) ->
                 System.out.println(name + " = " + val)
         );
-        System.out.println("\nTotal Cycles: " + programDTO.getNumOfCycles());
+        System.out.println("\nTotal Cycles: " + engineDTO.getSumOfCycles());
 
+        updateHistory(values, ctx, finalResult);
         programDTO.resetZMapVariables();
         engineDTO.resetSumOfCycles();
-        updateHistory(values, ctx, finalResult);
+
     }
 
     void updateHistory(List<Long> values, AppContext ctx, Long finalResult) {
@@ -53,7 +54,7 @@ public class RunAction implements MenuAction {
         newHistoryContext.setxValues(values);
         newHistoryContext.setDegree(ctx.getRunDegreeATM());
         newHistoryContext.setFinalResult(finalResult);
-        newHistoryContext.setFinalCycles(ctx.getProgramDTO().getNumOfCycles());
+        newHistoryContext.setFinalCycles(ctx.getEngineDTO().getSumOfCycles());
         newHistoryContext.setNumberOfPrograms(ctx.getHistorySize() + 1);
 
         ctx.getHistoryContext().add(newHistoryContext);

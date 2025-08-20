@@ -15,6 +15,8 @@ import Logic.variable.VariableType;
 import semulator.ReadSemulatorXml;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Program {
@@ -27,7 +29,6 @@ public class Program {
     private Map<Variable, Long> zVariables = new LinkedHashMap();
     private Map<Variable, Long> y         = new LinkedHashMap();
 
-    private int countCycles = 0;
 
     private List<Instruction> expandInstructionsByDegree = new ArrayList<Instruction>();
     private int maxDegree = 0;
@@ -65,7 +66,6 @@ public class Program {
 
     @Deprecated public List<Instruction> getInstrutions() { return getInstructions(); }
 
-    public int getCountCycles() { return countCycles; }
 
     public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; }
 
@@ -151,8 +151,9 @@ public class Program {
         this.y.put(Variable.RESULT, value);
     }
 
-    public void resetZMapVariables() {
+    public void resetMapVariables() {
         zVariables.clear();
+        setY(0L);
     }
 
     // ==================== Parsing S-Instruction -> Instruction ====================
@@ -249,25 +250,39 @@ public class Program {
     public List<String> getLabels()
     {
         List<String> argsLabelsNames=new ArrayList<String>();
-        getInstructions().forEach(instr -> {
-            if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
-                argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
-            }
-        });
-        argsLabelsNames.add("EXIT");
-        return argsLabelsNames;
+        if (expandInstructionsByDegree.size() == 0) {
+            instructions.forEach(instr -> {
+                if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
+                    argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
+                }
+            });
+        }
+        else {
+            expandInstructionsByDegree.forEach(instr -> {
+                if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
+                    argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
+                }
+            });
+        }
+
+        return sortLabelsByNumber(argsLabelsNames);
     }
 
-    public List<String> getLabelsFromExpandList()
-    {
-        List<String> argsLabelsNames=new ArrayList<String>();
-        getExpandInstructionsByDegree().forEach(instr -> {
-            if (instr.getLabel().getLabelRepresentation() != "EXIT" && instr.getLabel().getLabelRepresentation() != "") {
-                argsLabelsNames.add(instr.getLabel().getLabelRepresentation());
-            }
-        });
-        argsLabelsNames.add("EXIT");
-        return argsLabelsNames;
+
+    public static List<String> sortLabelsByNumber(List<String> labels) {
+        List<String> sorted = new ArrayList<>(labels);
+        final Pattern LABEL = Pattern.compile("^L(\\d+)$", Pattern.CASE_INSENSITIVE);
+
+        sorted.sort(Comparator.comparingInt(s -> {
+            if (s == null) return Integer.MAX_VALUE;
+            Matcher m = LABEL.matcher(s.trim());
+            return m.matches() ? Integer.parseInt(m.group(1)) : Integer.MAX_VALUE;
+        }));
+
+        sorted.add("EXIT");
+        return sorted;
     }
+
+
 
 }

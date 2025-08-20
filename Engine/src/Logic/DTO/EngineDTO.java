@@ -48,4 +48,8 @@ public class EngineDTO {
     public void resetSumOfCycles(){
         engine.resetSumOfCycles();
     }
+
+    public int getSumOfCycles(){
+        return engine.getSumOfCycles();
+    }
 }

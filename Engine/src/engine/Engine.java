@@ -67,13 +67,14 @@ public class Engine {
         programExecutor.setSumOfCycles(0);
     }
 
-    // ---- Backwards-compat wrappers
-    /** Legacy name kept for compatibility. */
-    @Deprecated
-    public void ResetSumOfCycles() { resetSumOfCycles(); }
+    public int getSumOfCycles() {
+        return programExecutor.getSumOfCycles();
+    }
+
 
     /** Alias used elsewhere (e.g., Menu). */
     public void setSumOfCycles() { resetSumOfCycles(); }
+
 
 
 }
