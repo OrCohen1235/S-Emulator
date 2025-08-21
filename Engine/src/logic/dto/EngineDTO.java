@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.List;
 
 public class EngineDTO {
-    private Engine engine;
+    private final Engine engine;
 
     public EngineDTO(File file) {
         this.engine = new Engine(file);
@@ -18,10 +18,6 @@ public class EngineDTO {
 
     public boolean getLoaded (){
         return engine.getLoaded();
-    }
-
-    public void setEngine(Engine engine) {
-        this.engine = engine;
     }
 
     public ProgramDTO getProgramDTO() {

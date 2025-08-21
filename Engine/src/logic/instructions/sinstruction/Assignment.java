@@ -7,7 +7,7 @@ import logic.label.FixedLabel;
 import logic.label.Label;
 import logic.variable.Variable;
 
-public class Assignment extends Instruction implements SyntheticInstruction {
+public class Assignment extends Instruction implements SyntheticInstruction, VariableArgumentInstruction{
     private final Variable assignedVariable;
 
     public Assignment (Program program, Variable variable, Variable assignedVariable, Label label) {
@@ -28,6 +28,11 @@ public class Assignment extends Instruction implements SyntheticInstruction {
         Long assignedVariableValue = getVariableValueFromMap(assignedVariable);
         super.setVarValueInMap(assignedVariableValue);
         return FixedLabel.EMPTY;
+    }
+
+    @Override
+    public Variable getVariableArgument() {
+        return assignedVariable;
     }
 
     public String getCommand() {

@@ -64,11 +64,12 @@ public class ProgramLoad {
                     Long v = Objects.requireNonNull(varsInput.get(i),
                             "Input variable at index " + i + " is null");
 
-                    if (v < 0) {
-                        throw new IllegalArgumentException(
-                                "Input variable x" + (i + 1) +
-                                        " must be 0 or a natural number, but was " + v);
-                    }
+                    Optional.of(v)
+                            .filter(val -> val >= 0)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Input variable x" + (i + 1) +
+                                            " must be 0 or a natural number, but was " + v));
+
 
                     Variable x = new VariableImpl(VariableType.INPUT, i + 1);
                     program.setXVariablesToMap(x, v);

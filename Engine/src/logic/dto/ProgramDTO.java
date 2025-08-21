@@ -2,10 +2,15 @@ package logic.dto;
 
 import logic.instructions.binstruction.BaseInstruction;
 import logic.instructions.Instruction;
+import logic.instructions.sinstruction.VariableArgumentInstruction;
+import logic.variable.Variable;
 import program.*;
 import logic.variable.VariableType;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProgramDTO {
 
@@ -22,41 +27,45 @@ public class ProgramDTO {
     public List<String> getLabels() {
         return program.getLabels();
     }
-
-
     public List<String> getVariables() {
-        Set<String> names = new LinkedHashSet<>();
-        program.view().list().forEach(instr -> {
-            var v = instr.getVar();
-            if (v != null && v.getType() == VariableType.INPUT) {
-                String rep = v.getRepresentation();
-                if (rep != null) {
-                    names.add(rep);
-                }
-            }
-        });
-        return new ArrayList<>(names);
+        var list = program.view().list();
+
+        var base = list.stream()
+                .map(instr -> Optional.ofNullable(instr.getVar())
+                        .filter(v -> v.getType() == VariableType.INPUT)
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+        var fromInterface = list.stream()
+                .filter(VariableArgumentInstruction.class::isInstance)
+                .map(VariableArgumentInstruction.class::cast)
+                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+        return Stream.concat(base, fromInterface)
+                .distinct()
+                .toList();
     }
 
 
     public List<String> getListOfExpandCommands() {
-        List<String> prints = new ArrayList<>();
-        List<Instruction> flattened;
+        final boolean expanded = "EXPANDED".equals(program.getMode());
+        final AtomicInteger idx = new AtomicInteger(1);
 
-        flattened = program.view().list();
-        int index = 1;
-        int fatherIndex=1;
-        for (Instruction i : flattened) {
-            if (Objects.equals(program.getMode(), "EXPANDED")) {
-                prints.add(getSingleCommandAndFather(index, i,i.getIndexFatherLocation()));
-            } else {
-                prints.add(getSingleCommand(index, i));
-            }
-            index++;
-        }
-        return prints;
+        List<Instruction> flattened = Optional.ofNullable(program)
+                .map(p -> p.view())
+                .map(v -> v.list())
+                .orElseGet(Collections::emptyList);
+
+        return flattened.stream()
+                .map(instr -> expanded
+                        ? getSingleCommandAndFather(idx.getAndIncrement(), instr, instr.getIndexFatherLocation())
+                        : getSingleCommand(idx.getAndIncrement(), instr))
+                .collect(Collectors.toList());
     }
-
     public String getSingleCommand(int index,Instruction instr) {
         String type = instr instanceof BaseInstruction ? "B" : "S";
         String label = instr.getLabel().getLabelRepresentation();
@@ -64,27 +73,26 @@ public class ProgramDTO {
         int cycles = instr.getCycles();
         return String.format("#%d (%s) [%-3.5s] %s (%d)",
                 index, type, label, command, cycles);
-
     }
-    public String getSingleCommandAndFather(int index,Instruction instr,int fatherIndex) {
+
+    public String getSingleCommandAndFather(int index, Instruction instr, int fatherIndex) {
         String type = instr instanceof BaseInstruction ? "B" : "S";
         String label = instr.getLabel().getLabelRepresentation();
         String command = instr.getCommand();
         int cycles = instr.getCycles();
-        if (instr.getFather() == null) {
-            return String.format("#%d (%s) [%-3.5s] %s (%d)",
-                    index, type, label, command, cycles);
-        }
-        else {
-            return String.format("%s <<< #%d (%s) [%-3.5s] %s (%d)  ",
-                    getSingleCommandAndFather(instr.getIndexFatherLocation(),instr.getFather(),index), index, type, label, command, cycles);
-        }
+
+        return Optional.ofNullable(instr.getFather())
+                .map(father -> String.format("%s <<< #%d (%s) [%-3.5s] %s (%d)",
+                        getSingleCommandAndFather(instr.getIndexFatherLocation(), father, index),
+                        index, type, label, command, cycles))
+                .orElseGet(() -> String.format("#%d (%s) [%-3.5s] %s (%d)",
+                        index, type, label, command, cycles));
     }
+
 
     public Map<String,Long> getVarsValues() {
         return program.getVariablesValues();
     }
-
 
     public void resetMapVariables() {
         program.resetMapVariables();

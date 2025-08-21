@@ -30,18 +30,24 @@ public enum InstructionData {
             Arrays.stream(values())
                     .collect(Collectors.toMap(v -> v.name, v -> v));
 
-    public static InstructionData fromName(String s) {
-        if (s == null) throw new IllegalArgumentException("The program name does not exist in the xml file.\n");
-        String key = s.trim();
-        InstructionData v = BY_NAME.get(key);
-        if (v == null) {
-            v = BY_NAME.entrySet().stream()
-                    .filter(e -> e.getKey().equalsIgnoreCase(key))
-                    .map(Map.Entry::getValue)
-                    .findFirst()
-                    .orElse(null);
-        }
-        if (v == null) throw new IllegalArgumentException("Unknown instruction: " + s + "\n");
-        return v;
+    public static InstructionData fromName(String name) {
+        Optional.ofNullable(name)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "The program name does not exist in the xml file.\n"));
+
+        String key = name.trim();
+
+        InstructionData v = Optional.ofNullable(BY_NAME.get(key))
+                .or(() -> BY_NAME.entrySet().stream()
+                        .filter(e -> e.getKey().equalsIgnoreCase(key))
+                        .map(Map.Entry::getValue)
+                        .findFirst())
+                .orElse(null);
+
+        return Optional.ofNullable(v)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown instruction: " + name + "\n"));
     }
+
+
+
 }

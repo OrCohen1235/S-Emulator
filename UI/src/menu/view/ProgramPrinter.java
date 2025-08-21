@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ProgramPrinter {
     public void printProgram(ProgramDTO dto, List<String> expandedCommands) {
-        System.out.println("ProgramName: \n" + dto.getProgramName());
+        System.out.println("\nProgramName: \n" + dto.getProgramName());
 
         System.out.println("\nVariables: ");
         dto.getVariables().forEach(System.out::println);
@@ -14,7 +14,7 @@ public class ProgramPrinter {
         System.out.println("\nLabels: ");
         dto.getLabels().forEach(System.out::println);
 
-        System.out.println("\nExpand commands: ");
+        System.out.println("\nCommands: ");
         for (String line : expandedCommands) System.out.println(line);
     }
 }

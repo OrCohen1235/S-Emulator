@@ -5,6 +5,7 @@ import logic.dto.ProgramDTO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 
@@ -12,17 +13,18 @@ public class AppContext {
     private final Scanner in;
     private EngineDTO engineDTO;
     private ProgramDTO programDTO;
-    private int runDegreeATM = 0; //what is runDegreeATM?
+    private int runDegreeATM = 0;
     private final List<HistoryContext> historyContext = new ArrayList<>();
     private int historySize = 0;
 
     public AppContext(Scanner in) { this.in = in; }
 
     public boolean hasProgram() {
-        if (engineDTO == null){
-            return false;
-        }
-        return engineDTO.getLoaded(); }
+        return Optional.ofNullable(engineDTO)
+                .map(EngineDTO::getLoaded)
+                .orElse(false);
+    }
+
 
     public Scanner getIn() {
         return in;

@@ -49,11 +49,11 @@ public class VariableImpl implements Variable {
                 .filter(part -> part.chars().allMatch(Character::isDigit))
                 .orElseThrow(() -> new IllegalArgumentException("Missing or non-numeric index in: " + s + "\n"));
 
-        int idx = Integer.parseInt(numberPart);
-        if (idx < 0) {
-            throw new IllegalArgumentException("The variable number must be a positive number while the variable number received is: " + idx + "\n");
-        }
-        return idx;
+        return Optional.of(Integer.parseInt(numberPart))
+                .filter(i -> i >= 0)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "The variable number must be a positive number while the variable number received is: "
+                                + numberPart + "\n"));
     }
 
     @Override

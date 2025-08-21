@@ -14,6 +14,7 @@ import logic.variable.Variable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.LongStream;
 
 public class Expander {
 
@@ -116,10 +117,15 @@ public class Expander {
         out.add(new Assignment(program, z1, v, instrLbl));
 
         // K iterations: IF z1 = 0 GOTO L1; z1 <- z1 - 1
-        for (long i = 0; i < constant; i++) {
-            out.add(new JumpZero(program, z1, L1, FixedLabel.EMPTY));
-            out.add(new Decrease(program, z1, FixedLabel.EMPTY));
-        }
+        Optional.ofNullable(constant)
+                .filter(c -> c > 0)
+                .ifPresent(c ->
+                        LongStream.range(0, c)
+                                .forEach(i -> {
+                                    out.add(new JumpZero(program, z1, L1, FixedLabel.EMPTY));
+                                    out.add(new Decrease(program, z1, FixedLabel.EMPTY));
+                                })
+                );
 
         // After loop: IF z1 != 0 GOTO L1
         out.add(new JumpNotZero(program, z1, L1, FixedLabel.EMPTY));

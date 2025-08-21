@@ -8,6 +8,7 @@ import menu.view.ProgramPrinter;
 import util.InputHelper;
 
 import java.util.List;
+import java.util.Optional;
 
 public class RunAction implements MenuAction {
     private final InputHelper input;
@@ -26,11 +27,15 @@ public class RunAction implements MenuAction {
         engineDTO.loadExpansion();
         System.out.println("Max Degree is: " + engineDTO.getMaxDegree());
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(), "Choose degree: ", 0, engineDTO.getMaxDegree()));
-        if (ctx.getRunDegreeATM() != 0) {
-            showProgramAction.setExpended(true);
-            ctx.getEngineDTO().loadExpansionByDegree(ctx.getRunDegreeATM());
-            ctx.getProgramDTO().setProgramViewToExpanded();
-        }
+
+        Optional.of(ctx.getRunDegreeATM())
+                .filter(degree -> degree != 0)
+                .ifPresent(degree -> {
+                    showProgramAction.setExpended(true);
+                    ctx.getEngineDTO().loadExpansionByDegree(degree);
+                    ctx.getProgramDTO().setProgramViewToExpanded();
+                });
+
 
         programDTO.getVariables().forEach(variable ->
                 System.out.println("Variable: " + variable)
@@ -39,6 +44,7 @@ public class RunAction implements MenuAction {
         List<Long> values = input.readCsvLongsFromUser(ctx.getIn());
         engineDTO.loadInputVars(values);
         Long finalResult = engineDTO.runProgramExecutor(ctx.getRunDegreeATM());
+
         int sumOfCycles = engineDTO.getSumOfCycles();
         updateHistory(values, ctx, finalResult);
         showProgramAction.execute(ctx);
@@ -50,7 +56,6 @@ public class RunAction implements MenuAction {
 
         programDTO.resetMapVariables();
         engineDTO.resetSumOfCycles();
-
     }
 
     void updateHistory(List<Long> values, AppContext ctx, Long finalResult) {

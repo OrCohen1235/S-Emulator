@@ -7,11 +7,11 @@ import java.util.List;
 public class HistoryPrinter {
     public void printList(List<HistoryContext> historyContext) {
         if (historyContext == null || historyContext.isEmpty()) {
-            System.out.println("No runs recorded for the current program.\n");
+            System.out.println("The program was not run, so there is no history to display.\n");
             return;
         }
         for (HistoryContext h : historyContext) {
-            System.out.println("===== Run History Entry =====");
+            System.out.println("=\n==== Run History Entry =====");
             System.out.println("Run #:      " + h.getNumberOfProgram()); 
             System.out.println("Degree:     " + h.getDegree());
             System.out.println("Inputs:     " + formatInputs(h.getxValues()));

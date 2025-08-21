@@ -10,7 +10,7 @@ import logic.variable.Variable;
 
 import java.util.Optional;
 
-public class JumpEqualVariable extends Instruction implements SyntheticInstruction, JumpInstruction {
+public class JumpEqualVariable extends Instruction implements SyntheticInstruction, JumpInstruction, VariableArgumentInstruction{
     private final Label jeVariableLabel;
     private final Variable variableName;
 
@@ -50,5 +50,8 @@ public class JumpEqualVariable extends Instruction implements SyntheticInstructi
         return variableName;
     }
 
-
+    @Override
+    public Variable getVariableArgument() {
+        return variableName;
+    }
 }

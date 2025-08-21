@@ -6,6 +6,8 @@ import logic.label.FixedLabel;
 import logic.label.Label;
 import logic.variable.Variable;
 
+import java.util.Optional;
+
 public class Decrease extends Instruction implements BaseInstruction {
 
     public Decrease(Program program, Variable variable, Label label) {
@@ -32,11 +34,12 @@ public class Decrease extends Instruction implements BaseInstruction {
 
     @Override
     public Label calculateInstruction() {
-        Long returnVal = super.getVarValueFromMap();
-        if (returnVal != 0) {
-            returnVal--;
-            setVarValueInMap(returnVal);
-        }
+        Optional.ofNullable(super.getVarValueFromMap())
+                .filter(val -> val != 0)
+                .map(val -> val - 1)
+                .ifPresent(this::setVarValueInMap);
+
         return FixedLabel.EMPTY;
     }
+
 }

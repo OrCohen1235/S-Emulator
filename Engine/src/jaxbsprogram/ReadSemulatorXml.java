@@ -6,19 +6,25 @@ import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ReadSemulatorXml {
     private SProgram semulator;
     private File xmlFile;
 
     public ReadSemulatorXml(File file) {
-        if (file == null) throw new IllegalArgumentException("file " + file.getAbsolutePath() + " is null\n");
-        if (!file.exists() || !file.isFile()) {
-            throw new IllegalArgumentException("XML file not found: " + file.getAbsolutePath() + "\n");
-        }
-        this.xmlFile = file;
+        this.xmlFile = Optional.ofNullable(file)
+                .orElseThrow(() -> new IllegalArgumentException("file is null"));
+
+        Optional.of(xmlFile)
+                .filter(f -> f.exists() && f.isFile())
+                .orElseThrow(() -> new IllegalArgumentException("XML file not found: "
+                        + xmlFile.getAbsolutePath() + "\n"));
+
         loadFiles();
     }
+
 
     private void loadFiles() {
         try {
@@ -30,10 +36,6 @@ public class ReadSemulatorXml {
         }
     }
 
-    public SProgram getSemulator() {
-        return semulator;
-    }
-
     public String getProgramName() {
         return semulator.getName();
     }
@@ -43,28 +45,16 @@ public class ReadSemulatorXml {
     }
 
     public String checkLabelValidity() {
-        String label = "";
         List<SInstruction> list = getSInstructionList();
-        for (SInstruction inst : list) {
-            if (inst.sInstructionArguments != null){
-                for (SInstructionArgument argument : inst.sInstructionArguments.getSInstructionArgument()) {
-                    if (checkIfLabel(argument.value)) {
-                        boolean found = false;
-                        for (SInstruction instruction : list){
-                            if (Objects.equals(instruction.sLabel, argument.value)){
-                               found = true;
-                            }
-                        }
-                        if (!found) {
-                            label = argument.value;
-                        }
-                    }
 
-                }
-            }
-        }
-
-        return label;
+        return list.stream()
+                .flatMap(inst -> Stream.ofNullable(inst.sInstructionArguments)
+                                .flatMap(args -> args.getSInstructionArgument().stream()))
+                .map(arg -> arg.value)
+                .filter(this::checkIfLabel)
+                .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.sLabel, lbl)))
+                .reduce((first, second) -> second)
+                .orElse("");
     }
 
     private boolean checkIfLabel(String str) {

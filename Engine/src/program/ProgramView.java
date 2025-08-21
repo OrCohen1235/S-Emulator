@@ -6,6 +6,7 @@ import logic.label.Label;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -20,8 +21,7 @@ public final class ProgramView {
 
     private Mode mode = Mode.ORIGINAL;
 
-    public ProgramView(Supplier<List<Instruction>> originalSupplier,
-                        Supplier<List<Instruction>> expandedSupplier) {
+    public ProgramView(Supplier<List<Instruction>> originalSupplier, Supplier<List<Instruction>> expandedSupplier) {
         this.originalSupplier = (originalSupplier);
         this.expandedSupplier = (expandedSupplier);
     }
@@ -41,12 +41,13 @@ public final class ProgramView {
 
         public Instruction getInstructionByIndex(int index) {
             List<Instruction> list = originalSupplier.get();
-            if (index < 0 || index >= list.size()) {
-                throw new IndexOutOfBoundsException(
-                        "Index " + index + " out of bounds for originalView (size=" + list.size() + ")\n"
-                );
-            }
-            return list.get(index);
+
+            return Optional.of(index)
+                    .filter(i -> i >= 0 && i < list.size())
+                    .map(list::get)
+                    .orElseThrow(() -> new IndexOutOfBoundsException(
+                            "Index " + index + " out of bounds for originalView (size=" + list.size() + ")\n"
+                    ));
         }
 
         public Instruction getInstructionByLabel(Label label) {
@@ -61,11 +62,12 @@ public final class ProgramView {
 
         public int getIndexByInstruction(Instruction inst) {
             Objects.requireNonNull(inst, "Instruction must not be null\n");
-            int idx = originalSupplier.get().indexOf(inst);
-            if (idx == -1) {
-                throw new NoSuchElementException("Instruction not found in originalView: " + inst + "\n");
-            }
-            return idx;
+            return Optional.ofNullable(originalSupplier.get())
+                    .map(list -> list.indexOf(inst))
+                    .filter(i -> i != -1)
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "Instruction not found in originalView: " + inst + "\n"
+                    ));
         }
 
         public int getSizeOfListInstructions() {
@@ -80,11 +82,12 @@ public final class ProgramView {
 
         public Instruction getInstructionByIndex(int index) {
             List<Instruction> list = expandedSupplier.get();
-            if (index < 0) {
-                throw new IndexOutOfBoundsException(
-                        "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")\n"
-                );
-            }
+            Optional.of(index)
+                    .filter(i -> i >= 0)
+                    .orElseThrow(() -> new IndexOutOfBoundsException(
+                            "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")\n"
+                    ));
+
             return list.get(index);
         }
 

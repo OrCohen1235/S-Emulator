@@ -59,9 +59,6 @@ public class Engine {
         programLoad.loadInputVars(input);
     }
 
-
-    // -------------------- Cycles --------------------
-
     public ExpanderExecute getExpanderExecute() {
         return expanderExecute;
     }
@@ -74,9 +71,4 @@ public class Engine {
     public int getSumOfCycles() {
         return programExecutor.getSumOfCycles();
     }
-
-
-
-
-
 }

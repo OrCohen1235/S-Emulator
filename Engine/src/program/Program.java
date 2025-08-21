@@ -19,11 +19,7 @@ public class Program {
     private Map<Variable, Long> y          = new LinkedHashMap();
     private List<Instruction> expandInstructionsByDegree = new ArrayList<>();
     private int maxDegree = 0;
-    private final ProgramView views =
-            new ProgramView(() -> instructions, () -> expandInstructionsByDegree);
-
-
-
+    private final ProgramView views = new ProgramView(() -> instructions, () -> expandInstructionsByDegree);
 
     public void useOriginalView() { views.useOriginal(); }
 
@@ -31,14 +27,13 @@ public class Program {
 
     public ProgramView.InstructionsView view() { return views.active(); }
 
-    public String getMode(){
-        if (views.mode() == ProgramView.Mode.ORIGINAL) {
-            return "ORIGINAL";
-        }
-        else if (views.mode() == ProgramView.Mode.EXPANDED) {
-            return "EXPANDED";
-        }
-        return "";
+    public String getMode() {
+        return Optional.ofNullable(views.mode())
+                .map(mode -> switch (mode) {
+                    case ORIGINAL -> "ORIGINAL";
+                    case EXPANDED -> "EXPANDED";
+                })
+                .orElse("");
     }
 
     public Instruction getActiveInstruction(int index) {
@@ -56,7 +51,6 @@ public class Program {
     public int getSizeOfInstructions() {
         return view().getSizeOfListInstructions();
     }
-
 
     // ==================== Load / Init ====================
 
@@ -116,8 +110,6 @@ public class Program {
         setY(0L);
     }
 
-
-
     // ==================== Aggregated variables view ====================
     public Map<String, Long> getVariablesValues() {
         Map<String, Long> result = new LinkedHashMap<>();
@@ -139,13 +131,18 @@ public class Program {
     }
 
     private int parseIndex(String name, char prefix) {
-        if (name != null && name.length() > 1 && name.charAt(0) == prefix) {
-            try {
-                return Integer.parseInt(name.substring(1));
-            } catch (NumberFormatException ignored) {}
-        }
-        return Integer.MAX_VALUE;
+        return Optional.ofNullable(name)
+                .filter(n -> n.length() > 1 && n.charAt(0) == prefix)
+                .map(n -> {
+                    try {
+                        return Integer.parseInt(n.substring(1));
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                })
+                .orElse(Integer.MAX_VALUE);
     }
+
 
     public List<String> getLabels() {
         boolean hasExit = false;
@@ -153,15 +150,17 @@ public class Program {
 
         for (var instr : view().list()) {
             String lab = instr.getLabel().getLabelRepresentation();
-            String lab2="";
+            String lab2 = "";
+
             if (instr instanceof JumpInstruction) {
                 lab2 = ((JumpInstruction) instr).getJumpLabel().getLabelRepresentation();
             }
+
             if ("Exit".equalsIgnoreCase(lab2)){
                 hasExit = true;
             }
-            if (lab == null || lab.isEmpty()) continue;
 
+            if (lab == null || lab.isEmpty()) continue;
 
             if ("EXIT".equalsIgnoreCase(lab)) {
                 hasExit = true;
@@ -171,8 +170,7 @@ public class Program {
         }
 
         List<String> sorted = sortLabelsByNumber(names);
-        if (hasExit) {
-            sorted.add("EXIT");}
+        if (hasExit) { sorted.add("EXIT"); }
         return sorted;
     }
 

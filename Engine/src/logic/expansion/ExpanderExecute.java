@@ -25,7 +25,7 @@ public class ExpanderExecute {
 
     private void loadFullExpansion(List<Instruction> listOfExpansion) {
         if (listOfExpansion.size() == 1) {
-            // no-op (per original logic)
+            return;
         } else {
             for (Instruction instruction : listOfExpansion) {
                 List<Instruction> lst = expander.expand(instruction);
