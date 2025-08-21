@@ -13,15 +13,17 @@ public class Program {
 
     // ==================== Fields ====================
     private String nameOfProgram;
-    private List<Instruction> instructions = new ArrayList<Instruction>();
+    private final List<Instruction> instructions = new ArrayList<>();
     private Map<Variable, Long> xVariables = new LinkedHashMap();
     private Map<Variable, Long> zVariables = new LinkedHashMap();
     private Map<Variable, Long> y          = new LinkedHashMap();
-    private List<Instruction> expandInstructionsByDegree = new ArrayList<Instruction>();
+    private List<Instruction> expandInstructionsByDegree = new ArrayList<>();
     private int maxDegree = 0;
-
     private final ProgramView views =
             new ProgramView(() -> instructions, () -> expandInstructionsByDegree);
+
+
+
 
     public void useOriginalView() { views.useOriginal(); }
 
@@ -79,7 +81,7 @@ public class Program {
         return expandInstructionsByDegree;
     }
 
-    public void setExpandInstructionsByDegree(List<Instruction> instructions) {
+    public void setExpandInstructionsByDegree(Collection<Instruction> instructions) {
         this.expandInstructionsByDegree.clear();
         this.expandInstructionsByDegree.addAll(instructions);
     }
@@ -175,7 +177,7 @@ public class Program {
     }
 
 
-    public static List<String> sortLabelsByNumber(List<String> labels) {
+    public static List<String> sortLabelsByNumber(Collection<String> labels) {
         List<String> sorted = new ArrayList<>(labels);
         final Pattern LABEL = Pattern.compile("^L(\\d+)$", Pattern.CASE_INSENSITIVE);
         sorted.sort(Comparator.comparingInt(s -> {

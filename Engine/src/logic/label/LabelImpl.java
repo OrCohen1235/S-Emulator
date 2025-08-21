@@ -1,9 +1,11 @@
 package logic.label;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
 public final class LabelImpl implements Label {
+
 
     private final String label;
 
@@ -40,6 +42,7 @@ public final class LabelImpl implements Label {
         return label;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -51,4 +54,6 @@ public final class LabelImpl implements Label {
     public int hashCode() {
         return Objects.hashCode(label);
     }
+
+
 }
