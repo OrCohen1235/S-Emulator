@@ -98,7 +98,7 @@ public class Expander {
 
     private List<Instruction> expandJumpEqualsConstant(JumpEqualConstant instruction) {
         Variable v         = instruction.getVar();
-        Label    jumpLabel = instruction.getJeConstantLabel();
+        Label    jumpLabel = instruction.getJumpLabel();
         Long     constantL = instruction.getConstantValue();
         Label    instrLbl  = instruction.getLabel();
 
@@ -138,7 +138,7 @@ public class Expander {
         Variable v         = instruction.getVar();
         Variable v1        = instruction.getVariableName();
         Label   instrLabel = instruction.getLabel();
-        Label   jumpLabel  = instruction.getJeVariableLabel();
+        Label   jumpLabel  = instruction.getJumpLabel();
 
         Variable z1 = context.getFreshWorkVal();
         Variable z2 = context.getFreshWorkVal();
@@ -175,7 +175,7 @@ public class Expander {
     private List<Instruction> expandJumpZero(JumpZero instruction) {
         Variable v = instruction.getVar();
         Label instructionLabel = instruction.getLabel();
-        Label jumpLable = instruction.getJnzlabel();
+        Label jumpLable = instruction.getJumpLabel();
         Label L1 = context.getFreshLabel();
 
 

@@ -2,6 +2,7 @@ package logic.instructions.sinstruction;
 
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
+import logic.instructions.JumpInstruction;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
@@ -9,7 +10,7 @@ import logic.variable.Variable;
 
 import java.util.Optional;
 
-public class JumpEqualConstant extends Instruction implements SyntheticInstruction {
+public class JumpEqualConstant extends Instruction implements SyntheticInstruction, JumpInstruction {
     private final Label jeConstantLabel;
     private final Long constantValue;
 
@@ -44,7 +45,8 @@ public class JumpEqualConstant extends Instruction implements SyntheticInstructi
         return constantValue;
     }
 
-    public Label getJeConstantLabel() {
+    @Override
+    public Label getJumpLabel() {
         return jeConstantLabel;
     }
 }

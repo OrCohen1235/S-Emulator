@@ -2,6 +2,7 @@ package logic.instructions.sinstruction;
 
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
+import logic.instructions.JumpInstruction;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
@@ -9,7 +10,7 @@ import logic.variable.Variable;
 
 import java.util.Optional;
 
-public class JumpZero extends Instruction implements SyntheticInstruction {
+public class JumpZero extends Instruction implements SyntheticInstruction, JumpInstruction {
 
     private final Label jnzlabel;
 
@@ -36,7 +37,9 @@ public class JumpZero extends Instruction implements SyntheticInstruction {
         return "IF " +super.getVar().getRepresentation()+ " = 0" +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
 
-    public Label getJnzlabel() {
+
+    @Override
+    public Label getJumpLabel() {
         return jnzlabel;
     }
 }

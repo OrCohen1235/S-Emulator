@@ -2,6 +2,7 @@ package logic.instructions.binstruction;
 
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
+import logic.instructions.JumpInstruction;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
@@ -9,7 +10,7 @@ import logic.variable.Variable;
 
 import java.util.Optional;
 
-public class JumpNotZero extends Instruction implements BaseInstruction {
+public class JumpNotZero extends Instruction implements BaseInstruction, JumpInstruction {
     private final Label jnzlabel;
 
     public JumpNotZero (Program program, Variable variable, Label jnzlabel, Label label) {
@@ -45,4 +46,8 @@ public class JumpNotZero extends Instruction implements BaseInstruction {
         return "IF " +super.getVar().getRepresentation()+ " != 0 " +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
 
+    @Override
+    public Label getJumpLabel() {
+        return jnzlabel;
+    }
 }

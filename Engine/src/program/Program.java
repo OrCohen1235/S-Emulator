@@ -1,6 +1,7 @@
 package program;
 
 import logic.instructions.Instruction;
+import logic.instructions.JumpInstruction;
 import logic.label.Label;
 import logic.variable.Variable;
 
@@ -150,7 +151,15 @@ public class Program {
 
         for (var instr : view().list()) {
             String lab = instr.getLabel().getLabelRepresentation();
+            String lab2="";
+            if (instr instanceof JumpInstruction) {
+                lab2 = ((JumpInstruction) instr).getJumpLabel().getLabelRepresentation();
+            }
+            if ("Exit".equalsIgnoreCase(lab2)){
+                hasExit = true;
+            }
             if (lab == null || lab.isEmpty()) continue;
+
 
             if ("EXIT".equalsIgnoreCase(lab)) {
                 hasExit = true;
@@ -159,8 +168,9 @@ public class Program {
             }
         }
 
-        List<String> sorted = sortLabelsByNumber(names); 
-        if (hasExit) sorted.add("EXIT");
+        List<String> sorted = sortLabelsByNumber(names);
+        if (hasExit) {
+            sorted.add("EXIT");}
         return sorted;
     }
 
@@ -174,7 +184,6 @@ public class Program {
             return m.matches() ? Integer.parseInt(m.group(1)) : Integer.MAX_VALUE;
         }));
 
-        sorted.add("EXIT");
         return sorted;
     }
 

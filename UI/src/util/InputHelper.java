@@ -24,18 +24,20 @@ public class InputHelper {
     }
 
     public List<Long> readCsvLongsFromUser(Scanner in) {
+        List<Long> out= new ArrayList<>();
         while (true) {
-            System.out.print("Enter comma-separated integers (e.g., 1,2,3,): ");
+            System.out.print("Enter vars values.\n comma-separated integers (e.g., 1,2,3,): ");
             String raw = in.nextLine();
             if (raw == null) raw = "";
             raw = raw.trim();
+            if (raw.isEmpty()) return out;
 
             if (!CSV_INTS_LINE.matcher(raw).matches()) {
                 System.out.println("Invalid input. Use only integers separated by commas, e.g. 1,2,3,");
                 continue;
             }
             String[] parts = raw.split("\\s*,\\s*");
-            List<Long> out = new ArrayList<>(parts.length);
+            out = new ArrayList<>(parts.length);
             try {
                 for (String p : parts) out.add(Long.parseLong(p));
                 return out;

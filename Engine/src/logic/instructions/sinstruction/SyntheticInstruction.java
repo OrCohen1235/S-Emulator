@@ -1,3 +1,7 @@
 package logic.instructions.sinstruction;
 
-public interface SyntheticInstruction {}
+import logic.label.Label;
+
+public interface SyntheticInstruction {
+
+}

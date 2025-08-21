@@ -2,6 +2,7 @@ package logic.instructions.sinstruction;
 
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
+import logic.instructions.JumpInstruction;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
@@ -9,7 +10,7 @@ import logic.variable.Variable;
 
 import java.util.Optional;
 
-public class JumpEqualVariable extends Instruction implements SyntheticInstruction {
+public class JumpEqualVariable extends Instruction implements SyntheticInstruction, JumpInstruction {
     private final Label jeVariableLabel;
     private final Variable variableName;
 
@@ -40,11 +41,14 @@ public class JumpEqualVariable extends Instruction implements SyntheticInstructi
         return "IF " +super.getVar().getRepresentation()+ " = "+variableName.getRepresentation() +" GOTO "+jeVariableLabel.getLabelRepresentation();
     }
 
-    public Label getJeVariableLabel() {
+    @Override
+    public Label getJumpLabel() {
         return jeVariableLabel;
     }
 
     public Variable getVariableName() {
         return variableName;
     }
+
+
 }

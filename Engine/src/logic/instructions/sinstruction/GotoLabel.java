@@ -2,11 +2,12 @@ package logic.instructions.sinstruction;
 
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
+import logic.instructions.JumpInstruction;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
 
-public class GotoLabel extends Instruction implements SyntheticInstruction {
+public class GotoLabel extends Instruction implements SyntheticInstruction, JumpInstruction {
     private final Label gotoLabel;
 
     public GotoLabel (Program program, Label gotoLabel, Label label) {
@@ -29,5 +30,10 @@ public class GotoLabel extends Instruction implements SyntheticInstruction {
 
     public String getCommand() {
         return "GOTO "+gotoLabel.getLabelRepresentation();
+    }
+
+    @Override
+    public Label getJumpLabel() {
+        return gotoLabel;
     }
 }

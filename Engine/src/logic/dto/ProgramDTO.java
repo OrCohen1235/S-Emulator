@@ -26,7 +26,7 @@ public class ProgramDTO {
 
     public List<String> getVariables() {
         Set<String> names = new LinkedHashSet<>();
-        program.getInstructions().forEach(instr -> {
+        program.view().list().forEach(instr -> {
             var v = instr.getVar();
             if (v != null && v.getType() == VariableType.INPUT) {
                 String rep = v.getRepresentation();
