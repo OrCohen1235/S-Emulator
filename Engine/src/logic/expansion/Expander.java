@@ -35,10 +35,7 @@ public class Expander {
             case JUMP_EQUAL_VARIABLE ->  expandJumpEqualsVariable((JumpEqualVariable) inst);
             case JUMP_ZERO ->  expandJumpZero((JumpZero) inst);
             case ZERO_VARIABLE ->   expandZeroVariable((ZeroVariable) inst);
-            case JUMP_NOT_ZERO -> List.of(inst);
-            case INCREASE -> List.of(inst);
-            case DECREASE -> List.of(inst);
-            case NEUTRAL -> List.of(inst);
+            case JUMP_NOT_ZERO, INCREASE, DECREASE, NEUTRAL -> List.of(inst);
         };
 
     }
@@ -117,7 +114,7 @@ public class Expander {
         out.add(new Assignment(program, z1, v, instrLbl));
 
         // K iterations: IF z1 = 0 GOTO L1; z1 <- z1 - 1
-        Optional.ofNullable(constant)
+        Optional.of(constant)
                 .filter(c -> c > 0)
                 .ifPresent(c ->
                         LongStream.range(0, c)
@@ -181,13 +178,13 @@ public class Expander {
     private List<Instruction> expandJumpZero(JumpZero instruction) {
         Variable v = instruction.getVar();
         Label instructionLabel = instruction.getLabel();
-        Label jumpLable = instruction.getJumpLabel();
+        Label jumpLabel = instruction.getJumpLabel();
         Label L1 = context.getFreshLabel();
 
 
         return List.of(
                 new JumpNotZero(program, v, L1, instructionLabel),
-                new GotoLabel(program, jumpLable, FixedLabel.EMPTY),
+                new GotoLabel(program, jumpLabel, FixedLabel.EMPTY),
                 new Neutral(program, Variable.RESULT, L1)
         );
     }

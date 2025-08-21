@@ -14,13 +14,13 @@ import java.util.Objects;
 public class Engine {
 
     // -------------------- Fields --------------------
-    private ReadSemulatorXml readSem;
+    private final ReadSemulatorXml readSem;
     private final Program program;
     private final ProgramLoad programLoad;
     private final ProgramDTO programDTO;
     private Boolean isLoaded = false;
     private final ProgramExecutorImpl programExecutor;
-    private ExpanderExecute expanderExecute;
+    private final ExpanderExecute expanderExecute;
 
     // -------------------- Constructor --------------------
     public Engine(File file) {
@@ -41,13 +41,12 @@ public class Engine {
         programLoad.loadProgram(readSem);
         programDTO = new ProgramDTO(program);
         programExecutor = new ProgramExecutorImpl(program);
-
         expanderExecute = new ExpanderExecute(program);
     }
 
     // -------------------- Basic accessors --------------------
     public Boolean getLoaded() { return isLoaded; }
-    public void setLoaded(Boolean isLoaded) { this.isLoaded = isLoaded; }
+
     public ProgramDTO getProgramDTO() { return programDTO; }
 
     // -------------------- Run / Inputs --------------------
@@ -63,9 +62,8 @@ public class Engine {
         return expanderExecute;
     }
 
-    /** Better name; keeps logic identical. */
     public void resetSumOfCycles() {
-        programExecutor.setSumOfCycles(0);
+        programExecutor.resetSumOfCycles();
     }
 
     public int getSumOfCycles() {

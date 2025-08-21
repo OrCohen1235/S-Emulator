@@ -1,6 +1,5 @@
 package logic.label;
 
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 

@@ -55,9 +55,9 @@ public class ProgramDTO {
         final boolean expanded = "EXPANDED".equals(program.getMode());
         final AtomicInteger idx = new AtomicInteger(1);
 
-        List<Instruction> flattened = Optional.ofNullable(program)
-                .map(p -> p.view())
-                .map(v -> v.list())
+        List<Instruction> flattened = Optional.of(program)
+                .map(Program::view)
+                .map(ProgramView.InstructionsView::list)
                 .orElseGet(Collections::emptyList);
 
         return flattened.stream()

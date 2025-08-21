@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ReadSemulatorXml {
-    private SProgram semulator;
-    private File xmlFile;
+    private SProgram simulator;
+    private final File xmlFile;
 
     public ReadSemulatorXml(File file) {
         this.xmlFile = Optional.ofNullable(file)
@@ -30,18 +30,18 @@ public class ReadSemulatorXml {
         try {
             JAXBContext context = JAXBContext.newInstance(SProgram.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
-            this.semulator = (SProgram) unmarshaller.unmarshal(xmlFile);
+            this.simulator = (SProgram) unmarshaller.unmarshal(xmlFile);
         } catch (JAXBException e) {
             throw new RuntimeException("Failed to unmarshal XML from: " + xmlFile.getAbsolutePath() + "\n", e);
         }
     }
 
     public String getProgramName() {
-        return semulator.getName();
+        return simulator.getName();
     }
 
     public List<SInstruction> getSInstructionList() {
-        return semulator.getSInstructions().getSInstruction();
+        return simulator.getSInstructions().getSInstruction();
     }
 
     public String checkLabelValidity() {

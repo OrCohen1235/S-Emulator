@@ -58,7 +58,7 @@ public class RunAction implements MenuAction {
         engineDTO.resetSumOfCycles();
     }
 
-    void updateHistory(List<Long> values, AppContext ctx, Long finalResult) {
+    private void updateHistory(List<Long> values, AppContext ctx, Long finalResult) {
         HistoryContext newHistoryContext = new HistoryContext();
         newHistoryContext.setxValues(values);
         newHistoryContext.setDegree(ctx.getRunDegreeATM());

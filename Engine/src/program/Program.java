@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Program {
+public final class Program {
 
     // ==================== Fields ====================
     private String nameOfProgram;
@@ -107,6 +107,7 @@ public class Program {
 
     public void resetMapVariables() {
         zVariables.clear();
+        xVariables.clear();
         setY(0L);
     }
 

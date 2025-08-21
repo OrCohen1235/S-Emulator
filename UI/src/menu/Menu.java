@@ -9,6 +9,7 @@ import util.InputHelper;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Menu {
     private final AppContext ctx = new AppContext(new Scanner(System.in));
@@ -37,7 +38,11 @@ public class Menu {
                 continue;
             }
             action.execute(ctx);
-            System.out.println();
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

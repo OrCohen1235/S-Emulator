@@ -21,8 +21,8 @@ public class ProgramExecutorImpl {
         return sumOfCycles;
     }
 
-    public void setSumOfCycles(int sumOfCycles) {
-        this.sumOfCycles = sumOfCycles;
+    public void resetSumOfCycles() {
+        this.sumOfCycles = 0;
     }
 
     public long run() {

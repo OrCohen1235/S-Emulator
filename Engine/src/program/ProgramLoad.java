@@ -1,5 +1,6 @@
 package program;
 
+import jaxbsprogram.SInstructionArgument;
 import logic.instructions.binstruction.Decrease;
 import logic.instructions.binstruction.Increase;
 import logic.instructions.binstruction.JumpNotZero;
@@ -20,7 +21,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class ProgramLoad {
-    private Program program;
+    private final Program program;
 
     public ProgramLoad(Program program) {
         this.program = program;
@@ -87,7 +88,7 @@ public class ProgramLoad {
     private String getArgumentByName(jaxbsprogram.SInstruction inst, String name) {
         return inst.getSInstructionArguments().getSInstructionArgument().stream()
                 .filter(a -> name.equals(a.getName()))
-                .map(a -> a.getValue())
+                .map(SInstructionArgument::getValue)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Missing argument: " + name));
     }

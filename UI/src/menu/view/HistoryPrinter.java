@@ -11,7 +11,7 @@ public class HistoryPrinter {
             return;
         }
         for (HistoryContext h : historyContext) {
-            System.out.println("=\n==== Run History Entry =====");
+            System.out.println("\n===== Run History Entry =====");
             System.out.println("Run #:      " + h.getNumberOfProgram()); 
             System.out.println("Degree:     " + h.getDegree());
             System.out.println("Inputs:     " + formatInputs(h.getxValues()));
@@ -22,7 +22,7 @@ public class HistoryPrinter {
     }
 
     private String formatInputs(java.util.List<Long> xs) {
-        if (xs == null || xs.isEmpty()) return "[]";
+        if (xs == null || xs.isEmpty()) return "NO INPUTS";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < xs.size(); i++) {
             if (i > 0) sb.append(',');

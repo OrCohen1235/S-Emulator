@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class ExpanderExecute {
-    private Program program;
-    private ExpansionContext expansionContext;
-    private Expander expander;
+    private final Program program;
+    private final ExpansionContext expansionContext;
+    private final Expander expander;
 
     public ExpanderExecute(Program program) {
         this.program = program;
