@@ -1,11 +1,11 @@
 package engine;
 
-import Logic.DTO.ProgramDTO;
-import Program.*;
-import Program.ProgramLoadException;
-import Logic.execution.ProgramExecutorImpl;
-import Logic.expansion.ExpanderExecute;
-import semulator.ReadSemulatorXml;
+import logic.dto.ProgramDTO;
+import program.*;
+import program.ProgramLoadException;
+import logic.execution.ProgramExecutorImpl;
+import logic.expansion.ExpanderExecute;
+import jaxbsprogram.ReadSemulatorXml;
 
 import java.io.File;
 import java.util.List;
@@ -76,8 +76,6 @@ public class Engine {
     }
 
 
-    /** Alias used elsewhere (e.g., Menu). */
-    public void setSumOfCycles() { resetSumOfCycles(); }
 
 
 

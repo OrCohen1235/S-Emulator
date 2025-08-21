@@ -1,9 +1,7 @@
 package menu.actions;
 
-import Logic.DTO.EngineDTO;
-import Logic.DTO.ProgramDTO;
-import Program.ProgramLoadException;
-import engine.Engine;
+import logic.dto.EngineDTO;
+import program.ProgramLoadException;
 import menu.context.AppContext;
 import util.InputHelper;
 

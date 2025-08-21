@@ -1,6 +1,6 @@
 package menu.view;
 
-import Logic.DTO.ProgramDTO;
+import logic.dto.ProgramDTO;
 
 import java.util.List;
 

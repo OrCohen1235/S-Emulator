@@ -29,5 +29,8 @@ public class ExpandAction implements MenuAction {
         List<String> resultExpandCommands = ctx.getProgramDTO().getListOfExpandCommands();
         System.out.println("Expand commands: ");
         for (String s : resultExpandCommands) System.out.println(s);
+
+        ctx.getProgramDTO().resetMapVariables();
+        ctx.getEngineDTO().resetSumOfCycles();
     }
 }

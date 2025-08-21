@@ -1,7 +1,7 @@
 package menu.actions;
 
-import Logic.DTO.EngineDTO;
-import Logic.DTO.ProgramDTO;
+import logic.dto.EngineDTO;
+import logic.dto.ProgramDTO;
 import menu.context.AppContext;
 import menu.context.HistoryContext;
 import menu.view.ProgramPrinter;
@@ -38,16 +38,17 @@ public class RunAction implements MenuAction {
 
         List<Long> values = input.readCsvLongsFromUser(ctx.getIn());
         engineDTO.loadInputVars(values);
-
         Long finalResult = engineDTO.runProgramExecutor(ctx.getRunDegreeATM());
+        int sumOfCycles = engineDTO.getSumOfCycles();
+        updateHistory(values, ctx, finalResult);
         showProgramAction.execute(ctx);
         programDTO.getVarsValues().forEach((name, val) ->
                 System.out.println(name + " = " + val)
         );
-        System.out.println("\nTotal Cycles: " + engineDTO.getSumOfCycles());
+        System.out.println("\nTotal Cycles: " + sumOfCycles);
 
-        updateHistory(values, ctx, finalResult);
-        programDTO.resetZMapVariables();
+
+        programDTO.resetMapVariables();
         engineDTO.resetSumOfCycles();
 
     }

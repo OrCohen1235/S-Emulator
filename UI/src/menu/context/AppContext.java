@@ -1,8 +1,7 @@
 package menu.context;
 
-import Logic.DTO.EngineDTO;
-import Logic.DTO.ProgramDTO;
-import engine.Engine;
+import logic.dto.EngineDTO;
+import logic.dto.ProgramDTO;
 
 import java.util.ArrayList;
 import java.util.List;
