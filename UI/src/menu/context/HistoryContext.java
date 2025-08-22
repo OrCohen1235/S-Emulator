@@ -3,11 +3,11 @@ package menu.context;
 import java.util.List;
 
 public class HistoryContext {
-    private int numberOfProgram;
-    private int degree;
-    private List<Long> xValues;
-    private Long finalResult;
-    private int finalCycles;
+    private int numberOfProgram;      // Sequential index of the executed program run
+    private int degree;               // Expansion degree used in this run
+    private List<Long> xValues;       // Input values provided by the user
+    private Long finalResult;         // Final output result after execution
+    private int finalCycles;          // Total cycles consumed by execution
 
     public int getDegree() {
         return degree;

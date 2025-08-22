@@ -8,9 +8,9 @@ import logic.variable.VariableImpl;
 import logic.variable.VariableType;
 
 public class ExpansionContext {
-    private final Program program;
-    private int nextWorkIdx;
-    private int nextLabelIdx;
+    private final Program program; // Owning program context
+    private int nextWorkIdx;       // Counter for WORK variables (zN)
+    private int nextLabelIdx;      // Counter for generated labels (LN)
 
     public ExpansionContext(Program program, int startWorkIdx, int startLabelIdx) {
         this.program = program;
@@ -19,15 +19,15 @@ public class ExpansionContext {
     }
 
     public Program getProgram() {
-        return program;
+        return program; // Expose program reference
     }
 
     public Variable getFreshWorkVal() {
-        return new VariableImpl(VariableType.WORK, ++nextWorkIdx); // z{n+1}
+        return new VariableImpl(VariableType.WORK, ++nextWorkIdx); // Create z{n+1}
     }
 
     public Label getFreshLabel() {
-        return new LabelImpl("L" + (++nextLabelIdx));              //
+        return new LabelImpl("L" + (++nextLabelIdx)); // Create L{n+1}
     }
 
 }

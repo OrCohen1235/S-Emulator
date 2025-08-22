@@ -9,41 +9,43 @@ import java.util.Objects;
 
 public class ProgramExecutorImpl {
 
-    private final Program program;
-    private int sumOfCycles;
+    private final Program program; // Reference to the program being executed
+    private int sumOfCycles;       // Tracks total cycles executed
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
-        this.sumOfCycles = 0;
+        this.sumOfCycles = 0; // Initialize cycle counter
     }
 
     public int getSumOfCycles() {
-        return sumOfCycles;
+        return sumOfCycles; // Return total cycles executed
     }
 
     public void resetSumOfCycles() {
-        this.sumOfCycles = 0;
+        this.sumOfCycles = 0; // Reset cycle counter
     }
 
     public long run() {
-        int index =0;
+        int index = 0; // Start from the first instruction
         Label nextLabel;
+
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
-            sumOfCycles += currentInstruction.getCycles();
-            nextLabel = currentInstruction.calculateInstruction();
+            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
+            nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
 
             if (nextLabel == FixedLabel.EMPTY) {
-                index++;
+                index++; // Move to next instruction
             }
             else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
+                // Jump to instruction at target label
                 currentInstruction = program.getInstructionByLabelActive(nextLabel);
                 index = program.getIndexByInstruction(currentInstruction);
             }
             else
-                break;
+                break; // Exit condition
         } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions());
 
-        return program.getY();
+        return program.getY(); // Return output value after execution
     }
 }

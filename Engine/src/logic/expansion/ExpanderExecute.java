@@ -9,29 +9,29 @@ import java.util.List;
 import java.util.Objects;
 
 public class ExpanderExecute {
-    private final Program program;
-    private final ExpansionContext expansionContext;
-    private final Expander expander;
+    private final Program program;                     // Target program to expand
+    private final ExpansionContext expansionContext;   // Supplies fresh labels/vars and config
+    private final Expander expander;                   // Performs instruction-level expansion
 
     public ExpanderExecute(Program program) {
         this.program = program;
-        expansionContext = new ExpansionContext(program, 1, getMaxLabelNumber() + 1);
+        expansionContext = new ExpansionContext(program, 1, getMaxLabelNumber() + 1); // Start degree=1; next free label
         expander = new Expander(expansionContext);
     }
 
     public void loadExpansion() {
-        loadFullExpansion(program.getInstructions());
+        loadFullExpansion(program.getInstructions()); // Compute degrees for full expansion tree
     }
 
     private void loadFullExpansion(List<Instruction> listOfExpansion) {
         if (listOfExpansion.size() == 1) {
-            return;
+            return; // Leaf reached
         } else {
             for (Instruction instruction : listOfExpansion) {
-                List<Instruction> lst = expander.expand(instruction);
-                loadFullExpansion(lst);
+                List<Instruction> lst = expander.expand(instruction); // Expand current node
+                loadFullExpansion(lst); // Recurse
                 if (instruction instanceof SyntheticInstruction) {
-                    instruction.setDegree(calcMaxDegree(lst) + 1);
+                    instruction.setDegree(calcMaxDegree(lst) + 1); // Degree = max(children)+1
                 }
             }
         }
@@ -40,26 +40,26 @@ public class ExpanderExecute {
     // -------------------- Expansion: by degree (build linear list) --------------------
     public void loadExpansionByDegree(int degree) {
         List<Instruction> out = new ArrayList<>();
-        int fatherindex=1;
+        int fatherindex=1; // 1-based parent index in flattened view
         for (Instruction instruction : program.getInstructions()) {
-            expandWithLimitedDegree(instruction, degree, out,fatherindex);
+            expandWithLimitedDegree(instruction, degree, out,fatherindex); // Depth-limited expansion
             fatherindex++;
         }
-        program.setExpandInstructionsByDegree(out);
+        program.setExpandInstructionsByDegree(out); // Materialize chosen-degree view
     }
 
     private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out,int fatherindex) {
         boolean isSynthetic = instruction instanceof SyntheticInstruction;
 
         if (remaining == 0 || !isSynthetic) {
-            out.add(instruction);
+            out.add(instruction); // Stop expanding: either depth reached or primitive
             return;
         }
-        List<Instruction> children = expander.expand(instruction);
+        List<Instruction> children = expander.expand(instruction); // Expand one level
         for (Instruction child : children) {
-            child.setFather(instruction);
-            expandWithLimitedDegree(child, remaining - 1, out,fatherindex+1);
-            child.setIndexFatherLocation(fatherindex);
+            child.setFather(instruction); // Track parent linkage
+            expandWithLimitedDegree(child, remaining - 1, out,fatherindex+1); // Recurse with reduced budget
+            child.setIndexFatherLocation(fatherindex); // Store parent index for pretty-print
         }
 
         if (isSynthetic) {
@@ -67,14 +67,14 @@ public class ExpanderExecute {
             for (Instruction child : children) {
                 maxChildDegree = Math.max(maxChildDegree, child.getDegree());
             }
-            instruction.setDegree(maxChildDegree + 1);
+            instruction.setDegree(maxChildDegree + 1); // Update parent degree from children
         }
     }
 
     // -------------------- Expansion: queries (max degree, label max, pretty print) --------------------
 
     public int getMaxDegree() {
-        int max = calcMaxDegree(program.getInstructions());
+        int max = calcMaxDegree(program.getInstructions()); // Compute max degree over tree
         program.setMaxDegree(max);
         return max;
     }
@@ -86,9 +86,8 @@ public class ExpanderExecute {
                 maxDegree = inst.getDegree();
             }
         }
-        return maxDegree;
+        return maxDegree; // Returns 0 if degrees were not set
     }
-
 
     public int getMaxLabelNumber() {
         return program.getLabels().stream()
@@ -100,6 +99,6 @@ public class ExpanderExecute {
                         && lbl.substring(1).chars().allMatch(Character::isDigit))
                 .mapToInt(lbl -> Integer.parseInt(lbl.substring(1)))
                 .max()
-                .orElse(0);
+                .orElse(0); // Highest numeric L* label or 0 if none
     }
 }

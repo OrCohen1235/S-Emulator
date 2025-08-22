@@ -14,12 +14,12 @@ public final class ProgramView {
 
     public enum Mode {
         ORIGINAL
-        , EXPANDED }
+        , EXPANDED } // Two views: original instructions or expanded (flattened) list
 
-    private final Supplier<List<Instruction>> originalSupplier;
-    private final Supplier<List<Instruction>> expandedSupplier;
+    private final Supplier<List<Instruction>> originalSupplier; // Provides original list
+    private final Supplier<List<Instruction>> expandedSupplier; // Provides expanded list
 
-    private Mode mode = Mode.ORIGINAL;
+    private Mode mode = Mode.ORIGINAL; // Active mode
 
     public ProgramView(Supplier<List<Instruction>> originalSupplier, Supplier<List<Instruction>> expandedSupplier) {
         this.originalSupplier = (originalSupplier);
@@ -28,7 +28,7 @@ public final class ProgramView {
 
     public interface InstructionsView {
         List<Instruction> list();
-        default Stream<Instruction> stream() { return list().stream(); }
+        default Stream<Instruction> stream() { return list().stream(); } // Convenience stream
         Instruction getInstructionByIndex(int index);
         Instruction getInstructionByLabel(Label label);
         int getIndexByInstruction(Instruction inst);
@@ -47,7 +47,7 @@ public final class ProgramView {
                     .map(list::get)
                     .orElseThrow(() -> new IndexOutOfBoundsException(
                             "Index " + index + " out of bounds for originalView (size=" + list.size() + ")\n"
-                    ));
+                    )); // Bounds-checked access
         }
 
         public Instruction getInstructionByLabel(Label label) {
@@ -57,7 +57,7 @@ public final class ProgramView {
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException(
                             "No instruction found in originalView with label: " + label.getLabelRepresentation() + "\n"
-                    ));
+                    )); // First instruction with matching label
         }
 
         public int getIndexByInstruction(Instruction inst) {
@@ -67,7 +67,7 @@ public final class ProgramView {
                     .filter(i -> i != -1)
                     .orElseThrow(() -> new NoSuchElementException(
                             "Instruction not found in originalView: " + inst + "\n"
-                    ));
+                    )); // Index lookup with error on missing
         }
 
         public int getSizeOfListInstructions() {
@@ -86,9 +86,9 @@ public final class ProgramView {
                     .filter(i -> i >= 0)
                     .orElseThrow(() -> new IndexOutOfBoundsException(
                             "Index " + index + " out of bounds for expandedView (size=" + list.size() + ")\n"
-                    ));
+                    )); // Negative index guard
 
-            return list.get(index);
+            return list.get(index); // Direct access (upper bound implicitly handled by List)
         }
 
         public Instruction getInstructionByLabel(Label label) {
@@ -98,7 +98,7 @@ public final class ProgramView {
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException(
                             "No instruction found in expandedView with label: " + label.getLabelRepresentation() + "\n"
-                    ));
+                    )); // First instruction with matching label
         }
 
         public int getIndexByInstruction(Instruction inst) {
@@ -107,7 +107,7 @@ public final class ProgramView {
             if (idx == -1) {
                 throw new NoSuchElementException("Instruction not found in expandedView: " + inst + "\n");
             }
-            return idx;
+            return idx; // Index in expanded list
         }
 
         public int getSizeOfListInstructions() {
@@ -115,11 +115,11 @@ public final class ProgramView {
         }
     };
 
-    public void useOriginal() { mode = Mode.ORIGINAL; }
-    public void useExpanded() { mode = Mode.EXPANDED; }
-    public Mode mode() { return mode; }
+    public void useOriginal() { mode = Mode.ORIGINAL; } // Switch to original view
+    public void useExpanded() { mode = Mode.EXPANDED; } // Switch to expanded view
+    public Mode mode() { return mode; }                 // Current mode getter
 
     public InstructionsView active() {
-        return (mode == Mode.ORIGINAL) ? originalView : expandedView;
+        return (mode == Mode.ORIGINAL) ? originalView : expandedView; // Resolve active view
     }
 }
