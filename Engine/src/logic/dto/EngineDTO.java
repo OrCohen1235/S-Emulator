@@ -3,7 +3,6 @@ package logic.dto;
 import engine.Engine;
 
 import java.util.List;
-import java.util.Scanner;
 
 public class EngineDTO {
     private final Engine engine; // Wraps the Engine instance
