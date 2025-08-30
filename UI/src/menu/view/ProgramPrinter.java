@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ProgramPrinter {
     public void printProgram(ProgramDTO dto, List<String> expandedCommands) {
-        System.out.println("\nProgramName: \n" + dto.getProgramName());
+        System.out.println("\nProgramName: " + dto.getProgramName());
 
         System.out.println("\nVariables: ");
         dto.getVariables().forEach(System.out::println);

@@ -7,6 +7,8 @@ import util.InputHelper;
 
 import java.io.File;
 
+import static java.lang.System.in;
+
 public class LoadXmlAction implements MenuAction {
     private final InputHelper input; // Reads and validates user input (file path)
 
@@ -18,19 +20,17 @@ public class LoadXmlAction implements MenuAction {
 
     @Override
     public void execute(AppContext ctx) {
-        String path = input.readValidXmlPathOrCancel(ctx.getIn()); // Prompt for XML path (or cancel)
-        if (path == null) return; // User canceled
-
-        File f = new File(path);
         try {
-            EngineDTO temp = new EngineDTO(f); // Probe load to validate XML and semantics
+            System.out.print("\nEnter full path to XML file (leave empty to cancel): ");
+            String path = input.readValidXmlPathOrCancel(ctx.getIn());
+            EngineDTO temp = new EngineDTO(path); // Probe load to validate XML and semantics
             if (temp.getLoaded()) {
-                EngineDTO currentEngineDTO = new EngineDTO(f); // Reload for actual use
+                EngineDTO currentEngineDTO = new EngineDTO(path); // Reload for actual use
                 ctx.setEngineDTO(currentEngineDTO);            // Store engine in app context
                 ctx.setProgramDTO(currentEngineDTO.getProgramDTO()); // Expose ProgramDTO in context
-                System.out.println("Program loaded successfully: " + ctx.getProgramDTO().getProgramName() + "\n");
+                System.out.println("\nProgram loaded successfully: " + ctx.getProgramDTO().getProgramName() );
             } else {
-                System.out.println("Invalid XML (application-wise). The previous valid program remains active.\n"); // Keep previous program
+                System.out.println("Invalid XML (application-wise). The previous valid program remains active."); // Keep previous program
             }
         } catch (ProgramLoadException e){
             System.out.println(e.getMessage() + "\n"); // Domain-specific load error details

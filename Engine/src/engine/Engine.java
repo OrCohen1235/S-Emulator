@@ -23,9 +23,9 @@ public class Engine {
     private final ExpanderExecute expanderExecute;     // Handles command expansion
 
     // -------------------- Constructor --------------------
-    public Engine(File file) {
+    public Engine(String filePath) {
         try {
-            readSem = new ReadSemulatorXml(file);
+            readSem = new ReadSemulatorXml(filePath);
             String label = readSem.checkLabelValidity();
             if (!Objects.equals(label, "")){
                 // Thrown if there is a jump to a non-existing label

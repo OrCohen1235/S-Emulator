@@ -44,6 +44,7 @@ public class ProgramDTO {
                 .filter(VariableArgumentInstruction.class::isInstance)
                 .map(VariableArgumentInstruction.class::cast)
                 .map(vai -> Optional.ofNullable(vai.getVariableArgument())
+                        .filter(v -> v.getType() == VariableType.INPUT)
                         .map(Variable::getRepresentation)
                         .orElse(null))
                 .filter(Objects::nonNull);
@@ -86,14 +87,16 @@ public class ProgramDTO {
         String command = instr.getCommand();
         int cycles = instr.getCycles();
 
-        // Recursive formatting to include father-child relationships
+        String current = String.format("#%d (%s) [%-3.5s] %s (%d)",
+                index, type, label, command, cycles);
+
         return Optional.ofNullable(instr.getFather())
-                .map(father -> String.format("%s <<< #%d (%s) [%-3.5s] %s (%d)",
-                        getSingleCommandAndFather(instr.getIndexFatherLocation(), father, index),
-                        index, type, label, command, cycles))
-                .orElseGet(() -> String.format("#%d (%s) [%-3.5s] %s (%d)",
-                        index, type, label, command, cycles));
+                .map(father -> String.format("%s >>> %s",
+                        current,
+                        getSingleCommandAndFather(instr.getIndexFatherLocation(), father, index)))
+                .orElse(current);
     }
+
 
     public Map<String,Long> getVarsValues() {
         return program.getVariablesValues(); // Return current variable values

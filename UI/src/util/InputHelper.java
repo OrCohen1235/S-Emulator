@@ -26,7 +26,7 @@ public class InputHelper {
     public List<Long> readCsvLongsFromUser(Scanner in) {
         List<Long> out= new ArrayList<>();
         while (true) {
-            System.out.print("Enter vars values.\n comma-separated integers (e.g., 1,2,3,): ");
+            System.out.print("Enter vars values,comma-separated integers (e.g., 1,2,3,): ");
             String raw = in.nextLine();
             if (raw == null) raw = "";
             raw = raw.trim();
@@ -52,28 +52,7 @@ public class InputHelper {
         while (true) {
             System.out.print("Enter full path to XML file (leave empty to cancel): ");
             String raw = in.nextLine();
-            if (raw == null) raw = "";
-            String path = raw.trim();
-
-            if (path.isEmpty()) { System.out.println("Load cancelled."); return null; }
-            if ((path.startsWith("\"") && path.endsWith("\"")) ||
-                    (path.startsWith("'")  && path.endsWith("'"))) {
-                path = path.substring(1, path.length() - 1).trim();
-            }
-            if (!path.toLowerCase(Locale.ROOT).endsWith(".xml")) {
-                System.out.println("Error: file must end with .xml (case-insensitive)."); continue;
-            }
-            if (!ENGLISH_PATH.matcher(path).matches()) {
-                System.out.println("Error: path must contain only English letters/digits (spaces allowed)."); continue;
-            }
-
-            File f = new File(path);
-            if (!f.exists()) { System.out.println("Error: file does not exist."); continue; }
-            if (!f.isFile())  { System.out.println("Error: path is not a file."); continue; }
-            if (!f.canRead()) { System.out.println("Error: file is not readable (permissions)."); continue; }
-            if (f.length() == 0L) { System.out.println("Error: file is empty."); continue; }
-
-            return path;
+            return raw;
         }
     }
 }

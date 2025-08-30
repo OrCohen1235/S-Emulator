@@ -20,7 +20,13 @@ public class ExpanderExecute {
     }
 
     public void loadExpansion() {
-        loadFullExpansion(program.getInstructions()); // Compute degrees for full expansion tree
+        int maxLabel = expansionContext.getNextLabelIdx();;
+        int maxWorkIndex= expansionContext.getNextWorkIdx();
+        loadFullExpansion(program.getInstructions());
+        expansionContext.setNextLabelIdx(maxLabel);
+        expansionContext.setNextWorkIdx(maxWorkIndex);
+        program.resetMapVariables();
+        // Compute degrees for full expansion tree
     }
 
     private void loadFullExpansion(List<Instruction> listOfExpansion) {
@@ -40,11 +46,16 @@ public class ExpanderExecute {
     // -------------------- Expansion: by degree (build linear list) --------------------
     public void loadExpansionByDegree(int degree) {
         List<Instruction> out = new ArrayList<>();
+        int maxLabel = expansionContext.getNextLabelIdx();;
+        int maxWorkIndex= expansionContext.getNextWorkIdx();
         int fatherindex=1; // 1-based parent index in flattened view
         for (Instruction instruction : program.getInstructions()) {
             expandWithLimitedDegree(instruction, degree, out,fatherindex); // Depth-limited expansion
             fatherindex++;
         }
+        expansionContext.setNextLabelIdx(maxLabel);
+        expansionContext.setNextWorkIdx(maxWorkIndex);
+        program.resetMapVariables();
         program.setExpandInstructionsByDegree(out); // Materialize chosen-degree view
     }
 
@@ -74,8 +85,15 @@ public class ExpanderExecute {
     // -------------------- Expansion: queries (max degree, label max, pretty print) --------------------
 
     public int getMaxDegree() {
-        int max = calcMaxDegree(program.getInstructions()); // Compute max degree over tree
-        program.setMaxDegree(max);
+        int max;
+        if (program.getMaxDegree() == -1) {
+            max = calcMaxDegree(program.getInstructions());
+            program.setMaxDegree(max);
+        }
+        else {
+            max=program.getMaxDegree();
+        }
+        program.resetMapVariables();
         return max;
     }
 

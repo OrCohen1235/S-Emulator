@@ -25,7 +25,7 @@ public class RunAction implements MenuAction {
         ShowProgramAction showProgramAction = new ShowProgramAction(new ProgramPrinter());
 
         engineDTO.loadExpansion(); // Precompute expansion metadata (degrees)
-        System.out.println("Max Degree is: " + engineDTO.getMaxDegree());
+        System.out.println("\nMax Degree is: " + engineDTO.getMaxDegree());
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(), "Choose degree: ", 0, engineDTO.getMaxDegree())); // User picks degree
 
         Optional.of(ctx.getRunDegreeATM())
@@ -36,8 +36,9 @@ public class RunAction implements MenuAction {
                     ctx.getProgramDTO().setProgramViewToExpanded();   // Switch Program view
                 });
 
+        System.out.println("\nVariables:");
         programDTO.getVariables().forEach(variable ->
-                System.out.println("Variable: " + variable) // Show required input variables
+                System.out.println(variable)
         );
 
         List<Long> values = input.readCsvLongsFromUser(ctx.getIn()); // Read user inputs
@@ -47,6 +48,7 @@ public class RunAction implements MenuAction {
         int sumOfCycles = engineDTO.getSumOfCycles(); // Collect total cycles
         updateHistory(values, ctx, finalResult);      // Persist run in history
         showProgramAction.execute(ctx);               // Print program (original/expanded as selected)
+        System.out.println();
         programDTO.getVarsValues().forEach((name, val) ->
                 System.out.println(name + " = " + val) // Print all variable values including Y
         );

@@ -18,7 +18,7 @@ public final class Program {
     private Map<Variable, Long> zVariables = new LinkedHashMap<>();     // WORK variables (zN -> value)
     private Map<Variable, Long> y          = new LinkedHashMap<>();     // Output/result variable (Y)
     private List<Instruction> expandInstructionsByDegree = new ArrayList<>(); // Flattened view by degree
-    private int maxDegree = 0;                                        // Cached max expansion degree
+    private int maxDegree = -1;                                        // Cached max expansion degree
     private final ProgramView views = new ProgramView(() -> instructions, () -> expandInstructionsByDegree); // View switcher
 
     public void useOriginalView() { views.useOriginal(); } // Activate original instructions
@@ -62,6 +62,10 @@ public final class Program {
     public String getNameOfProgram() { return nameOfProgram; }
 
     public List<Instruction> getInstructions() { return instructions; }
+
+    public int getMaxDegree(){
+        return maxDegree;
+    }
 
     public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; } // Cache for UI/queries
 

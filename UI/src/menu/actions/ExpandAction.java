@@ -20,7 +20,7 @@ public class ExpandAction implements MenuAction {
         ctx.getEngineDTO().loadExpansion();
         int maxDegree = ctx.getEngineDTO().getMaxDegree();
 
-        System.out.println("Max Degree is: " + maxDegree);
+        System.out.println("\nMax Degree is: " + maxDegree);
         ctx.setRunDegreeATM(input.askIntInRange(ctx.getIn(),
                 "Choose a degree between 0 and " + maxDegree + " :", 0, maxDegree));
 
@@ -34,10 +34,11 @@ public class ExpandAction implements MenuAction {
 
         List<String> resultExpandCommands = ctx.getProgramDTO().getListOfExpandCommands();
 
-        System.out.println("Expand commands: ");
+        System.out.println("\nExpand commands: ");
         Optional.ofNullable(resultExpandCommands)
                 .ifPresent(list -> list.forEach(System.out::println));
 
+        ctx.getProgramDTO().setProgramViewToOriginal();
         ctx.getProgramDTO().resetMapVariables();
         ctx.getEngineDTO().resetSumOfCycles();
     }

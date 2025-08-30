@@ -2,14 +2,14 @@ package logic.dto;
 
 import engine.Engine;
 
-import java.io.File;
 import java.util.List;
+import java.util.Scanner;
 
 public class EngineDTO {
     private final Engine engine; // Wraps the Engine instance
 
-    public EngineDTO(File file) {
-        this.engine = new Engine(file); // Initialize Engine with XML file
+    public EngineDTO(String filePath) {
+        this.engine = new Engine(filePath); // Initialize Engine with XML file
     }
 
     public int getMaxDegree() {

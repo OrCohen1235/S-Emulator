@@ -43,7 +43,7 @@ public class Menu {
             // Idea: measure and log action execution time for profiling long runs
             action.execute(ctx); // Consider returning a boolean to indicate "should exit" (e.g., ExitAction)
             try {
-                TimeUnit.SECONDS.sleep(2); // UX: make this configurable or skip after fast CLI interactions
+                TimeUnit.SECONDS.sleep(1); // UX: make this configurable or skip after fast CLI interactions
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // Correct: restore interrupt status
                 // Optional: break the loop if interruption should stop the app

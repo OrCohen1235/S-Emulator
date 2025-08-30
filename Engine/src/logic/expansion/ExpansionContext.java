@@ -27,7 +27,22 @@ public class ExpansionContext {
     }
 
     public Label getFreshLabel() {
-        return new LabelImpl("L" + (++nextLabelIdx)); // Create L{n+1}
+        return new LabelImpl("L" + (nextLabelIdx++)); // Create L{n+1}
     }
 
+    public int getNextWorkIdx() {
+        return nextWorkIdx;
+    }
+
+    public int getNextLabelIdx() {
+        return nextLabelIdx;
+    }
+
+    public void setNextWorkIdx(int nextWorkIdx) {
+        this.nextWorkIdx = nextWorkIdx;
+    }
+
+    public void setNextLabelIdx(int nextLabelIdx) {
+        this.nextLabelIdx = nextLabelIdx;
+    }
 }
