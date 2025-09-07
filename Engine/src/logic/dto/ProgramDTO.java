@@ -113,6 +113,10 @@ public class ProgramDTO {
         return map.get(variable).toString();
     }
 
+    public Map<String, Long> getVariablesValues(){
+        return program.getVariablesValues();
+    }
+
 
 
     public void resetMapVariables() {

@@ -58,6 +58,29 @@ public class ProgramService {
         return rows;
     }
 
+    public List<SemulatorController.VarRow> getVariablesEND() {
+        List<SemulatorController.VarRow> rows = new ArrayList<>();
+        Map<String, Long> values = program.getVariablesValues();
+        for (Map.Entry<String, Long> entry : values.entrySet()) {
+            if (!Objects.equals(entry.getKey(), "y")) {
+                String varName = entry.getKey().toUpperCase();
+                String type;
+                if (Objects.equals(entry.getKey().charAt(0), 'x')) {
+                    type= "INPUT";  // This is hardcoded; adjust if needed
+                }
+                else {
+                    type = "WORK";
+                }
+                String valueStr = String.valueOf(entry.getValue());
+
+
+                SemulatorController.VarRow varRow = new SemulatorController.VarRow(varName, type, valueStr);
+                rows.add(varRow);
+            }
+        }
+        return rows;
+    }
+
     public void loadVars(List<Long> vars){
         engine.loadInputVars(vars);
     }
