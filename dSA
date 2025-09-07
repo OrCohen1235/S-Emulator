@@ -1,0 +1,218 @@
+[33mcommit 8efbaeed7af5ebe9c94edda07736d8e66ec17d52[m[33m ([m[1;36mHEAD[m[33m)[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Sep 7 18:50:03 2025 +0300
+
+    start design UI
+
+[33mcommit 428c1c9fc4f89db5dce9eb09e3da2380416ea473[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Sep 7 16:40:55 2025 +0300
+
+    before split UI
+
+[33mcommit 949c4b52230c549880ba8e9540a2423c40a7d8a7[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Sep 7 14:54:29 2025 +0300
+
+    try Ex02
+
+[33mcommit df3fcb68a7d16751e6c26ef8dacce09eb47e9243[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Sep 7 13:58:29 2025 +0300
+
+    Start Ex02
+
+[33mcommit adadd02fc143e68994bd7c52d858ed92997852f4[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sat Aug 30 20:45:09 2025 +0300
+
+    Finished Ex1
+
+[33mcommit c5158734147f514cfab71b84e53d7a8de49ada49[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sat Aug 30 20:43:18 2025 +0300
+
+    "Final Ex1"
+
+[33mcommit a5fc2d318c53880e48e5507f50d0c17d5ed4a16d[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sat Aug 30 20:42:48 2025 +0300
+
+    "Final Ex1"
+
+[33mcommit 738bcbf541672901fbc9c9975647bd291d52eadf[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Fri Aug 22 03:27:25 2025 +0300
+
+    Ex1 is ready
+
+[33mcommit e394646b381e080a49c623306ac5a6e8eff5fde6[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Fri Aug 22 01:11:38 2025 +0300
+
+    Ex1 done.
+
+[33mcommit d6c4e74e01e7563d565af9cd7da167ecf3d87046[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Thu Aug 21 19:36:24 2025 +0300
+
+    After adding Optional and Stream
+
+[33mcommit 3ad4e7a5eb1aa307e01e92e898d23afb3eff2a63[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Thu Aug 21 17:32:46 2025 +0300
+
+    fixing code number 3
+
+[33mcommit 23a77c62a7da42362a439c87d33530d4979c37b3[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Thu Aug 21 10:21:26 2025 +0300
+
+    fixing code number 2
+
+[33mcommit 3f22c1eabb35fbbabe4a1f3b89b303b2431da695[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Thu Aug 21 07:45:32 2025 +0300
+
+    fixing code
+
+[33mcommit 5d8c885532b0f48f585023d0c995cac8063e66ac[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Wed Aug 20 18:16:07 2025 +0300
+
+    After adding class ProgramLoad
+
+[33mcommit ed3878d0958537acc2c682bf64b1982ad2335669[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Wed Aug 20 16:43:25 2025 +0300
+
+    finished exceptions
+
+[33mcommit d8eb298c39b636e62dcaa424d0a1acaa7a96c21c[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Wed Aug 20 13:36:17 2025 +0300
+
+    finished ProgramView Composition.
+
+[33mcommit 39aa96e72492c0e0db1407b0327192860459b14f[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Wed Aug 20 11:49:40 2025 +0300
+
+    Finished indexes+ new design. Before starting on Polymor.
+
+[33mcommit 06f222a10406107756f69c7f406b45efb5c1bab7[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Tue Aug 19 23:03:22 2025 +0300
+
+    adding engineDTO
+
+[33mcommit e0818daafdb7723fc9aaa5d0019ca9a7ce2a792c[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 19 20:36:00 2025 +0300
+
+    swapping methods
+
+[33mcommit f88858125d65def917a8b28eb9fcd4364bffa454[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Tue Aug 19 19:11:17 2025 +0300
+
+    19082025
+
+[33mcommit 63a98354bf62692f97ea65ac01b05be679552cdb[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 19 14:50:47 2025 +0300
+
+    Update Expander
+
+[33mcommit 68bb9588ec4530e79b67b63093471fdc8959f01c[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 19 14:46:01 2025 +0300
+
+    Design change
+
+[33mcommit f4d86aca2e04cbbb9c9cc694bf66bf4881f337ad[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 19 14:35:20 2025 +0300
+
+    Menu Improvements
+
+[33mcommit 3eb86139bebc5f79157a27fd91d422cef151cb9a[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 19 14:00:01 2025 +0300
+
+    run expands
+
+[33mcommit 9797bcc5ae660aa4ae582604d11b134c3e9f35cd[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Mon Aug 18 15:22:54 2025 +0300
+
+    finished menu
+
+[33mcommit 02d3c4790cb1ec975aee6808acd488214d7d28d3[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Aug 17 20:33:56 2025 +0300
+
+    finished EXTAND
+
+[33mcommit ab4e5663cb9f4a489199b03ecd21d7c2539a394a[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Aug 17 17:13:00 2025 +0300
+
+    WIP: before pulling partner changes
+    
+    # Conflicts:
+    #       Engine/src/Logic/Program.java
+
+[33mcommit a60311973c8b6a422322697048d4fd8eb709cae0[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Sun Aug 17 17:06:48 2025 +0300
+
+    finish 1expander
+
+[33mcommit ac17d61f202261b0d101f65707c087d808b84b37[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Sun Aug 17 16:59:21 2025 +0300
+
+    finish 1expand
+
+[33mcommit 806341697abcfb09695ecb1b832a42264434513c[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Aug 17 13:58:41 2025 +0300
+
+    start merge
+
+[33mcommit 3c222f1d3bd35d7ad8b1e889601db24ed9112636[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Sun Aug 17 13:20:05 2025 +0300
+
+    finish printing
+
+[33mcommit 09736c47aaf26a02f6cf4fadbac2cf76aff8f27e[m
+Author: Yuval Harel <yuvalh6200@gmail.com>
+Date:   Sat Aug 16 20:23:55 2025 +0300
+
+    add synthetic instructions
+
+[33mcommit e4a42b5431bebc232617b4ac46bc8a2a4ebc47db[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Fri Aug 15 21:45:43 2025 +0300
+
+    finish loading
+
+[33mcommit 0d41e2f64f5c67639947a332bc09bb02079b83d6[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Fri Aug 15 08:54:38 2025 +0300
+
+    Ex1
+
+[33mcommit 521e58110d37c64fc32624464f5257c7c1aeb876[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Fri Aug 15 08:31:06 2025 +0300
+
+    after design
+
+[33mcommit 6f8c64f1401112da38b19db4e43c9037855fb96b[m
+Author: OrCohen1235 <orcohen1235@gmail.com>
+Date:   Tue Aug 12 16:22:22 2025 +0300
+
+    first commit
