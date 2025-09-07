@@ -39,6 +39,7 @@ public class SemulatorController {
     private int maxDegree = 0;
     private int debuggerLevel = 0;
     private static final PseudoClass PC_ROW_HIGHLIGHT = PseudoClass.getPseudoClass("row-highlighted");
+    private static final PseudoClass PC_ROW_HIGHLIGHT_FINISH = PseudoClass.getPseudoClass("row-highlightedfinished");
     private final IntegerProperty highlightedRowIndex = new SimpleIntegerProperty(-1);
 
 
@@ -59,6 +60,12 @@ public class SemulatorController {
 
     @FXML private ListView<String> lstHistoryChain;
 
+    @FXML private Button btnStepOver;
+    @FXML private Button btnStepBack;
+    @FXML private Button btnDebug;
+    @FXML private Button btnRun;
+    @FXML private Button btnStop;
+
     // Right panel
     @FXML private TableView<VarRow> tblVariables;
     @FXML private TableColumn<VarRow, String> colVarName, colVarType, colVarValue;
@@ -73,6 +80,8 @@ public class SemulatorController {
 
     // Status bar
     @FXML private Label lblEngineState, lblSelection, lblFps;
+
+
 
 
     /* ===== Demo models (כמו שהיה) ===== */
@@ -92,6 +101,11 @@ public class SemulatorController {
 
     @FXML
     private void initialize() {
+
+        btnStepOver.setDisable(true);
+        btnStepBack.setDisable(true);
+        btnStop.setDisable(true);
+
         /* ===== Instructions tree: value factories ===== */
         // TreeTableView משתמש ב-TreeItemPropertyValueFactory עם שמות ה-getters במודל InstructionDTO
         colIndex.setCellValueFactory(new TreeItemPropertyValueFactory<>("displayIndex"));
@@ -160,21 +174,53 @@ public class SemulatorController {
                 @Override
                 protected void updateItem(InstructionDTO item, boolean empty) {
                     super.updateItem(item, empty);
-                    boolean on = !empty && getIndex() == highlightedRowIndex.get();
-                    pseudoClassStateChanged(PC_ROW_HIGHLIGHT, on);
-                    if (!on) setStyle("");
+
+                    if (empty || item == null) {
+                        pseudoClassStateChanged(PC_ROW_HIGHLIGHT, false);
+                        pseudoClassStateChanged(PC_ROW_HIGHLIGHT_FINISH, false);
+                        setStyle("");
+                        return;
+                    }
+
+                    int sel = highlightedRowIndex.get();
+                    boolean isThisRow = getIndex() == sel;
+
+                    int lastVisibleIndex = trvInstructions.getExpandedItemCount() - 1; // ✅
+                    boolean isLastVisible = sel >= 0 && sel == lastVisibleIndex;
+
+                    pseudoClassStateChanged(PC_ROW_HIGHLIGHT, isThisRow);
+                    pseudoClassStateChanged(PC_ROW_HIGHLIGHT_FINISH, isThisRow && isLastVisible);
                 }
             };
 
-            // לעדכן סטייט כשמשנים highlightedRowIndex
             highlightedRowIndex.addListener((obs, oldV, newV) -> {
-                boolean on = !row.isEmpty() && row.getIndex() == newV.intValue();
-                row.pseudoClassStateChanged(PC_ROW_HIGHLIGHT, on);
-                if (!on) row.setStyle("");
+                int sel = (newV == null) ? -1 : newV.intValue();
+                boolean isThisRow = !row.isEmpty() && row.getIndex() == sel;
+
+                int lastVisibleIndex = trvInstructions.getExpandedItemCount() - 1; // ✅
+                boolean isLastVisible = sel >= 0 && sel == lastVisibleIndex;
+
+                row.pseudoClassStateChanged(PC_ROW_HIGHLIGHT, isThisRow);
+                row.pseudoClassStateChanged(PC_ROW_HIGHLIGHT_FINISH, isThisRow && isLastVisible);
+
+                if (!isThisRow) row.setStyle("");
+            });
+
+            row.indexProperty().addListener((o, ov, nv) -> {
+                int sel = highlightedRowIndex.get();
+                boolean isThisRow = !row.isEmpty() && row.getIndex() == sel;
+
+                int lastVisibleIndex = trvInstructions.getExpandedItemCount() - 1; // ✅
+                boolean isLastVisible = sel >= 0 && sel == lastVisibleIndex;
+
+                row.pseudoClassStateChanged(PC_ROW_HIGHLIGHT, isThisRow);
+                row.pseudoClassStateChanged(PC_ROW_HIGHLIGHT_FINISH, isThisRow && isLastVisible);
+                if (!isThisRow) row.setStyle("");
             });
 
             return row;
         });
+
 
 
         // demo list
@@ -200,6 +246,8 @@ public class SemulatorController {
         lblCycles.setText("0");
         prgExecution.setProgress(0);
         lblEngineState.setText("Idle");
+
+
     }
 
     /* ===== File load & tree refresh ===== */
@@ -305,6 +353,11 @@ public class SemulatorController {
         prgExecution.setProgress(1.0);
     }
     public void onDebug(ActionEvent e){;
+    btnStepOver.setDisable(false);
+    btnStepBack.setDisable(false);
+    btnStop.setDisable(false);
+    btnRun.setDisable(true);
+    btnDebug.setDisable(true);
 
 
     }
@@ -323,6 +376,7 @@ public class SemulatorController {
         setVarsLabels();
         prgExecution.setProgress(1.0);
     }
+
     public void onStepBack(ActionEvent e){
         lblEngineState.setText("Step back");
         if (debuggerLevel==0)
@@ -340,10 +394,25 @@ public class SemulatorController {
         setVarsLabels();
         prgExecution.setProgress(1.0);
 }
-    public void onStop(ActionEvent e)    { lblEngineState.setText("Stopped"); prgExecution.setProgress(0); }
+    public void onStop(ActionEvent e)    {
+        btnStepOver.setDisable(true);
+        btnStepBack.setDisable(true);
+        btnRun.setDisable(false);
+        btnDebug.setDisable(false);
+        setInstructions(spnDegree.getValue());
+        debuggerLevel=0;
+
+
+        lblEngineState.setText("Stopped");
+        prgExecution.setProgress(0); }
     public void onShowStats(ActionEvent e){ lblEngineState.setText("Showing stats"); }
     public void onRerun(ActionEvent e)   { prgExecution.setProgress(0.3); }
     public void onExport(ActionEvent e)  { lblEngineState.setText("Exported CSV (demo)"); }
+    public void onReRun(ActionEvent actionEvent) {
+        btnRun.setDisable(true);
+        onRun(actionEvent);
+        btnRun.setDisable(false);
+    }
 
 
     public void applyVarsValues() {

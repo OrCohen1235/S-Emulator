@@ -222,6 +222,11 @@
 
 /* בקובץ ה-CSS */
 .tree-table-row-cell:row-highlighted {
-    -fx-background-color: #ffdddd; /* אדום עדין */
+    -fx-background-color: #d4edda /* Green */
+}
+
+
+.tree-table-row-cell:row-highlightedfinished {
+    -fx-background-color: #ffdddd;   /* Red */
 }
 

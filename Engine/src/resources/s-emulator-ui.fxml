@@ -135,8 +135,9 @@
                                                             <Pane VBox.vgrow="ALWAYS" />
 
                                                             <!-- כפתור בתחתית וממורכז -->
-                                                            <HBox alignment="BASELINE_CENTER">
+                                                            <HBox alignment="TOP_CENTER">
                                                                 <children>
+                                                                    <Button fx:id="btnReRun" onAction="#onReRun" text="Re-Run" />
                                                                 </children>
                                                             </HBox>
                                                         </children>
