@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="root" stylesheets="@semulator.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.SemulatorController">
+
+    <!-- ===== TOP BAR ===== -->
+    <top>
+        <VBox spacing="8" BorderPane.alignment="CENTER_LEFT">
+            <children>
+                <ToolBar prefHeight="48">
+                    <items>
+                        <Button fx:id="btnLoadFile" onAction="#onLoadFile" text="Load File" />
+                        <Separator orientation="VERTICAL" />
+                        <Label text="Currently Loaded:" />
+                        <Label fx:id="lblFilePath" maxWidth="320" prefWidth="320" styleClass="muted" text="—" textOverrun="LEADING_ELLIPSIS" />
+                        <Separator orientation="VERTICAL" />
+                        <Label text="Program / Function:" />
+                        <MenuButton fx:id="programSelector" text="Select…" />
+                        <Separator orientation="VERTICAL" />
+                        <Button fx:id="btnCollapse" onAction="#onCollapse" text="Collapse" />
+                        <HBox spacing="6">
+                            <children>
+                                <Label text="Degree:" />
+                                <Spinner fx:id="spnDegree" editable="true">
+                                    <valueFactory>
+                                        <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="0" max="9" min="0" />
+                                    </valueFactory>
+                                </Spinner>
+                                <Label fx:id="lblMaxDegree" styleClass="muted" text="/ 0" />
+                            </children>
+                        </HBox>
+                        <Button fx:id="btnExpand" onAction="#onExpand" text="Expand" />
+                        <ToggleButton fx:id="tglHighlight" text="Highlight selection" />
+                        <Pane />
+                        <Button fx:id="btnSettings" text="Settings" />
+                    </items>
+                </ToolBar>
+
+                <!-- Summary line -->
+                <HBox spacing="8" styleClass="surface">
+                    <children>
+                        <Label text="Summary:" />
+                        <Label fx:id="lblSummary" text="Instructions: 0  |  B/S: 0/0  |  Cycles: 0" />
+                    </children>
+                    <padding>
+                        <Insets bottom="10" left="12" right="12" top="10" />
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+
+    <!-- ===== CENTER: MAIN CONTENT ===== -->
+    <center>
+        <SplitPane dividerPositions="0.62" BorderPane.alignment="CENTER">
+            <items>
+
+                <!-- Left: Instructions + History chain -->
+                <VBox spacing="8">
+                    <children>
+                        <TitledPane expanded="true" prefHeight="615.0" prefWidth="1039.0" text="Instructions">
+                            <content>
+                                <!-- הוחלף ל-TreeTableView -->
+                                <TreeTableView fx:id="trvInstructions" prefHeight="400" >
+                                    <columns>
+                                        <TreeTableColumn fx:id="colIndex" prefWidth="60" text="#" />
+                                        <TreeTableColumn fx:id="colType" prefWidth="80" text="B/S" />
+                                        <TreeTableColumn fx:id="colLabel" prefWidth="120" text="Label" />
+                                        <TreeTableColumn fx:id="colCycles" prefWidth="80" text="Cycles" />
+                                        <TreeTableColumn fx:id="colInstruction" maxWidth="400.0" prefWidth="200.0" text="Instruction" />
+                                        <!-- עמודת כפתור (cellFactory בקונטרולר) -->
+                                        <TreeTableColumn fx:id="colExpandFrom" prefWidth="126.0" text="Show Expand" />
+                                    </columns>
+                                </TreeTableView>
+                            </content>
+                        </TitledPane>
+                    </children>
+                    <padding>
+                        <Insets bottom="12" left="12" right="12" top="12" />
+                    </padding>
+                </VBox>
+
+                <!-- Right: Debugger / Execution & side panels -->
+                <VBox spacing="10">
+                    <children>
+                        <TitledPane expanded="true" text="Debugger / Execution">
+                            <content>
+                                <VBox spacing="8">
+                                    <children>
+                                        <ToolBar>
+                                            <items>
+                                                <Button fx:id="btnRun" onAction="#onRun" text="Run" />
+                                                <Button fx:id="btnDebug" onAction="#onDebug" text="Debug" />
+                                                <Button fx:id="btnStepOver" onAction="#onStepOver" text="Step Over" />
+                                                <Button fx:id="btnStepBack" onAction="#onStepBack" text="Step Back" />
+                                                <Button fx:id="btnStop" onAction="#onStop" text="Stop" />
+                                            </items>
+                                        </ToolBar>
+
+                                        <GridPane hgap="10" vgap="10">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="50" />
+                                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="50" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
+                                            </rowConstraints>
+
+                                            <!-- Variables -->
+                                            <TitledPane expanded="true" text="Variables" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                                <content>
+                                                    <TableView fx:id="tblVariables">
+                                                        <columns>
+                                                            <TableColumn fx:id="colVarName" maxWidth="300.0" prefWidth="71.0" text="Name" />
+                                                            <TableColumn fx:id="colVarType" maxWidth="300.0" prefWidth="69.0" text="Type" />
+                                                            <TableColumn fx:id="colVarValue" minWidth="1.0" prefWidth="61.0" text="Value" />
+                                                        </columns>
+                                                    </TableView>
+                                                </content>
+                                            </TitledPane>
+
+                                            <!-- Execution Inputs -->
+                                            <TitledPane expanded="true" prefHeight="163.0" prefWidth="131.0" text="Execution Inputs" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                                <content>
+                                                    <VBox fx:id="inputVars" spacing="6">
+                                                        <children>
+                                                            <!-- כאן נכנסים ה-TextFields -->
+                                                            <VBox fx:id="inputsContainer" spacing="6" />
+
+                                                            <!-- Spacer שיתפוס את כל המקום הפנוי -->
+                                                            <Pane VBox.vgrow="ALWAYS" />
+
+                                                            <!-- כפתור בתחתית וממורכז -->
+                                                            <HBox alignment="BASELINE_CENTER">
+                                                                <children>
+                                                                </children>
+                                                            </HBox>
+                                                        </children>
+                                                    </VBox>
+                                                </content>
+                                            </TitledPane>
+
+
+
+
+                                            <!-- Cycles -->
+                                            <TitledPane expanded="true" text="Cycles" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                                <content>
+                                                    <VBox spacing="8">
+                                                        <children>
+                                                            <HBox alignment="CENTER_LEFT" spacing="6">
+                                                                <children>
+                                                                    <Label text="Total cycles:" />
+                                                                    <Label fx:id="lblCycles" text="0" />
+                                                                </children>
+                                                            </HBox>
+                                                            <ProgressBar fx:id="prgExecution" progress="0.0" />
+                                                        </children>
+                                                        <padding>
+                                                            <Insets bottom="8" left="8" right="8" top="8" />
+                                                        </padding>
+                                                    </VBox>
+                                                </content>
+                                            </TitledPane>
+
+                                            <!-- Output -->
+                                            <TitledPane expanded="true" text="Output (y)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                <content>
+                                                    <VBox spacing="8">
+                                                        <children>
+                                                            <TextField fx:id="txtOutput" editable="false" promptText="y" />
+                                                        </children>
+                                                        <padding>
+                                                            <Insets bottom="8" left="8" right="8" top="8" />
+                                                        </padding>
+                                                    </VBox>
+                                                </content>
+                                            </TitledPane>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+
+                        <TitledPane expanded="true" text="History / Statistics">
+                            <content>
+                                <VBox spacing="8">
+                                    <children>
+                                        <ToolBar>
+                                            <items>
+                                                <Button fx:id="btnShowStats" onAction="#onShowStats" text="Show" />
+                                                <Button fx:id="btnRerun" onAction="#onRerun" text="Re-run" />
+                                                <Pane />
+                                                <Button fx:id="btnExport" onAction="#onExport" text="Export CSV" />
+                                            </items>
+                                        </ToolBar>
+                                        <TableView fx:id="tblHistory">
+                                            <columns>
+                                                <TableColumn fx:id="colRunTime" prefWidth="120" text="Time" />
+                                                <TableColumn fx:id="colRunInputs" prefWidth="180" text="Inputs" />
+                                                <TableColumn fx:id="colRunY" prefWidth="80" text="y" />
+                                                <TableColumn fx:id="colRunCycles" prefWidth="90" text="Cycles" />
+                                                <TableColumn fx:id="colRunNotes" prefWidth="180" text="Notes" />
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+                    </children>
+                    <padding>
+                        <Insets bottom="12" left="12" right="12" top="12" />
+                    </padding>
+                </VBox>
+            </items>
+        </SplitPane>
+    </center>
+
+    <!-- ===== BOTTOM: STATUS BAR ===== -->
+    <bottom>
+        <HBox spacing="12" styleClass="statusbar">
+            <children>
+                <Label text="Engine:" />
+                <Label fx:id="lblEngineState" text="Idle" />
+                <Separator orientation="VERTICAL" />
+                <Label text="Selection:" />
+                <Label fx:id="lblSelection" text="—" />
+                <Pane />
+                <Label text="FPS:" />
+                <Label fx:id="lblFps" text="0" />
+            </children>
+            <padding>
+                <Insets bottom="8" left="12" right="12" top="8" />
+            </padding>
+        </HBox>
+    </bottom>
+</BorderPane>

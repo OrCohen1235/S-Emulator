@@ -17,9 +17,11 @@ public final class Program {
     private Map<Variable, Long> xVariables = new LinkedHashMap<>();     // INPUT variables (xN -> value)
     private Map<Variable, Long> zVariables = new LinkedHashMap<>();     // WORK variables (zN -> value)
     private Map<Variable, Long> y          = new LinkedHashMap<>();     // Output/result variable (Y)
-    private List<Instruction> expandInstructionsByDegree = new ArrayList<>(); // Flattened view by degree
+    private List<Instruction> expandInstructionsByDegree = new ArrayList<>();
+    private List<Instruction> expandInstructionsByDegreeHelper = new ArrayList<>();// Flattened view by degree
     private int maxDegree = -1;                                        // Cached max expansion degree
     private final ProgramView views = new ProgramView(() -> instructions, () -> expandInstructionsByDegree); // View switcher
+
 
     public void useOriginalView() { views.useOriginal(); } // Activate original instructions
 
@@ -48,6 +50,8 @@ public final class Program {
         return view().getInstructionByLabel(label); // Label lookup in active view
     }
 
+
+
     public int getSizeOfInstructions() {
         return view().getSizeOfListInstructions(); // Size of active instruction list
     }
@@ -61,7 +65,18 @@ public final class Program {
     // ==================== Basic getters/setters ====================
     public String getNameOfProgram() { return nameOfProgram; }
 
-    public List<Instruction> getInstructions() { return instructions; }
+    public List<Instruction> getInstructions() {
+            if (views.mode() == ProgramView.Mode.EXPANDED) {
+            return expandInstructionsByDegree;
+            }
+            else {
+                return instructions;
+            }
+    }
+
+    public List<Instruction> getOriginalInstructions(){
+        return instructions;
+    }
 
     public int getMaxDegree(){
         return maxDegree;
@@ -80,6 +95,27 @@ public final class Program {
         this.expandInstructionsByDegree.clear();
         this.expandInstructionsByDegree.addAll(instructions); // Replace flattened list
     }
+
+    public void setExpandInstructionsByDegreeHelper(Collection<Instruction> instructions) {
+        this.expandInstructionsByDegreeHelper.clear();
+        this.expandInstructionsByDegreeHelper.addAll(instructions); // Replace flattened list
+    }
+
+    public List<Instruction> getExpandInstructionsByDegreeHelper() {
+        return expandInstructionsByDegreeHelper;
+    }
+
+    public int getIndexHelper(Instruction instruction) {
+        for (int i = 0; i < expandInstructionsByDegreeHelper.size(); i++) {
+            if (expandInstructionsByDegreeHelper.get(i).equals(instruction)) {
+                return i+1;
+            }
+        }
+        return 0;
+    }
+
+
+
 
     // ==================== Variables (get/set) ====================
     public Long getXVariablesFromMap(Variable key) {

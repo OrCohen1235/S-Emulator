@@ -10,7 +10,8 @@ import java.util.Objects;
 public class ProgramExecutorImpl {
 
     private final Program program; // Reference to the program being executed
-    private int sumOfCycles;       // Tracks total cycles executed
+    private int sumOfCycles;
+    private Instruction currentInstruction;// Tracks total cycles executed
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
@@ -47,5 +48,35 @@ public class ProgramExecutorImpl {
         } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions());
 
         return program.getY(); // Return output value after execution
+    }
+
+    public long runDebugger(int level) {
+        int index = 0; // Start from the first instruction
+        Label nextLabel;
+
+        do {
+            level--;
+            Instruction currentInstruction = program.getActiveInstruction(index);
+            this.currentInstruction =currentInstruction;
+            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
+            nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
+
+            if (nextLabel == FixedLabel.EMPTY) {
+                index++; // Move to next instruction
+            }
+            else if (!Objects.equals(nextLabel.getLabelRepresentation(), FixedLabel.EXIT.getLabelRepresentation())) {
+                // Jump to instruction at target label
+                currentInstruction = program.getInstructionByLabelActive(nextLabel);
+                index = program.getIndexByInstruction(currentInstruction);
+            }
+            else
+                break; // Exit condition
+        } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions() && level!=0);
+
+        return program.getY(); // Return output value after execution
+    }
+
+    public Instruction getCurrentInstruction() {
+        return currentInstruction;
     }
 }

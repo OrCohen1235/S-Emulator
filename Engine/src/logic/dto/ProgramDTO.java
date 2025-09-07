@@ -1,46 +1,55 @@
 package logic.dto;
 
-import logic.instructions.binstruction.BaseInstruction;
 import logic.instructions.Instruction;
+import logic.instructions.binstruction.BaseInstruction;
 import logic.instructions.sinstruction.VariableArgumentInstruction;
 import logic.variable.Variable;
-import program.*;
 import logic.variable.VariableType;
+import program.Program;
+import program.ProgramView;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Filter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProgramDTO {
 
-    private final Program program; // Holds reference to the Program instance
+    private final Program program;
 
     public ProgramDTO(Program program) {
-        this.program = program;
+        this.program = Objects.requireNonNull(program, "program must not be null");
     }
 
+    /* ========== Meta ========== */
+
     public String getProgramName() {
-        return program.getNameOfProgram(); // Return program name
+        return program.getNameOfProgram();
     }
 
     public List<String> getLabels() {
-        return program.getLabels(); // Return all labels from program
+        List<String> labels = program.getLabels();
+        return labels == null ? List.of() : List.copyOf(labels);
     }
 
-    public List<String> getVariables() {
-        var list = program.view().list();
+    /* ========== Inputs (VariableType.INPUT) ========== */
 
-        // Collect variables of type INPUT
-        var base = list.stream()
+    public List<String> getVariables() {
+        // רשימת כל ההוראות במבט הנוכחי (original/expanded)
+        List<Instruction> list = Optional.ofNullable(program.view())
+                .map(ProgramView.InstructionsView::list)
+                .orElseGet(List::of);
+
+        // משתנה ישיר על ההוראה
+        Stream<String> base = list.stream()
                 .map(instr -> Optional.ofNullable(instr.getVar())
                         .filter(v -> v.getType() == VariableType.INPUT)
                         .map(Variable::getRepresentation)
                         .orElse(null))
                 .filter(Objects::nonNull);
 
-        // Collect variables from VariableArgumentInstruction
-        var fromInterface = list.stream()
+        Stream<String> fromInterface = list.stream()
                 .filter(VariableArgumentInstruction.class::isInstance)
                 .map(VariableArgumentInstruction.class::cast)
                 .map(vai -> Optional.ofNullable(vai.getVariableArgument())
@@ -49,68 +58,77 @@ public class ProgramDTO {
                         .orElse(null))
                 .filter(Objects::nonNull);
 
-        // Merge and return distinct variables
         return Stream.concat(base, fromInterface)
                 .distinct()
-                .toList();
+                .collect(Collectors.toUnmodifiableList());
     }
 
-    public List<String> getListOfExpandCommands() {
-        final boolean expanded = "EXPANDED".equals(program.getMode()); // Check if program is expanded
-        final AtomicInteger idx = new AtomicInteger(1);
+    /* ========== Instructions → InstructionDTO ========== */
 
-        List<Instruction> flattened = Optional.of(program)
-                .map(Program::view)
-                .map(ProgramView.InstructionsView::list)
-                .orElseGet(Collections::emptyList);
+    public List<InstructionDTO> getInstructionDTOs(){
+        List<Instruction> list = program.getInstructions();
+        List <InstructionDTO> dtos = new ArrayList<>();
+        int index =1;
+        for (Instruction instruction : list) {
+                InstructionDTO dto =toDTO(index, instruction);
+            if (instruction.getFather()!=null)
+            {
+                dto.setFather(instruction.getIndexFatherLocation());
+            }
+            index++;
+            dtos.add(dto);
+        }
+        return dtos;
 
-        // Format each instruction depending on mode
-        return flattened.stream()
-                .map(instr -> expanded
-                        ? getSingleCommandAndFather(idx.getAndIncrement(), instr, instr.getIndexFatherLocation())
-                        : getSingleCommand(idx.getAndIncrement(), instr))
-                .collect(Collectors.toList());
+
     }
 
-    public String getSingleCommand(int index, Instruction instr) {
-        String type = instr instanceof BaseInstruction ? "B" : "S"; // B = binary instruction, S = single
-        String label = instr.getLabel().getLabelRepresentation();
-        String command = instr.getCommand();
-        int cycles = instr.getCycles();
-        return String.format("#%d (%s) [%-3.5s] %s (%d)",
-                index, type, label, command, cycles); // Format without father reference
-    }
-
-    public String getSingleCommandAndFather(int index, Instruction instr, int fatherIndex) {
+    private InstructionDTO toDTO(int displayIndex, Instruction instr) {
         String type = instr instanceof BaseInstruction ? "B" : "S";
-        String label = instr.getLabel().getLabelRepresentation();
+        String label = instr.getLabel() != null ? instr.getLabel().getLabelRepresentation() : "";
         String command = instr.getCommand();
         int cycles = instr.getCycles();
 
-        String current = String.format("#%d (%s) [%-3.5s] %s (%d)",
-                index, type, label, command, cycles);
+        return new InstructionDTO(displayIndex, type, label, command, cycles, 0);
+    }
 
-        return Optional.ofNullable(instr.getFather())
-                .map(father -> String.format("%s >>> %s",
-                        current,
-                        getSingleCommandAndFather(instr.getIndexFatherLocation(), father, index)))
-                .orElse(current);
+    public List<InstructionDTO> getExpandDTO(int index){
+        List<InstructionDTO> dtos = new ArrayList<>();
+        Instruction instruction = program.getInstructions().get(index-1);
+        while (instruction.getFather()!=null) {
+            InstructionDTO dto = toDTO(instruction.getIndexFatherLocation(), instruction.getFather());
+            dtos.add(dto);
+            instruction = instruction.getFather();
+        }
+        return dtos;
+    }
+
+    /* ========== Vars state & view switching ========== */
+
+    public String getVarValue(String variable) {
+        Map<String, Long> map = program.getVariablesValues();
+        if (map.get(variable) == null) {
+            return "0";
+        }
+        return map.get(variable).toString();
     }
 
 
-    public Map<String,Long> getVarsValues() {
-        return program.getVariablesValues(); // Return current variable values
-    }
 
     public void resetMapVariables() {
-        program.resetMapVariables(); // Reset variable values to default
+        program.resetMapVariables();
     }
 
-    public void setProgramViewToOriginal(){
-        program.useOriginalView(); // Switch to original program view
+    public void setProgramViewToOriginal() {
+        program.useOriginalView();
     }
 
-    public void setProgramViewToExpanded(){
-        program.useExpandedView(); // Switch to expanded program view
+    public void setProgramViewToExpanded() {
+        program.useExpandedView();
+    }
+
+
+    public Program getProgram() {
+        return program;
     }
 }

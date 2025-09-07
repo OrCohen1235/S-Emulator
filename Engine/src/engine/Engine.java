@@ -1,6 +1,7 @@
 package engine;
 
 import logic.dto.ProgramDTO;
+import logic.instructions.Instruction;
 import program.*;
 import program.ProgramLoadException;
 import logic.execution.ProgramExecutorImpl;
@@ -55,6 +56,10 @@ public class Engine {
         return programExecutor.run(); // Parameter "degree" currently not used
     }
 
+    public Long runProgramExecutorDebugger(int level) {
+        return programExecutor.runDebugger(level); // Parameter "degree" currently not used
+    }
+
     public void loadInputVars(List<Long> input) {
         programLoad.loadInputVars(input); // Load input variables into program
     }
@@ -68,6 +73,12 @@ public class Engine {
     }
 
     public int getSumOfCycles() {
-        return programExecutor.getSumOfCycles(); // Return total executed cycles
+        int sumCycles = programExecutor.getSumOfCycles();
+        resetSumOfCycles();
+        return sumCycles; // Return total executed cycles
+    }
+
+    public int getCurrentInstructionIndex() {
+        return program.getIndexByInstruction(programExecutor.getCurrentInstruction());
     }
 }

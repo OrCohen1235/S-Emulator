@@ -46,4 +46,12 @@ public class EngineDTO {
     public int getSumOfCycles(){
         return engine.getSumOfCycles(); // Return total cycles
     }
+
+    public long runProgramExecutorDebugger(int level) {
+        return engine.runProgramExecutorDebugger(level);
+    }
+
+    public int getCurrentInsructionIndex(){
+        return engine.getCurrentInstructionIndex();
+    }
 }

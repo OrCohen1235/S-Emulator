@@ -4,9 +4,7 @@ import logic.instructions.Instruction;
 import logic.instructions.sinstruction.SyntheticInstruction;
 import program.Program;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class ExpanderExecute {
     private final Program program;                     // Target program to expand
@@ -48,19 +46,51 @@ public class ExpanderExecute {
         List<Instruction> out = new ArrayList<>();
         int maxLabel = expansionContext.getNextLabelIdx();;
         int maxWorkIndex= expansionContext.getNextWorkIdx();
-        int fatherindex=1; // 1-based parent index in flattened view
-        for (Instruction instruction : program.getInstructions()) {
-            expandWithLimitedDegree(instruction, degree, out,fatherindex); // Depth-limited expansion
-            fatherindex++;
+        int expand=0; // 1-based parent index in flattened view
+
+        for (int i=0; i<=degree; i++) {
+            if (i==0)
+            {
+                program.setExpandInstructionsByDegreeHelper(program.getOriginalInstructions());
+            }
+            for (Instruction instruction : program.getExpandInstructionsByDegreeHelper()) {
+                expandWithLimitedDegree(instruction, expand, out);
+            }
+            if (i+1==1){
+                expand=1;
+            }
+            for (Instruction instruction : out) {
+                int index=0;
+                if (instruction.getFather()!=null) {
+                    index = program.getIndexHelper(instruction.getFather());
+                    if (index == 0)
+                    {
+                        index = instruction.getIndexFatherLocation();
+                    }
+                }
+                instruction.setIndexFatherLocation(index);
+            }
+            program.setExpandInstructionsByDegreeHelper(out);
+            if (i<degree) {
+                out.clear();
+            }
+
         }
+
+
         expansionContext.setNextLabelIdx(maxLabel);
         expansionContext.setNextWorkIdx(maxWorkIndex);
         program.resetMapVariables();
-        program.setExpandInstructionsByDegree(out); // Materialize chosen-degree view
+
+        program.setExpandInstructionsByDegree(out);
+        out.clear();
+        program.setExpandInstructionsByDegreeHelper(out);// Materialize chosen-degree view
     }
 
-    private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out,int fatherindex) {
+
+    private void expandWithLimitedDegree(Instruction instruction, int remaining, List<Instruction> out) {
         boolean isSynthetic = instruction instanceof SyntheticInstruction;
+
 
         if (remaining == 0 || !isSynthetic) {
             out.add(instruction); // Stop expanding: either depth reached or primitive
@@ -69,8 +99,7 @@ public class ExpanderExecute {
         List<Instruction> children = expander.expand(instruction); // Expand one level
         for (Instruction child : children) {
             child.setFather(instruction); // Track parent linkage
-            expandWithLimitedDegree(child, remaining - 1, out,fatherindex+1); // Recurse with reduced budget
-            child.setIndexFatherLocation(fatherindex); // Store parent index for pretty-print
+            expandWithLimitedDegree(child, remaining - 1, out);
         }
 
         if (isSynthetic) {

@@ -4,6 +4,8 @@ import program.Program;
 import logic.label.Label;
 import logic.variable.Variable;
 
+import java.util.Objects;
+
 public abstract class Instruction {
     private final Program program;
     private final InstructionData instructionData;
@@ -11,7 +13,7 @@ public abstract class Instruction {
     private final Label label;
     private int degree;
     private Instruction father = null;
-    private int indexFatherLocation = 1;
+    private int indexFatherLocation;
 
     public Instruction(Program program, InstructionData instructionData, Variable var,Label label) {
         this.program = program;
@@ -98,5 +100,16 @@ public abstract class Instruction {
 
     public void setDegree(int degree) {
         this.degree = degree;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Instruction that)) return false;
+        return degree == that.degree && instructionData == that.instructionData && Objects.equals(var, that.var) && Objects.equals(label, that.label) && Objects.equals(father, that.father);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(instructionData, var, label, degree, father);
     }
 }

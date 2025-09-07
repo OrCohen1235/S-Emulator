@@ -67,7 +67,7 @@ public final class ProgramView {
                     .filter(i -> i != -1)
                     .orElseThrow(() -> new NoSuchElementException(
                             "Instruction not found in originalView: " + inst + "\n"
-                    )); // Index lookup with error on missing
+                    ));
         }
 
         public int getSizeOfListInstructions() {
