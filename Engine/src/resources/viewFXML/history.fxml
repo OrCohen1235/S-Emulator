@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ui.controllers.HistoryController"
+            text="History / Statistics"
+            expanded="true">
+
+    <content>
+        <VBox spacing="8">
+            <children>
+                <ToolBar>
+                    <items>
+                        <Button fx:id="btnShowStats" text="Show" onAction="#onShowStats"/>
+                        <Button fx:id="btnRerun"     text="Re-run" onAction="#onRerun"/>
+                        <Pane/>
+                        <Button fx:id="btnExport"    text="Export CSV" onAction="#onExport"/>
+                    </items>
+                </ToolBar>
+
+                <TableView fx:id="tblHistory" prefHeight="260" maxHeight="Infinity">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="colRunTime"   text="Time"   prefWidth="120"/>
+                        <TableColumn fx:id="colRunInputs" text="Inputs" prefWidth="180"/>
+                        <TableColumn fx:id="colRunY"      text="y"      prefWidth="80"/>
+                        <TableColumn fx:id="colRunCycles" text="Cycles" prefWidth="90"/>
+                        <TableColumn fx:id="colRunNotes"  text="Notes"  prefWidth="180"/>
+                    </columns>
+                </TableView>
+            </children>
+        </VBox>
+    </content>
+</TitledPane>

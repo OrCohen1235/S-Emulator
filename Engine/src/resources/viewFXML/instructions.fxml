@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ui.controllers.InstructionsController">
+
+    <children>
+        <TitledPane expanded="true" text="Instructions" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox spacing="0">
+                    <children>
+                        <TreeTableView fx:id="trvInstructions" prefHeight="400.0">
+                            <columns>
+                                <TreeTableColumn fx:id="colIndex"       text="#"          prefWidth="60"/>
+                                <TreeTableColumn fx:id="colType"        text="B/S"        prefWidth="80"/>
+                                <TreeTableColumn fx:id="colLabel"       text="Label"      prefWidth="120"/>
+                                <TreeTableColumn fx:id="colCycles"      text="Cycles"     prefWidth="80"/>
+                                <TreeTableColumn fx:id="colInstruction" text="Instruction" prefWidth="300"/>
+                                
+                                <TreeTableColumn fx:id="colExpandFrom"  text="Show Expand" prefWidth="120"/>
+                            </columns>
+                        </TreeTableView>
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+    </children>
+
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+</VBox>

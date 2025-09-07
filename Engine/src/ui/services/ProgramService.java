@@ -1,23 +1,22 @@
-
 package ui.services;
 
 import logic.dto.EngineDTO;
 import logic.dto.InstructionDTO;
 import logic.dto.ProgramDTO;
 import program.ProgramLoadException;
-import ui.SemulatorController;
+import ui.model.VarRow;
 
 import java.io.File;
-import java.util.*;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ProgramService {
     private EngineDTO engine;
     private ProgramDTO program;
 
-    /** טוען XML ומעדכן את המצב הפנימי. זורק ProgramLoadException אם יש בעיה. */
     public void loadXml(File xmlPath) throws ProgramLoadException {
-
         EngineDTO probe = new EngineDTO(xmlPath.toString());
         if (!probe.getLoaded()) {
             throw new ProgramLoadException("XML not valid for application semantics.");
@@ -31,11 +30,10 @@ public class ProgramService {
         return engine.getMaxDegree();
     }
 
-    public void loadExpasionByDegree(int degree){
+    public void loadExpasionByDegree(int degree) {
         if (degree > 0) {
             program.setProgramViewToExpanded();
-        }
-        else {
+        } else {
             program.setProgramViewToOriginal();
         }
         engine.loadExpansionByDegree(degree);
@@ -49,47 +47,41 @@ public class ProgramService {
         return program.getExpandDTO(parent.getDisplayIndex());
     }
 
-    public List<SemulatorController.VarRow> getVariables(){
-        List<SemulatorController.VarRow> rows = new ArrayList<>();
+    /** משתנים בתחילת הריצה (קלטים), בתצוגת טבלה. */
+    public List<VarRow> getVariables() {
+        List<VarRow> rows = new ArrayList<>();
         for (String var : program.getVariables()) {
-            SemulatorController.VarRow varRow= new SemulatorController.VarRow(var.toUpperCase(),"INPUT", program.getVarValue(var));
-            rows.add(varRow);
+            rows.add(new VarRow(var.toUpperCase(), "INPUT", program.getVarValue(var)));
         }
         return rows;
     }
 
-    public List<SemulatorController.VarRow> getVariablesEND() {
-        List<SemulatorController.VarRow> rows = new ArrayList<>();
+    /** משתנים בסיום/במהלך דיבאג (קלטים ועבודה), בתצוגת טבלה. */
+    public List<VarRow> getVariablesEND() {
+        List<VarRow> rows = new ArrayList<>();
         Map<String, Long> values = program.getVariablesValues();
         for (Map.Entry<String, Long> entry : values.entrySet()) {
             if (!Objects.equals(entry.getKey(), "y")) {
-                String varName = entry.getKey().toUpperCase();
-                String type;
-                if (Objects.equals(entry.getKey().charAt(0), 'x')) {
-                    type= "INPUT";  // This is hardcoded; adjust if needed
-                }
-                else {
-                    type = "WORK";
-                }
+                String name = entry.getKey();
+                String varName = name.toUpperCase();
+                String type = (!name.isEmpty() && Character.toLowerCase(name.charAt(0)) == 'x')
+                        ? "INPUT"
+                        : "WORK";
                 String valueStr = String.valueOf(entry.getValue());
-
-
-                SemulatorController.VarRow varRow = new SemulatorController.VarRow(varName, type, valueStr);
-                rows.add(varRow);
+                rows.add(new VarRow(varName, type, valueStr));
             }
         }
         return rows;
     }
 
-    public void loadVars(List<Long> vars){
+    public void loadVars(List<Long> vars) {
         engine.loadInputVars(vars);
     }
 
     public long executeProgram(int degree) {
         if (degree > 0) {
             program.setProgramViewToExpanded();
-        }
-        else {
+        } else {
             program.setProgramViewToOriginal();
         }
         return engine.runProgramExecutor(degree);
@@ -98,26 +90,25 @@ public class ProgramService {
     public long executeProgramDebugger(int degree, int level) {
         if (degree > 0) {
             program.setProgramViewToExpanded();
-        }
-        else {
+        } else {
             program.setProgramViewToOriginal();
         }
         return engine.runProgramExecutorDebugger(level);
     }
 
-    public int getCurrentInstructionIndex(){
+    public int getCurrentInstructionIndex() {
         return engine.getCurrentInsructionIndex();
     }
 
-    public void resetMaps(){
+    public void resetMaps() {
         program.resetMapVariables();
     }
 
-    public int getCycles(){
-       return engine.getSumOfCycles();
+    public int getCycles() {
+        return engine.getSumOfCycles();
     }
 
-    public String getProgramName(){
+    public String getProgramName() {
         return program.getProgramName();
     }
 
