@@ -79,6 +79,8 @@ public class Engine {
     }
 
     public int getCurrentInstructionIndex() {
-        return program.getIndexByInstruction(programExecutor.getCurrentInstruction());
+        return programExecutor.getCurrentIndex();
     }
+
+
 }

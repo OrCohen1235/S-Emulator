@@ -33,4 +33,6 @@ public class InstructionsViewModel {
                 + " | B/S: " + countB + "/" + countS
                 + " | Cycles: " + sumCycles;
     }
+
+
 }

@@ -47,6 +47,11 @@ public class ProgramService {
         return program.getExpandDTO(parent.getDisplayIndex());
     }
 
+    public List<InstructionDTO> getInstructionsDTO()
+    {
+        return program.getInstructionDTOs();
+    }
+
     /** משתנים בתחילת הריצה (קלטים), בתצוגת טבלה. */
     public List<VarRow> getVariables() {
         List<VarRow> rows = new ArrayList<>();
@@ -56,21 +61,25 @@ public class ProgramService {
         return rows;
     }
 
-    /** משתנים בסיום/במהלך דיבאג (קלטים ועבודה), בתצוגת טבלה. */
     public List<VarRow> getVariablesEND() {
         List<VarRow> rows = new ArrayList<>();
         Map<String, Long> values = program.getVariablesValues();
         for (Map.Entry<String, Long> entry : values.entrySet()) {
-            if (!Objects.equals(entry.getKey(), "y")) {
-                String name = entry.getKey();
-                String varName = name.toUpperCase();
-                String type = (!name.isEmpty() && Character.toLowerCase(name.charAt(0)) == 'x')
-                        ? "INPUT"
-                        : "WORK";
-                String valueStr = String.valueOf(entry.getValue());
-                rows.add(new VarRow(varName, type, valueStr));
-            }
+            String name = entry.getKey();
+            String varName = name.toUpperCase();
+            String type;
+            if (!name.isEmpty() && Character.toLowerCase(name.charAt(0)) == 'x') {
+                type = "INPUT";
+            } else if (Character.toLowerCase(name.charAt(0)) == 'y')
+                type = "OUTPUT";
+            else
+                type = "WORK";
+
+
+            String valueStr = String.valueOf(entry.getValue());
+            rows.add(new VarRow(varName, type, valueStr));
         }
+
         return rows;
     }
 

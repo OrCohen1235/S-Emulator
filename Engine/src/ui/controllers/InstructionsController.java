@@ -12,6 +12,7 @@ import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import logic.dto.InstructionDTO;
+import ui.cells.RowHighlighter;
 import ui.services.ProgramService;
 import ui.viewmodel.InstructionsViewModel;
 
@@ -30,6 +31,7 @@ public class InstructionsController {
     private static final PseudoClass PC_ROW_HL  = PseudoClass.getPseudoClass("row-highlighted");
     private static final PseudoClass PC_ROW_END = PseudoClass.getPseudoClass("row-highlightedfinished");
     private final IntegerProperty highlightedRowIndex = new SimpleIntegerProperty(-1);
+    private RowHighlighter rowHighlighter = new RowHighlighter();
 
     @FXML
     private void initialize() {
@@ -40,6 +42,7 @@ public class InstructionsController {
         colLabel.setCellValueFactory(new TreeItemPropertyValueFactory<>("label"));
         colCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
+
 
         // אנחנו מסמנים ידנית, לא משתמשים ב־SelectionModel
         trvInstructions.setSelectionModel(null);
@@ -81,7 +84,7 @@ public class InstructionsController {
                     if (empty) { setGraphic(null); setText(null); return; }
                     TreeTableRow<InstructionDTO> row = getTreeTableRow();
                     InstructionDTO dto = (row == null) ? null : row.getItem();
-                    boolean show = dto != null && !"0".equals(dto.getFather()); // לא להציג בשורש
+                    boolean show = dto != null && !"0".equals(dto.getFather());
                     setGraphic(show ? btn : null);
                     setText(null);
                 }
@@ -111,6 +114,7 @@ public class InstructionsController {
         }
 
         // שמירת ההדגשה בתחום חוקי
+
         if (highlightedRowIndex.get() >= 0 && trvInstructions.getRoot() != null) {
             int last = trvInstructions.getExpandedItemCount() - 1;
             highlightedRowIndex.set(last >= 0 ? Math.min(highlightedRowIndex.get(), last) : -1);
@@ -121,7 +125,7 @@ public class InstructionsController {
     private void onShowExpand(InstructionDTO parentDto,
                               TreeItem<InstructionDTO> parentItem,
                               TreeTableRow<InstructionDTO> parentRow) {
-        // אם כבר פתוח — נסגור
+
         boolean isOpen = !parentItem.getChildren().isEmpty();
         if (isOpen) {
             parentItem.getChildren().clear();
@@ -163,16 +167,22 @@ public class InstructionsController {
 
     public void highlightRow(int i) {
         if (trvInstructions.getRoot() == null) return;
-        int last = trvInstructions.getExpandedItemCount() - 1;
+        int last = trvInstructions.getExpandedItemCount()-1;
         if (last < 0) return;
         int clamped = Math.max(0, Math.min(i, last));
         highlightedRowIndex.set(clamped);
         trvInstructions.scrollTo(clamped);
         trvInstructions.refresh();
+
+
     }
 
     public void clearHighlight() {
         highlightedRowIndex.set(-1);
         trvInstructions.refresh();
+    }
+
+    public int getInstructionCount() {
+        return trvInstructions.getExpandedItemCount();
     }
 }

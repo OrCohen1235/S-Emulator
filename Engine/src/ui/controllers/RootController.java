@@ -1,10 +1,8 @@
 package ui.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import program.ProgramLoadException;
 import ui.services.ProgramService;
@@ -12,25 +10,33 @@ import ui.services.ProgramService;
 import java.io.File;
 
 public class RootController {
-    // טופ בר
+
     @FXML private Spinner<Integer> spnDegree;
     @FXML private Label lblSummary;
     @FXML private Label lblFilePath;
     @FXML private Label lblMaxDegree;
 
-    // הקונטרולרים של ה-<fx:include> לפי fx:id (instructions/execution)
+    @FXML private Button btnExpand;
+    @FXML private Button btnCollapse;
+
+
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
 
     private final ProgramService programService = new ProgramService();
+    private File selectedFile;
+    private Tooltip tooltip;
+
+
+
 
     @FXML
     private void initialize() {
-        // קישור הורים-ילדים
+
         if (instructionsController != null) instructionsController.setParent(this);
         if (executionController != null) executionController.setParent(this);
 
-        // ספינר: מתחילים נעול עד שיש פרוגראם
+
         if (spnDegree != null) {
             spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
             spnDegree.setDisable(true);
@@ -41,8 +47,8 @@ public class RootController {
             });
         }
 
-        // סטטוסים התחלתיים
-        if (lblSummary   != null) lblSummary.setText("Instructions: 0 | B/S: 0/0 | Cycles: 0");
+
+        if (lblSummary   != null) lblSummary.setText("Instructions: 0 | B/S: 0/0 | Total Program Cycles: 0");
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
     }
@@ -53,17 +59,19 @@ public class RootController {
     }
     public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
 
-    // ==== טעינת קובץ ====
+
     @FXML
     private void onLoadFile() {
         FileChooser fc = new FileChooser();
         fc.setTitle("Choose Program XML");
-        fc.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML Files", "*.xml"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
-        );
         File file = fc.showOpenDialog((lblFilePath != null) ? lblFilePath.getScene().getWindow() : null);
+        this.selectedFile = file;
+        String fullPath = selectedFile.getAbsolutePath();
+
+        tooltip = new Tooltip(fullPath);
         if (file == null) return;
+
+        spnDegree.setDisable(true);
 
         try {
             programService.loadXml(file);
@@ -86,7 +94,7 @@ public class RootController {
         }
     }
 
-    // ==== שינוי דרגה דרך הכפתורים ====
+
     @FXML
     private void onExpand() {
         if (spnDegree == null || spnDegree.isDisabled()) return;
@@ -104,7 +112,7 @@ public class RootController {
         if (instructionsController != null) instructionsController.refresh(getDegree());
     }
 
-    // ==== עוזרים ====
+
     private void setMaxDegree(int max) {
         int m = Math.max(0, max);
         int current = (spnDegree.getValue() == null) ? 0 : spnDegree.getValue();
@@ -126,18 +134,39 @@ public class RootController {
         a.showAndWait();
     }
 
-    // סימון שורה בעץ ההוראות
+
     public void highlightInstruction(int index) {
         if (instructionsController != null) {
             instructionsController.highlightRow(index);
         }
     }
 
-    // ניקוי סימון
+
     public void clearInstructionHighlight() {
         if (instructionsController != null) {
             instructionsController.clearHighlight();
         }
     }
 
+    public int getInstructionCount() {
+        return instructionsController.getInstructionCount();
+    }
+
+    public Button getBtnExpand() {
+        return btnExpand;
+    }
+
+    public Button getBtnCollapse() {
+        return btnCollapse;
+    }
+
+    @FXML
+    public void mouseEnter(MouseEvent mouseEvent) {
+        Tooltip.install(lblFilePath, tooltip);
+    }
+
+    @FXML
+    public void mouseExit(MouseEvent mouseEvent) {
+
+    }
 }

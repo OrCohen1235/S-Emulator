@@ -20,6 +20,7 @@
                                 <Button fx:id="btnStepOver" text="Step Over" onAction="#onStepOver"/>
                                 <Button fx:id="btnStepBack" text="Step Back" onAction="#onStepBack"/>
                                 <Button fx:id="btnStop"     text="Stop"      onAction="#onStop"/>
+                                <Button fx:id="btnResume"   text="Resume"      onAction="#onResume"/>
                             </items>
                         </ToolBar>
 
@@ -56,17 +57,33 @@
                                 <content>
                                     <VBox spacing="6">
                                         <children>
-                                            <VBox fx:id="inputsContainer" spacing="6" VBox.vgrow="ALWAYS"/>
+
+                                            <ScrollPane fx:id="inputsScroll"
+                                                        fitToWidth="true"
+                                                        hbarPolicy="NEVER"
+                                                        vbarPolicy="AS_NEEDED"
+                                                        VBox.vgrow="ALWAYS">
+                                                <content>
+                                                    <VBox fx:id="inputsContainer"
+                                                          spacing="6"
+                                                          fillWidth="true"
+                                                          stylesheets="@execution.css"/>
+                                                </content>
+                                            </ScrollPane>
+
+                                            <!-- ספייסר (אם עדיין צריך אותו) -->
                                             <Pane VBox.vgrow="ALWAYS"/>
-                                            <HBox alignment="TOP_CENTER">
+
+                                            <HBox fx:id="hBoxStart" alignment="TOP_CENTER">
                                                 <children>
-                                                    <Button fx:id="btnReRun" text="Re-Run" onAction="#onReRun"/>
+                                                    <Button fx:id="btnStart" text="Start" onAction="#onStart"/>
                                                 </children>
                                             </HBox>
                                         </children>
                                     </VBox>
                                 </content>
                             </TitledPane>
+
 
                             <TitledPane expanded="true" text="Cycles"
                                         GridPane.columnIndex="0" GridPane.rowIndex="1"

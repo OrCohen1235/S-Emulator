@@ -21,6 +21,7 @@ public class SimulatorApp extends Application {
         stage.setHeight(900);
         stage.setMinWidth(1100);
         stage.setMinHeight(700);
+        stage.centerOnScreen();
         stage.setTitle("S-Emulator");
         stage.show();
     }

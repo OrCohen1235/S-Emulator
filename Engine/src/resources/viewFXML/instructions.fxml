@@ -20,7 +20,7 @@
                                 <TreeTableColumn fx:id="colLabel"       text="Label"      prefWidth="120"/>
                                 <TreeTableColumn fx:id="colCycles"      text="Cycles"     prefWidth="80"/>
                                 <TreeTableColumn fx:id="colInstruction" text="Instruction" prefWidth="300"/>
-                                
+
                                 <TreeTableColumn fx:id="colExpandFrom"  text="Show Expand" prefWidth="120"/>
                             </columns>
                         </TreeTableView>
@@ -31,6 +31,6 @@
     </children>
 
     <padding>
-        <Insets top="12" right="12" bottom="12" left="12"/>
+        <Insets top="8" right="8" bottom="8" left="8"/>
     </padding>
 </VBox>

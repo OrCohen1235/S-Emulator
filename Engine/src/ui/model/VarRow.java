@@ -16,6 +16,12 @@ public class VarRow {
     public StringProperty valueProperty() { return value; }
 
     public String getName() {
-        return "";
+        return name.getValue();
     }
+
+    public String getValue() {
+        return value.getValue();
+    }
+
+
 }

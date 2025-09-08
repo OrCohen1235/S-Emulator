@@ -11,7 +11,8 @@ public class ProgramExecutorImpl {
 
     private final Program program; // Reference to the program being executed
     private int sumOfCycles;
-    private Instruction currentInstruction;// Tracks total cycles executed
+    private int currentIndex=0;
+    private Boolean isLevelZero=false;
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
@@ -53,11 +54,17 @@ public class ProgramExecutorImpl {
     public long runDebugger(int level) {
         int index = 0; // Start from the first instruction
         Label nextLabel;
+        if (level == 0) {
+            isLevelZero = true;
+        }
+        else {
+            isLevelZero = false;
+        }
 
         do {
             level--;
             Instruction currentInstruction = program.getActiveInstruction(index);
-            this.currentInstruction =currentInstruction;
+
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
 
@@ -71,12 +78,18 @@ public class ProgramExecutorImpl {
             }
             else
                 break; // Exit condition
-        } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions() && level!=0);
+        } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions() && (level>0 || level<-1));
+
+        this.currentIndex = index;
 
         return program.getY(); // Return output value after execution
     }
 
-    public Instruction getCurrentInstruction() {
-        return currentInstruction;
+
+    public int getCurrentIndex() {
+        if (isLevelZero) {
+            return 0;
+        }
+        return currentIndex;
     }
 }

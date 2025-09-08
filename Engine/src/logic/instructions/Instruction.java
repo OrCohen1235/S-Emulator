@@ -14,6 +14,10 @@ public abstract class Instruction {
     private int degree;
     private Instruction father = null;
     private int indexFatherLocation;
+    private static final java.util.concurrent.atomic.AtomicLong SEQ = new java.util.concurrent.atomic.AtomicLong(1);
+    private final long uid = SEQ.getAndIncrement();
+
+    public long uid() { return uid; }
 
     public Instruction(Program program, InstructionData instructionData, Variable var,Label label) {
         this.program = program;
@@ -103,13 +107,12 @@ public abstract class Instruction {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Instruction that)) return false;
-        return degree == that.degree && instructionData == that.instructionData && Objects.equals(var, that.var) && Objects.equals(label, that.label) && Objects.equals(father, that.father);
+    public final boolean equals(Object o) {
+        return (this == o) || (o instanceof Instruction other && this.uid == other.uid);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(instructionData, var, label, degree, father);
+    public final int hashCode() {
+        return Long.hashCode(uid);
     }
 }
