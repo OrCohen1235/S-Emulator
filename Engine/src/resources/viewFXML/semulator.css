@@ -230,3 +230,8 @@
     -fx-background-color: #ffdddd;   /* Red */
 }
 
+/* בקובץ ה-CSS */
+.tree-table-row-cell:row-highlightedselected {
+    -fx-background-color: #ddffff
+}
+

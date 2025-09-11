@@ -1,24 +1,27 @@
 package logic.variable;
 
+import java.util.Comparator;
+
 public enum VariableType {
     RESULT {
         @Override
         public String getVariableRepresentation(int number) {
-            return "y";
+            return "Y";
         }
     },
     INPUT {
         @Override
         public String getVariableRepresentation(int number) {
-            return "x" + number;
+            return "X" + number;
         }
     },
     WORK {
         @Override
         public String getVariableRepresentation(int number) {
-            return "z" + number;
+            return "Z" + number;
         }
     };
+
 
     public abstract String getVariableRepresentation(int number);
 
@@ -36,4 +39,6 @@ public enum VariableType {
             default  -> throw new IllegalStateException("Unexpected variable type: " + c + "\n");
         };
     }
+
+
 }

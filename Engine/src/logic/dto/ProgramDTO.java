@@ -9,8 +9,6 @@ import program.Program;
 import program.ProgramView;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Filter;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,7 +33,7 @@ public class ProgramDTO {
 
     /* ========== Inputs (VariableType.INPUT) ========== */
 
-    public List<String> getVariables() {
+    public List<String> getXVariables() {
         // רשימת כל ההוראות במבט הנוכחי (original/expanded)
         List<Instruction> list = Optional.ofNullable(program.view())
                 .map(ProgramView.InstructionsView::list)
@@ -134,5 +132,31 @@ public class ProgramDTO {
 
     public Program getProgram() {
         return program;
+    }
+
+    public List<String> getAllVariables() {
+        // רשימת כל ההוראות במבט הנוכחי (original/expanded)
+        List<Instruction> list = Optional.ofNullable(program.view())
+                .map(ProgramView.InstructionsView::list)
+                .orElseGet(List::of);
+
+        // משתנה ישיר על ההוראה
+        Stream<String> base = list.stream()
+                .map(instr -> Optional.ofNullable(instr.getVar())
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+        Stream<String> fromInterface = list.stream()
+                .filter(VariableArgumentInstruction.class::isInstance)
+                .map(VariableArgumentInstruction.class::cast)
+                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+        return Stream.concat(base, fromInterface)
+                .distinct()
+                .collect(Collectors.toUnmodifiableList());
     }
 }

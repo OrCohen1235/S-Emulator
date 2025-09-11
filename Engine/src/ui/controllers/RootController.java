@@ -1,13 +1,33 @@
 package ui.controllers;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import logic.dto.InstructionDTO;
 import program.ProgramLoadException;
+import ui.model.VarRow;
 import ui.services.ProgramService;
 
+import java.awt.*;
 import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
 
 public class RootController {
 
@@ -18,7 +38,7 @@ public class RootController {
 
     @FXML private Button btnExpand;
     @FXML private Button btnCollapse;
-
+    @FXML private Button onHighLight;
 
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
@@ -58,6 +78,59 @@ public class RootController {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
     }
 
+    @FXML
+    private void onHighLight(ActionEvent e) {
+        // root של התוכן (כאן בלי FXML לצמצום)
+        TextField filter = new TextField();
+        ListView<String> list = new ListView<>();
+        list.setPrefHeight(280);
+        VBox root = new VBox(8, filter, list);
+        root.setPadding(new Insets(12));
+        ObservableList<String> vars = FXCollections.observableArrayList();
+
+        vars.setAll(programService.getAllVarsAndLables());
+
+        FilteredList<String> variables = new FilteredList<>(vars, s -> true);
+        filter.textProperty().addListener((obs,o,n) ->
+                variables.setPredicate(s -> n==null || n.isBlank() || s.toLowerCase().contains(n.toLowerCase()))
+        );
+        list.setItems(variables);
+
+        // Stage + Scene
+        Stage stage = new Stage(StageStyle.DECORATED);
+        stage.setTitle("Choose a variable");
+        stage.initOwner(((Node)e.getSource()).getScene().getWindow());      // קישור לחלון האב
+        stage.initModality(Modality.WINDOW_MODAL);                           // מודאלי רק מול האב
+        stage.setScene(new Scene(root, 360, 360));
+        stage.setResizable(false);
+
+        // לסגור בהקלקה כפולה ולבצע היילייט
+        list.setOnMouseClicked(ev -> {
+            if (ev.getClickCount() == 2 && list.getSelectionModel().getSelectedItem() != null) {
+                highlightVariable(list.getSelectionModel().getSelectedItem()); // מימוש שלך
+                stage.close();
+            }
+        });
+
+        stage.showAndWait(); // או show() אם לא צריך לחסום
+    }
+
+    private void highlightVariable(String selectedItem) {
+        List<Integer> res= new ArrayList<>();
+        int index=0;
+        for (InstructionDTO dto : programService.getInstructionsDTO()){
+            if (dto.getLabel().equals(selectedItem)){
+                res.add(index);
+            }
+            else if (dto.getCommand().contains(selectedItem)){
+                res.add(index);
+            }
+            index++;
+        }
+        for (Integer i : res){
+            instructionsController.highlightRow(i);
+        }
+    }
 
 
     @FXML

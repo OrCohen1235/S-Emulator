@@ -10,7 +10,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class ProgramService {
     private EngineDTO engine;
@@ -55,7 +54,7 @@ public class ProgramService {
     /** משתנים בתחילת הריצה (קלטים), בתצוגת טבלה. */
     public List<VarRow> getVariables() {
         List<VarRow> rows = new ArrayList<>();
-        for (String var : program.getVariables()) {
+        for (String var : program.getXVariables()) {
             rows.add(new VarRow(var.toUpperCase(), "INPUT", program.getVarValue(var)));
         }
         return rows;
@@ -81,6 +80,13 @@ public class ProgramService {
         }
 
         return rows;
+    }
+
+    public List<String> getAllVarsAndLables(){
+        List<String> vars = new ArrayList<>();
+        vars.addAll(program.getAllVariables());
+        vars.addAll(program.getLabels());
+        return vars;
     }
 
     public void loadVars(List<Long> vars) {
@@ -134,8 +140,5 @@ public class ProgramService {
         engine.resetDebugger();
     }
 
-    // בהמשך נוסיף כאן:
-    // run(RunParams p) → RunResult
-    // expand(int degree) → ExpandResult
-    // history(), variables() וכו'
+
 }

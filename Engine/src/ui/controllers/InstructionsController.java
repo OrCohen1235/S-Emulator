@@ -11,6 +11,7 @@ import ui.cells.RowHighlighter;
 import ui.services.ProgramService;
 import ui.viewmodel.InstructionsViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InstructionsController {
@@ -25,7 +26,10 @@ public class InstructionsController {
     private ProgramService programService;
     private RootController parent;
 
+    private List<Integer> highLightedRowIndexes;
+
     private static final PseudoClass PC_ROW_HL  = PseudoClass.getPseudoClass("row-highlighted");
+    private static final PseudoClass PC_ROW_Selected  = PseudoClass.getPseudoClass("row-highlightedselected");
     private static final PseudoClass PC_ROW_END = PseudoClass.getPseudoClass("row-highlightedfinished");
     private final IntegerProperty highlightedRowIndex = new SimpleIntegerProperty(-1);
     private RowHighlighter rowHighlighter = new RowHighlighter();
@@ -44,6 +48,7 @@ public class InstructionsController {
         if (lblSummary   != null) lblSummary.setText("Instructions: 0 | B/S: 0/0");
 
         trvInstructions.setSelectionModel(null);
+        highLightedRowIndexes= new ArrayList<>();
 
         trvInstructions.setRowFactory(tv -> {
             TreeTableRow<InstructionDTO> row = new TreeTableRow<>() {
@@ -116,7 +121,6 @@ public class InstructionsController {
             highlightedRowIndex.set(last >= 0 ? Math.min(highlightedRowIndex.get(), last) : -1);
         }
     }
-
     // ===== Expand/Collapse =====
     private void onShowExpand(InstructionDTO parentDto,
                               TreeItem<InstructionDTO> parentItem,
@@ -168,9 +172,8 @@ public class InstructionsController {
         highlightedRowIndex.set(clamped);
         trvInstructions.scrollTo(clamped);
         trvInstructions.refresh();
-
-
     }
+
 
     public void clearHighlight() {
         highlightedRowIndex.set(-1);
@@ -181,5 +184,7 @@ public class InstructionsController {
         return trvInstructions.getExpandedItemCount();
     }
 
-
+    public void setHighLightedRowIndexes(List<Integer> highLightedRowIndexes) {
+        this.highLightedRowIndexes = highLightedRowIndexes;
+    }
 }
