@@ -109,6 +109,11 @@ public class ProgramService {
         return engine.getCurrentInsructionIndex();
     }
 
+    public Map<String, Long> getVariablesValues() {
+        return program.getVariablesValues();
+    }
+
+
     public void resetMaps() {
         program.resetMapVariables();
     }
@@ -119,6 +124,14 @@ public class ProgramService {
 
     public String getProgramName() {
         return program.getProgramName();
+    }
+
+    public Boolean isFinishedDebugging() {
+        return engine.isFinishedDebugging();
+    }
+
+    public void resetDebugger() {
+        engine.resetDebugger();
     }
 
     // בהמשך נוסיף כאן:

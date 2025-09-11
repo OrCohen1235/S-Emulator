@@ -3,36 +3,31 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<TitledPane xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="ui.controllers.HistoryController"
-            text="History / Statistics"
-            expanded="true">
+<TitledPane expanded="true" text="History / Statistics" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.HistoryController">
 
     <content>
         <VBox spacing="8">
             <children>
-                <ToolBar>
-                    <items>
-                        <Button fx:id="btnShowStats" text="Show" onAction="#onShowStats"/>
-                        <Button fx:id="btnRerun"     text="Re-run" onAction="#onRerun"/>
-                        <Pane/>
-                        <Button fx:id="btnExport"    text="Export CSV" onAction="#onExport"/>
-                    </items>
-                </ToolBar>
 
-                <TableView fx:id="tblHistory" prefHeight="260" maxHeight="Infinity">
+                <TableView fx:id="tblHistory" maxHeight="Infinity" prefHeight="260">
                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="colRunTime"   text="Time"   prefWidth="120"/>
-                        <TableColumn fx:id="colRunInputs" text="Inputs" prefWidth="180"/>
-                        <TableColumn fx:id="colRunY"      text="y"      prefWidth="80"/>
-                        <TableColumn fx:id="colRunCycles" text="Cycles" prefWidth="90"/>
-                        <TableColumn fx:id="colRunNotes"  text="Notes"  prefWidth="180"/>
+                        <TableColumn fx:id="colSelectedRun" prefWidth="120" text="Run Number" />
+                        <TableColumn fx:id="colRunTime" prefWidth="120" text="Run Number" />
+                        <TableColumn fx:id="colDegree" prefWidth="120" text="Degree" />
+                        <TableColumn fx:id="colRunY" prefWidth="80" text="Y" />
+                        <TableColumn fx:id="colRunCycles" prefWidth="90" text="Cycles" />
                     </columns>
                 </TableView>
+                <ToolBar>
+                    <items>
+                        <Button fx:id="btnShowStats" onAction="#onShowStats" text="Show" />
+                        <Button fx:id="btnRerun" onAction="#onRerun" text="Re-run" />
+                        <Pane />
+                    </items>
+                </ToolBar>
             </children>
         </VBox>
     </content>

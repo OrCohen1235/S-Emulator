@@ -8,40 +8,43 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import ui.model.VarRow;
 import ui.services.ProgramService;
+import ui.viewmodel.StartButtonAnimator;
+import ui.viewmodel.WorkFX;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExecutionController {
+
+    private final int FINISHED_DEBUGGING = -1;
+
     // Buttons
-    @FXML private Button btnRun, btnDebug, btnStepOver, btnStepBack, btnStop, btnStart,btnResume;
+    @FXML private Button btnRun, btnDebug, btnStepOver, btnClear, btnStop, btnStart, btnResume;
 
     // Vars table
     @FXML private TableView<VarRow> tblVariables;
     @FXML private TableColumn<VarRow, String> colVarName, colVarType, colVarValue;
-
-
-
+    @FXML private ScrollPane inputsScroll;
 
     // Misc UI
     @FXML private Label lblCycles;
     @FXML private ProgressBar prgExecution;
     @FXML private VBox inputsContainer;
-    @FXML private TextField txtOutput;
     @FXML private HBox hBoxStart;
 
     private RootController parent;
-    private ProgramService service;
-
+    private ProgramService programService;
 
     // Local debug state
     private boolean debugging = false;
     private int debuggerLevel = 0;
     private boolean runAwaitingStart = false;
+    private int sumOfCyclesDebugging = 0;
+
 
     public void setParent(RootController parent) {
         this.parent = parent;
-        this.service = parent.getProgramService();
+        this.programService = parent.getProgramService();
 
         initVariableTableColumns();
         inputsContainer.setManaged(false);
@@ -51,13 +54,11 @@ public class ExecutionController {
         refreshButtons();
     }
 
-
     private void initVariableTableColumns() {
         colVarName.setCellValueFactory(c -> c.getValue().nameProperty());
         colVarType.setCellValueFactory(c -> c.getValue().typeProperty());
         colVarValue.setCellValueFactory(c -> c.getValue().valueProperty());
     }
-
 
     public void onProgramLoaded() {
         rebuildInputFields();
@@ -66,7 +67,6 @@ public class ExecutionController {
         debugging = false;
         debuggerLevel = 0;
         prgExecution.setProgress(0);
-        txtOutput.clear();
         lblCycles.setText("0");
         refreshButtons();
 
@@ -85,42 +85,49 @@ public class ExecutionController {
         debuggerLevel = 0;
 
         refreshButtons();
-        if (debuggerLevel == 0){
+        btnRun.setDisable(runAwaitingStart);
+        btnDebug.setDisable(true);
+        if (debuggerLevel == 0) {
             highlightCurrentInstruction();
         }
 
         if (parent != null) parent.clearInstructionHighlight();
-
     }
-
 
     @FXML
     private void onDebug() {
         hBoxStart.setVisible(true);
+        btnDebug.setDisable(true);
+        btnRun.setDisable(true);
         debugging = true;
-        btnStepBack.setDisable(true);
-        refreshButtons();
+        sumOfCyclesDebugging = 0;
+        lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
     }
 
     @FXML
     private void onStepOver() {
         if (!debugging) return;
 
-        long y = service.executeProgramDebugger(parent.getDegree(), debuggerLevel);
-        txtOutput.setText(String.valueOf(y));
-        lblCycles.setText(String.valueOf(service.getCycles()));
-        tblVariables.setItems(FXCollections.observableArrayList(service.getVariablesEND()));
+        long y = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
+        sumOfCyclesDebugging += programService.getCycles();
+
+        lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
+        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
 
         highlightCurrentInstruction();
-        debuggerLevel = Math.max(0, debuggerLevel + 1);
+        if (debuggerLevel != FINISHED_DEBUGGING) {
+            debuggerLevel = Math.max(0, debuggerLevel + 1);
+        }
         refreshButtons();
     }
 
     @FXML
-    private void onStepBack() {
-        debuggerLevel = Math.max(0, debuggerLevel - 2);
-        onStepOver();
-
+    private void onClear() {
+        debugging = false;
+        programService.resetMaps();
+        sumOfCyclesDebugging = 0;
+        lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
+        refreshButtons();
     }
 
     @FXML
@@ -148,31 +155,37 @@ public class ExecutionController {
 
         if (runAwaitingStart) {
             runAwaitingStart = false;
+            btnRun.setDisable(true);
+            btnClear.setDisable(false);
             doRun();
         }
     }
 
+    @FXML
+    private void onResume() {
+        debuggerLevel = FINISHED_DEBUGGING;
+        onStepOver();
+    }
+
     private void doRun() {
+        long y = programService.executeProgram(parent.getDegree());
+        lblCycles.setText(String.valueOf(programService.getCycles()));
+        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
 
-        long y = service.executeProgram(parent.getDegree());
-        txtOutput.setText(String.valueOf(y));
-        lblCycles.setText(String.valueOf(service.getCycles()));
-        tblVariables.setItems(FXCollections.observableArrayList(service.getVariablesEND()));
-
-        service.resetMaps();
+        programService.resetMaps();
         prgExecution.setProgress(1.0);
-        refreshButtons();
+
+        btnRun.setDisable(true);
+        btnClear.setDisable(false);
 
         if (parent != null) parent.clearInstructionHighlight();
     }
-
-
 
     // ========= Helpers =========
 
     private void highlightCurrentInstruction() {
         if (parent != null) {
-            int idx = service.getCurrentInstructionIndex();
+            int idx = programService.getCurrentInstructionIndex();
             parent.highlightInstruction(idx);
         }
     }
@@ -192,33 +205,24 @@ public class ExecutionController {
                 }
             }
         }
-        service.loadVars(vals);
+        programService.loadVars(vals);
     }
-
-
 
     private void rebuildInputFields() {
         inputsContainer.getChildren().clear();
 
-
-        if (service == null || !service.hasProgram()) {
+        if (programService == null || !programService.hasProgram()) {
             inputsContainer.setManaged(false);
             inputsContainer.setVisible(false);
             return;
         }
 
-        var vars = service.getVariables();
+        var vars = programService.getVariables();
         boolean has = !vars.isEmpty();
         inputsContainer.setManaged(has);
         inputsContainer.setVisible(has);
         if (!has) return;
         addTailField(1);
-
-    }
-    @FXML
-    private void onResume(){
-        debuggerLevel=-1;
-        onStepOver();
     }
 
     private void addTailField(int index) {
@@ -241,78 +245,30 @@ public class ExecutionController {
         inputsContainer.getChildren().add(tf);
         inputsContainer.prefWidthProperty().bind(inputsContainer.widthProperty());
         inputsContainer.prefHeightProperty().bind(inputsContainer.heightProperty());
+        inputsContainer.heightProperty().addListener((obs, oldV, newV) -> {
+            inputsScroll.setVvalue(1.0);
+        });
     }
 
-
-
     private void showInitialVariables() {
-        if (service == null || !service.hasProgram()) {
+        if (programService == null || !programService.hasProgram()) {
             tblVariables.setItems(FXCollections.observableArrayList());
             return;
         }
-        tblVariables.setItems(FXCollections.observableArrayList(service.getVariables()));
+        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariables()));
     }
 
     private void refreshButtons() {
-        boolean atLeastOneStep = debuggerLevel > 0;
-        boolean atEnd = debugging && parent != null
-                && debuggerLevel >= parent.getInstructionCount()+1;
+        //boolean atLeastOneStep = debuggerLevel > 0;
+        boolean atEnd = debugging && parent != null && programService.isFinishedDebugging();
 
         btnRun.setDisable(debugging);
         btnDebug.setDisable(debugging);
+        btnResume.setDisable(!debugging);
         btnStepOver.setDisable(!debugging || atEnd);
-        btnStepBack.setDisable(!debugging || !atLeastOneStep);
-        btnStop.setDisable(!debugging);
+        btnClear.setDisable(!debugging);
+
         parent.getBtnExpand().setDisable(debugging);
         parent.getBtnCollapse().setDisable(debugging);
-
-    }
-
-    public Button getBtnRun() {
-        return btnRun;
-    }
-
-    public void setBtnRun(Button btnRun) {
-        this.btnRun = btnRun;
-    }
-
-    public Button getBtnDebug() {
-        return btnDebug;
-    }
-
-    public void setBtnDebug(Button btnDebug) {
-        this.btnDebug = btnDebug;
-    }
-
-    public Button getBtnStepOver() {
-        return btnStepOver;
-    }
-
-    public void setBtnStepOver(Button btnStepOver) {
-        this.btnStepOver = btnStepOver;
-    }
-
-    public Button getBtnStepBack() {
-        return btnStepBack;
-    }
-
-    public void setBtnStepBack(Button btnStepBack) {
-        this.btnStepBack = btnStepBack;
-    }
-
-    public Button getBtnStop() {
-        return btnStop;
-    }
-
-    public void setBtnStop(Button btnStop) {
-        this.btnStop = btnStop;
-    }
-
-    public Button getBtnStart() {
-        return btnStart;
-    }
-
-    public void setBtnStart(Button btnStart) {
-        this.btnStart = btnStart;
     }
 }

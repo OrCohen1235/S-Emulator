@@ -5,6 +5,8 @@ import program.Program;
 import logic.label.*;
 import logic.label.Label;
 
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 
 public class ProgramExecutorImpl {
@@ -12,7 +14,7 @@ public class ProgramExecutorImpl {
     private final Program program; // Reference to the program being executed
     private int sumOfCycles;
     private int currentIndex=0;
-    private Boolean isLevelZero=false;
+    private Boolean isFinishDebugging=false;
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
@@ -52,18 +54,17 @@ public class ProgramExecutorImpl {
     }
 
     public long runDebugger(int level) {
-        int index = 0; // Start from the first instruction
+        int index = currentIndex;
         Label nextLabel;
-        if (level == 0) {
-            isLevelZero = true;
-        }
-        else {
-            isLevelZero = false;
+
+        if (level == -1)
+        {
+            isFinishDebugging=true;
         }
 
         do {
-            level--;
             Instruction currentInstruction = program.getActiveInstruction(index);
+
 
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
@@ -76,20 +77,36 @@ public class ProgramExecutorImpl {
                 currentInstruction = program.getInstructionByLabelActive(nextLabel);
                 index = program.getIndexByInstruction(currentInstruction);
             }
-            else
-                break; // Exit condition
-        } while (nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions() && (level>0 || level<-1));
+            else {
+                isFinishDebugging = true;
+                break;
+            }// Exit condition
+        } while (isFinishDebugging && nextLabel != FixedLabel.EXIT && index < program.getSizeOfInstructions());
 
         this.currentIndex = index;
+        if (index >= program.getSizeOfInstructions())
+        {
+            isFinishDebugging=true;
+        }
 
         return program.getY(); // Return output value after execution
     }
 
 
     public int getCurrentIndex() {
-        if (isLevelZero) {
-            return 0;
-        }
         return currentIndex;
+    }
+
+    public Boolean getFinishDebugging() {
+        return isFinishDebugging;
+    }
+
+    public void setFinishDebugging(Boolean finishDebugging) {
+        isFinishDebugging = finishDebugging;
+    }
+
+    public void resetDebugger() {
+        isFinishDebugging=false;
+        currentIndex=0;
     }
 }

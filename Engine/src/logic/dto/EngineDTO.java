@@ -54,4 +54,13 @@ public class EngineDTO {
     public int getCurrentInsructionIndex(){
         return engine.getCurrentInstructionIndex();
     }
+
+    public boolean isFinishedDebugging(){
+        return engine.isFinishedDebugging();
+    }
+
+
+    public void resetDebugger() {
+        engine.resetDebugger();
+    }
 }

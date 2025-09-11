@@ -12,7 +12,7 @@ import java.io.File;
 public class RootController {
 
     @FXML private Spinner<Integer> spnDegree;
-    @FXML private Label lblSummary;
+
     @FXML private Label lblFilePath;
     @FXML private Label lblMaxDegree;
 
@@ -48,7 +48,7 @@ public class RootController {
         }
 
 
-        if (lblSummary   != null) lblSummary.setText("Instructions: 0 | B/S: 0/0 | Total Program Cycles: 0");
+
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
     }
@@ -57,7 +57,7 @@ public class RootController {
     public int getDegree() {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
     }
-    public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
+
 
 
     @FXML
@@ -79,7 +79,7 @@ public class RootController {
 
             // UI updates
             if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
-            setMaxDegree(programService.getMaxDegree()); // מעדכן ספינר + תווית "/ N"
+            setMaxDegree(programService.getMaxDegree());
             if (spnDegree != null) spnDegree.setDisable(false);
 
             // רענון הפאנלים

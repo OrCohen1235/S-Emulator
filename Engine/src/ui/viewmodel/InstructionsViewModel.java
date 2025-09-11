@@ -30,8 +30,8 @@ public class InstructionsViewModel {
         int size = (root == null) ? 0 : root.getChildren().size();
         return "Program loaded " + ps.getProgramName()
                 + " | Instructions: " + size
-                + " | B/S: " + countB + "/" + countS
-                + " | Cycles: " + sumCycles;
+                + " | B/S: " + countB + "/" + countS;
+
     }
 
 

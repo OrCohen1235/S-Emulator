@@ -4,12 +4,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableRow;
-import javafx.scene.control.TreeTableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import logic.dto.InstructionDTO;
 import ui.cells.RowHighlighter;
@@ -22,7 +17,9 @@ public class InstructionsController {
 
     @FXML private TreeTableView<InstructionDTO> trvInstructions;
     @FXML private TreeTableColumn<InstructionDTO, String> colIndex, colType, colLabel, colCycles, colInstruction;
-    @FXML private TreeTableColumn<InstructionDTO, Void>   colExpandFrom;  // ← עמודת הכפתור
+    @FXML private TreeTableColumn<InstructionDTO, Void>   colExpandFrom;
+
+    @FXML private Label lblSummary;
 
     private final InstructionsViewModel vm = new InstructionsViewModel();
     private ProgramService programService;
@@ -32,6 +29,7 @@ public class InstructionsController {
     private static final PseudoClass PC_ROW_END = PseudoClass.getPseudoClass("row-highlightedfinished");
     private final IntegerProperty highlightedRowIndex = new SimpleIntegerProperty(-1);
     private RowHighlighter rowHighlighter = new RowHighlighter();
+    public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
 
     @FXML
     private void initialize() {
@@ -43,11 +41,10 @@ public class InstructionsController {
         colCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
 
+        if (lblSummary   != null) lblSummary.setText("Instructions: 0 | B/S: 0/0");
 
-        // אנחנו מסמנים ידנית, לא משתמשים ב־SelectionModel
         trvInstructions.setSelectionModel(null);
 
-        // RowFactory לצביעה לפי highlightedRowIndex
         trvInstructions.setRowFactory(tv -> {
             TreeTableRow<InstructionDTO> row = new TreeTableRow<>() {
                 @Override
@@ -109,9 +106,8 @@ public class InstructionsController {
         trvInstructions.setRoot(vm.getRoot());
         trvInstructions.refresh();
 
-        if (parent != null) {
-            parent.updateSummary(vm.buildSummary(programService));
-        }
+        updateSummary(vm.buildSummary(programService));
+
 
         // שמירת ההדגשה בתחום חוקי
 
@@ -158,11 +154,10 @@ public class InstructionsController {
         }
         int sel = highlightedRowIndex.get();
         boolean isThisRow = row.getIndex() == sel;
-        int lastVisible = (trvInstructions.getRoot() == null) ? -1 : trvInstructions.getExpandedItemCount() - 1;
-        boolean isLastVisible = sel >= 0 && sel == lastVisible;
+        boolean lastVisible = programService.isFinishedDebugging();
 
         row.pseudoClassStateChanged(PC_ROW_HL,  isThisRow);
-        row.pseudoClassStateChanged(PC_ROW_END, isThisRow && isLastVisible);
+        row.pseudoClassStateChanged(PC_ROW_END, isThisRow && lastVisible);
     }
 
     public void highlightRow(int i) {
@@ -185,4 +180,6 @@ public class InstructionsController {
     public int getInstructionCount() {
         return trvInstructions.getExpandedItemCount();
     }
+
+
 }

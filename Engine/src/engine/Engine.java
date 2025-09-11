@@ -82,5 +82,12 @@ public class Engine {
         return programExecutor.getCurrentIndex();
     }
 
+    public boolean isFinishedDebugging() {
+        return programExecutor.getFinishDebugging();
+    }
 
+
+    public void resetDebugger() {
+        programExecutor.resetDebugger();
+    }
 }
