@@ -6,7 +6,6 @@
 
 <BorderPane stylesheets="@semulator.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.RootController">
 
-  <!-- TOP BAR -->
   <top>
     <VBox spacing="8" BorderPane.alignment="CENTER_LEFT">
       <children>
@@ -20,7 +19,6 @@
           </items>
         </ToolBar>
 
-        <!-- רווח מתחת לטולבר, עם הבקרים שהוספת -->
         <Pane prefHeight="46.0" prefWidth="1616.0">
           <children>
             <Button layoutX="14.0" layoutY="8.0" text="Program\Function selector" />
@@ -38,8 +36,8 @@
               </children>
             </HBox>
             <Button fx:id="btnExpand" layoutX="561.0" layoutY="6.0" onAction="#onExpand" text="Expand" />
-                  <Separator layoutX="637.0" layoutY="1.0" orientation="VERTICAL" prefHeight="41.0" prefWidth="11.0" />
-                  <Button fx:id="btnHighlightSelector" layoutX="658.0" layoutY="6.0" mnemonicParsing="false" text="Vairable\Label Selector" onAction="#onHighLight" />
+            <Separator layoutX="637.0" layoutY="1.0" orientation="VERTICAL" prefHeight="41.0" prefWidth="11.0" />
+            <Button fx:id="btnHighlightSelector" layoutX="658.0" layoutY="6.0" mnemonicParsing="false" text="Vairable\Label Selector" onAction="#onHighLightVarOrLabel" />
           </children>
         </Pane>
 
@@ -49,11 +47,18 @@
 
   <!-- CENTER -->
   <center>
-    <!-- שני פנלים בלבד: instructions (שכבר כולל מתחתיו את Expand Instruction) ו-execution -->
+    <!-- שמאלה: Instructions | ימינה: VBox עם Execution למעלה והיסטוריה מתחת, כמו בצילום -->
     <SplitPane dividerPositions="0.62">
       <items>
         <fx:include fx:id="instructions" source="instructions.fxml" />
-        <fx:include fx:id="execution" source="execution.fxml" />
+
+        <!-- צד ימין עטוף ב-VBox: Execution נמתח, History מתחתיו -->
+        <VBox spacing="8">
+          <children>
+            <fx:include fx:id="execution" source="execution.fxml" VBox.vgrow="ALWAYS" />
+            <fx:include fx:id="history" source="history.fxml" />
+          </children>
+        </VBox>
       </items>
     </SplitPane>
   </center>

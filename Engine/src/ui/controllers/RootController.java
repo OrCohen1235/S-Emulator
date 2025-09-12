@@ -7,7 +7,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -21,10 +20,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import logic.dto.InstructionDTO;
 import program.ProgramLoadException;
-import ui.model.VarRow;
+import ui.services.HistoryService;
 import ui.services.ProgramService;
 
-import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -42,16 +40,15 @@ public class RootController {
 
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
+    @FXML private HistoryController historyController;
 
     private final ProgramService programService = new ProgramService();
+    private final HistoryService historyService = new HistoryService();
     private File selectedFile;
     private Tooltip tooltip;
 
 
-
-
-    @FXML
-    private void initialize() {
+    @FXML private void initialize() {
 
         if (instructionsController != null) instructionsController.setParent(this);
         if (executionController != null) executionController.setParent(this);
@@ -67,10 +64,11 @@ public class RootController {
             });
         }
 
-
-
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
+
+        programService.setHistory(historyService);
+        historyController.init(historyService);
     }
 
     public ProgramService getProgramService() { return programService; }
@@ -78,9 +76,7 @@ public class RootController {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
     }
 
-    @FXML
-    private void onHighLight(ActionEvent e) {
-        // root של התוכן (כאן בלי FXML לצמצום)
+    @FXML private void onHighLightVarOrLabel(ActionEvent e) {
         TextField filter = new TextField();
         ListView<String> list = new ListView<>();
         list.setPrefHeight(280);
@@ -96,9 +92,8 @@ public class RootController {
         );
         list.setItems(variables);
 
-        // Stage + Scene
         Stage stage = new Stage(StageStyle.DECORATED);
-        stage.setTitle("Choose a variable");
+        stage.setTitle("Choose a variable or a label");
         stage.initOwner(((Node)e.getSource()).getScene().getWindow());      // קישור לחלון האב
         stage.initModality(Modality.WINDOW_MODAL);                           // מודאלי רק מול האב
         stage.setScene(new Scene(root, 360, 360));
@@ -133,8 +128,7 @@ public class RootController {
     }
 
 
-    @FXML
-    private void onLoadFile() {
+    @FXML private void onLoadFile() {
         FileChooser fc = new FileChooser();
         fc.setTitle("Choose Program XML");
         File file = fc.showOpenDialog((lblFilePath != null) ? lblFilePath.getScene().getWindow() : null);
@@ -168,8 +162,7 @@ public class RootController {
     }
 
 
-    @FXML
-    private void onExpand() {
+    @FXML private void onExpand() {
         if (spnDegree == null || spnDegree.isDisabled()) return;
         int max = getSpinnerMax();
         int cur = getDegree();
@@ -177,8 +170,7 @@ public class RootController {
         if (instructionsController != null) instructionsController.refresh(getDegree());
     }
 
-    @FXML
-    private void onCollapse() {
+    @FXML private void onCollapse() {
         if (spnDegree == null || spnDegree.isDisabled()) return;
         int cur = getDegree();
         if (cur > 0) spnDegree.getValueFactory().setValue(cur - 1);
@@ -233,13 +225,15 @@ public class RootController {
         return btnCollapse;
     }
 
-    @FXML
-    public void mouseEnter(MouseEvent mouseEvent) {
+    @FXML public void mouseEnter(MouseEvent mouseEvent) {
         Tooltip.install(lblFilePath, tooltip);
     }
 
-    @FXML
-    public void mouseExit(MouseEvent mouseEvent) {
+    @FXML public void mouseExit(MouseEvent mouseEvent) {
 
+    }
+
+    public ExecutionController getExecutionController() {
+        return executionController;
     }
 }

@@ -4,6 +4,7 @@ import logic.dto.EngineDTO;
 import logic.dto.InstructionDTO;
 import logic.dto.ProgramDTO;
 import program.ProgramLoadException;
+import ui.model.HistoryRow;
 import ui.model.VarRow;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import java.util.Map;
 public class ProgramService {
     private EngineDTO engine;
     private ProgramDTO program;
+    private HistoryService history;
 
     public void loadXml(File xmlPath) throws ProgramLoadException {
         EngineDTO probe = new EngineDTO(xmlPath.toString());
@@ -51,7 +53,6 @@ public class ProgramService {
         return program.getInstructionDTOs();
     }
 
-    /** משתנים בתחילת הריצה (קלטים), בתצוגת טבלה. */
     public List<VarRow> getVariables() {
         List<VarRow> rows = new ArrayList<>();
         for (String var : program.getXVariables()) {
@@ -99,7 +100,12 @@ public class ProgramService {
         } else {
             program.setProgramViewToOriginal();
         }
-        return engine.runProgramExecutor(degree);
+
+        long executeOutput = engine.runProgramExecutor(degree);
+
+        history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVariablesEND());
+
+        return executeOutput;
     }
 
     public long executeProgramDebugger(int degree, int level) {
@@ -108,6 +114,7 @@ public class ProgramService {
         } else {
             program.setProgramViewToOriginal();
         }
+
         return engine.runProgramExecutorDebugger(level);
     }
 
@@ -140,5 +147,7 @@ public class ProgramService {
         engine.resetDebugger();
     }
 
-
+    public void setHistory(HistoryService history) {
+        this.history = history;
+    }
 }

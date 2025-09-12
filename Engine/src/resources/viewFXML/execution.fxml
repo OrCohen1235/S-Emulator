@@ -4,7 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.ExecutionController">
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ui.controllers.ExecutionController">
 
   <children>
     <TitledPane expanded="true" text="Debugger / Execution" VBox.vgrow="ALWAYS">
@@ -23,47 +24,37 @@
 
             <GridPane hgap="10" prefHeight="257.0" prefWidth="684.0" vgap="10">
               <columnConstraints>
-                <!-- שתי עמודות 50/50 לרוחב שווה -->
                 <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
                 <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
               </columnConstraints>
               <rowConstraints>
-                <!-- השורה העליונה נמתחת במלואה -->
                 <RowConstraints maxHeight="421.0" minHeight="196.0" prefHeight="204.0" vgrow="ALWAYS" />
                 <RowConstraints maxHeight="229.0" minHeight="90.0" prefHeight="125.0" vgrow="SOMETIMES" />
               </rowConstraints>
 
-              <!-- Variables: מאפשר גידול מלא + גובה בלתי מוגבל -->
-              <TitledPane expanded="true" maxHeight="Infinity" text="Variables" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
+              <!-- Variables -->
+              <TitledPane expanded="true" maxHeight="Infinity" text="Variables"
+                          GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"
+                          GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
                 <content>
-                  <TableView fx:id="tblVariables" prefWidth="335.0" VBox.vgrow="ALWAYS">
-                    <columnResizePolicy>
-                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                    </columnResizePolicy>
-                    <columns>
-                      <TableColumn fx:id="colVarName" maxWidth="220" prefWidth="120" text="Name" />
-                      <TableColumn fx:id="colVarType" maxWidth="160" prefWidth="145.0" text="Type" />
-                      <TableColumn fx:id="colVarValue" prefWidth="168.0" text="Value" />
-                    </columns>
-                  </TableView>
+                  <fx:include fx:id="varsTable" source="varsTable.fxml" />
                 </content>
               </TitledPane>
 
-              <!-- Execution Inputs: זהה ל-Variables בגידול וברום -->
-              <TitledPane expanded="true" maxHeight="Infinity" prefWidth="337.0" text="Execution Inputs" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
+              <!-- Execution Inputs -->
+              <TitledPane expanded="true" maxHeight="Infinity" prefWidth="337.0" text="Execution Inputs"
+                          GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"
+                          GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
                 <content>
                   <VBox spacing="6">
                     <children>
-
-                      <ScrollPane fx:id="inputsScroll" fitToWidth="true" hbarPolicy="NEVER" prefHeight="105.0" prefWidth="316.0" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                      <ScrollPane fx:id="inputsScroll" fitToWidth="true" hbarPolicy="NEVER"
+                                  prefHeight="105.0" prefWidth="316.0" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
                         <content>
                           <VBox fx:id="inputsContainer" fillWidth="true" spacing="6" stylesheets="@execution.css" />
                         </content>
                       </ScrollPane>
-
-                      <!-- ספייסר (אפשר להשאיר; הוא לא יפגע בשוויון הגובה между ה-TitledPane) -->
                       <Pane VBox.vgrow="ALWAYS" />
-
                       <HBox fx:id="hBoxStart" alignment="TOP_CENTER">
                         <children>
                           <Button fx:id="btnStart" onAction="#onStart" text="Start" />
@@ -74,7 +65,10 @@
                 </content>
               </TitledPane>
 
-              <TitledPane expanded="true" prefHeight="65.0" prefWidth="684.0" text="Cycles" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+              <!-- Cycles -->
+              <TitledPane expanded="true" prefHeight="65.0" prefWidth="684.0" text="Cycles"
+                          GridPane.columnIndex="0" GridPane.columnSpan="2"
+                          GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
                 <content>
                   <VBox spacing="8">
                     <children>
@@ -97,8 +91,6 @@
         </VBox>
       </content>
     </TitledPane>
-
-    <fx:include source="history.fxml" />
   </children>
 
   <padding>

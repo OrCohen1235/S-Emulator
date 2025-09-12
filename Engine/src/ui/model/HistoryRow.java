@@ -2,21 +2,32 @@ package ui.model;
 
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import java.util.List;
 
 public class HistoryRow {
-    private final StringProperty time = new SimpleStringProperty();
-    private final StringProperty inputs = new SimpleStringProperty();
+    private final StringProperty runNumber = new SimpleStringProperty();
+    private final ObservableList<VarRow> vars = FXCollections.observableArrayList();
     private final StringProperty y = new SimpleStringProperty();
     private final StringProperty cycles = new SimpleStringProperty();
-    private final StringProperty notes = new SimpleStringProperty();
+    private final StringProperty degree = new SimpleStringProperty();
 
-    public HistoryRow(String time, String inputs, String y, String cycles, String notes) {
-        this.time.set(time); this.inputs.set(inputs); this.y.set(y);
-        this.cycles.set(cycles); this.notes.set(notes);
+    public HistoryRow(String runNumber, String y, String degree, String cycles, List<VarRow> vars) {
+        this.vars.setAll(vars);
+        this.runNumber.set(runNumber);
+        this.y.set(y);
+        this.cycles.set(cycles);
+        this.degree.set(degree);
     }
-    public StringProperty timeProperty(){ return time; }
-    public StringProperty inputsProperty(){ return inputs; }
-    public StringProperty yProperty(){ return y; }
-    public StringProperty cyclesProperty(){ return cycles; }
-    public StringProperty notesProperty(){ return notes; }
+
+    public StringProperty runNumberProperty() { return runNumber; }
+    public StringProperty yProperty() { return y; }
+    public StringProperty cyclesProperty() { return cycles; }
+    public StringProperty degreeProperty() { return degree; }
+
+    public ObservableList<VarRow> getVars() {
+        return vars;
+    }
 }

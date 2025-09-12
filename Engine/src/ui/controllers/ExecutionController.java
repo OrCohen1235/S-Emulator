@@ -22,8 +22,7 @@ public class ExecutionController {
     @FXML private Button btnRun, btnDebug, btnStepOver, btnClear, btnStop, btnStart, btnResume;
 
     // Vars table
-    @FXML private TableView<VarRow> tblVariables;
-    @FXML private TableColumn<VarRow, String> colVarName, colVarType, colVarValue;
+    @FXML private VarsTableController varsTableController;
     @FXML private ScrollPane inputsScroll;
 
     // Misc UI
@@ -46,7 +45,6 @@ public class ExecutionController {
         this.parent = parent;
         this.programService = parent.getProgramService();
 
-        initVariableTableColumns();
         inputsContainer.setManaged(false);
         inputsContainer.setVisible(false);
         hBoxStart.setVisible(false);
@@ -54,11 +52,6 @@ public class ExecutionController {
         refreshButtons();
     }
 
-    private void initVariableTableColumns() {
-        colVarName.setCellValueFactory(c -> c.getValue().nameProperty());
-        colVarType.setCellValueFactory(c -> c.getValue().typeProperty());
-        colVarValue.setCellValueFactory(c -> c.getValue().valueProperty());
-    }
 
     public void onProgramLoaded() {
         rebuildInputFields();
@@ -112,7 +105,7 @@ public class ExecutionController {
         sumOfCyclesDebugging += programService.getCycles();
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
-        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
 
         highlightCurrentInstruction();
         if (debuggerLevel != FINISHED_DEBUGGING) {
@@ -170,7 +163,7 @@ public class ExecutionController {
     private void doRun() {
         long y = programService.executeProgram(parent.getDegree());
         lblCycles.setText(String.valueOf(programService.getCycles()));
-        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
 
         programService.resetMaps();
         prgExecution.setProgress(1.0);
@@ -252,10 +245,12 @@ public class ExecutionController {
 
     private void showInitialVariables() {
         if (programService == null || !programService.hasProgram()) {
-            tblVariables.setItems(FXCollections.observableArrayList());
+            varsTableController.setItems(FXCollections.observableArrayList());
+
             return;
         }
-        tblVariables.setItems(FXCollections.observableArrayList(programService.getVariables()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariables()));
+
     }
 
     private void refreshButtons() {

@@ -35,9 +35,7 @@ public class InstructionsController {
     private RowHighlighter rowHighlighter = new RowHighlighter();
     public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
 
-    @FXML
-    private void initialize() {
-        // עמודות-דאטה
+    @FXML private void initialize() {
         trvInstructions.setShowRoot(false);
         colIndex.setCellValueFactory(new TreeItemPropertyValueFactory<>("displayIndex"));
         colType.setCellValueFactory(new TreeItemPropertyValueFactory<>("type"));
@@ -63,7 +61,6 @@ public class InstructionsController {
             return row;
         });
 
-        // עמודת "Show Expand" (כפתור בכל שורה מתאימה)
         if (colExpandFrom != null) {
             colExpandFrom.setCellFactory(col -> new TreeTableCell<InstructionDTO, Void>() {
                 private final Button btn = new Button("Show Expand");
@@ -94,13 +91,11 @@ public class InstructionsController {
         }
     }
 
-    /** יקרא מה-RootController אחרי יצירת הקונטרולר. */
     public void setParent(RootController parent) {
         this.parent = parent;
         this.programService = parent.getProgramService();
     }
 
-    /** מרענן את הטבלה לפי degree נוכחי. */
     public void refresh(int degree) {
         if (programService == null && parent != null) {
             programService = parent.getProgramService();
@@ -113,14 +108,12 @@ public class InstructionsController {
 
         updateSummary(vm.buildSummary(programService));
 
-
-        // שמירת ההדגשה בתחום חוקי
-
         if (highlightedRowIndex.get() >= 0 && trvInstructions.getRoot() != null) {
             int last = trvInstructions.getExpandedItemCount() - 1;
             highlightedRowIndex.set(last >= 0 ? Math.min(highlightedRowIndex.get(), last) : -1);
         }
     }
+
     // ===== Expand/Collapse =====
     private void onShowExpand(InstructionDTO parentDto,
                               TreeItem<InstructionDTO> parentItem,
@@ -173,7 +166,6 @@ public class InstructionsController {
         trvInstructions.scrollTo(clamped);
         trvInstructions.refresh();
     }
-
 
     public void clearHighlight() {
         highlightedRowIndex.set(-1);
