@@ -4,8 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="ui.controllers.ExecutionController">
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.ExecutionController">
 
   <children>
     <TitledPane expanded="true" text="Debugger / Execution" VBox.vgrow="ALWAYS">
@@ -14,11 +13,11 @@
           <children>
             <ToolBar>
               <items>
-                <Button fx:id="btnRun" onAction="#onRun" text="Run" />
+                <Button fx:id="btnRun" onAction="#onRun" text="New Run" />
                 <Button fx:id="btnDebug" onAction="#onDebug" text="Debug" />
                 <Button fx:id="btnStepOver" onAction="#onStepOver" text="Step Over" />
-                <Button fx:id="btnClear" onAction="#onStop" text="Stop" />
-                <Button fx:id="btnResume" onAction="#onResume" prefWidth="58.0" text="Resume" />
+                <Button fx:id="btnStop" onAction="#onStop" text="Stop" />
+                <Button fx:id="btnResume" onAction="#onResume" text="Resume" />
               </items>
             </ToolBar>
 
@@ -33,23 +32,18 @@
               </rowConstraints>
 
               <!-- Variables -->
-              <TitledPane expanded="true" maxHeight="Infinity" text="Variables"
-                          GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"
-                          GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
+              <TitledPane expanded="true" maxHeight="Infinity" text="Variables" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
                 <content>
                   <fx:include fx:id="varsTable" source="varsTable.fxml" />
                 </content>
               </TitledPane>
 
               <!-- Execution Inputs -->
-              <TitledPane expanded="true" maxHeight="Infinity" prefWidth="337.0" text="Execution Inputs"
-                          GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"
-                          GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
+              <TitledPane expanded="true" maxHeight="Infinity" prefWidth="337.0" text="Execution Inputs" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="ALWAYS">
                 <content>
                   <VBox spacing="6">
                     <children>
-                      <ScrollPane fx:id="inputsScroll" fitToWidth="true" hbarPolicy="NEVER"
-                                  prefHeight="105.0" prefWidth="316.0" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                      <ScrollPane fx:id="inputsScroll" fitToWidth="true" hbarPolicy="NEVER" prefHeight="105.0" prefWidth="316.0" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
                         <content>
                           <VBox fx:id="inputsContainer" fillWidth="true" spacing="6" stylesheets="@execution.css" />
                         </content>
@@ -66,9 +60,7 @@
               </TitledPane>
 
               <!-- Cycles -->
-              <TitledPane expanded="true" prefHeight="65.0" prefWidth="684.0" text="Cycles"
-                          GridPane.columnIndex="0" GridPane.columnSpan="2"
-                          GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+              <TitledPane expanded="true" prefHeight="65.0" prefWidth="684.0" text="Cycles" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
                 <content>
                   <VBox spacing="8">
                     <children>

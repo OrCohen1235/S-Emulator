@@ -235,3 +235,8 @@
     -fx-background-color: #ddffff
 }
 
+.table-view .table-cell:changed {
+    -fx-background-color: #fff8b3; /* צהוב עדין */
+    -fx-font-weight: bold;
+}
+

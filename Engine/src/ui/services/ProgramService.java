@@ -4,18 +4,21 @@ import logic.dto.EngineDTO;
 import logic.dto.InstructionDTO;
 import logic.dto.ProgramDTO;
 import program.ProgramLoadException;
-import ui.model.HistoryRow;
 import ui.model.VarRow;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+
 
 public class ProgramService {
     private EngineDTO engine;
     private ProgramDTO program;
     private HistoryService history;
+
 
     public void loadXml(File xmlPath) throws ProgramLoadException {
         EngineDTO probe = new EngineDTO(xmlPath.toString());
@@ -64,6 +67,7 @@ public class ProgramService {
     public List<VarRow> getVariablesEND() {
         List<VarRow> rows = new ArrayList<>();
         Map<String, Long> values = program.getVariablesValues();
+
         for (Map.Entry<String, Long> entry : values.entrySet()) {
             String name = entry.getKey();
             String varName = name.toUpperCase();
@@ -86,8 +90,54 @@ public class ProgramService {
     public List<String> getAllVarsAndLables(){
         List<String> vars = new ArrayList<>();
         vars.addAll(program.getAllVariables());
+        vars = sortListFromYtoZ(vars);
         vars.addAll(program.getLabels());
         return vars;
+    }
+
+    public List<VarRow> getAllVars() {
+        List<VarRow> rows = new ArrayList<>();
+        List<String> vars = program.getAllVariables();
+        for (String var : sortListFromYtoZ(vars)) {
+            switch (var.charAt(0)) {
+                case 'X':
+                    rows.add(new VarRow(var, "INPUT", program.getVarValue(var)));
+                    break;
+                case 'Y':
+                    rows.add(new VarRow(var, "OUTPUT", program.getVarValue(var)));
+                    break;
+                case 'Z':
+                    rows.add(new VarRow(var, "WORK", program.getVarValue(var)));
+                    break;
+            }
+        }
+
+        return rows;
+    }
+
+
+    public List<String> sortListFromYtoZ(List<String> toSort){
+        List<String> xVars = new ArrayList<>();
+        List<String> zVars = new ArrayList<>();
+
+        for (String var : toSort) {
+            switch (var.charAt(0)) {
+                case 'X':
+                    xVars.add(var);
+                    break;
+                case 'Y':
+                    break;
+                case 'Z':
+                    zVars.add(var);
+                    break;
+            }
+        }
+        sortXNumerically(xVars);
+        sortXNumerically(zVars);
+        xVars.addFirst("Y");
+        xVars.addAll(zVars);
+        return xVars;
+
     }
 
     public void loadVars(List<Long> vars) {
@@ -115,8 +165,21 @@ public class ProgramService {
             program.setProgramViewToOriginal();
         }
 
-        return engine.runProgramExecutorDebugger(level);
+        long executeOutput = engine.runProgramExecutorDebugger(level);
+
+        if(isFinishedDebugging()){
+            history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVariablesEND());
+        }
+        return executeOutput;
     }
+
+    public void addHistory(int degree,long y){
+        history.addHistory(y, degree, engine.getSumOfCycles(), getVariablesEND());
+    }
+
+
+
+
 
     public int getCurrentInstructionIndex() {
         return engine.getCurrentInsructionIndex();
@@ -131,8 +194,16 @@ public class ProgramService {
         program.resetMapVariables();
     }
 
+    public void resetCycles(){
+        engine.resetSumOfCycles();
+    }
+
     public int getCycles() {
         return engine.getSumOfCycles();
+    }
+
+    public int getCyclesDebugger() {
+        return engine.getSumOfCyclesDebugger();
     }
 
     public String getProgramName() {
@@ -150,4 +221,10 @@ public class ProgramService {
     public void setHistory(HistoryService history) {
         this.history = history;
     }
+
+
+    public static void sortXNumerically(List<String> items) {
+        items.sort(Comparator.comparingInt(s -> Integer.parseInt(s.substring(1))));
+    }
+
 }

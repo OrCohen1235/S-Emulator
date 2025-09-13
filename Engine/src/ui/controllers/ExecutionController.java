@@ -39,7 +39,7 @@ public class ExecutionController {
     private int debuggerLevel = 0;
     private boolean runAwaitingStart = false;
     private int sumOfCyclesDebugging = 0;
-
+    private long output=0;
 
     public void setParent(RootController parent) {
         this.parent = parent;
@@ -56,6 +56,7 @@ public class ExecutionController {
     public void onProgramLoaded() {
         rebuildInputFields();
         showInitialVariables();
+        inputsScroll.setVvalue(0.0);
 
         debugging = false;
         debuggerLevel = 0;
@@ -70,7 +71,8 @@ public class ExecutionController {
 
     @FXML
     private void onRun() {
-        btnRun.setText("Re-Run");
+        onClear();
+        inputsContainer.setDisable(false);
         hBoxStart.setVisible(true);
         runAwaitingStart = true;
 
@@ -80,6 +82,7 @@ public class ExecutionController {
         refreshButtons();
         btnRun.setDisable(runAwaitingStart);
         btnDebug.setDisable(true);
+        btnStop.setDisable(true);
         if (debuggerLevel == 0) {
             highlightCurrentInstruction();
         }
@@ -89,23 +92,34 @@ public class ExecutionController {
 
     @FXML
     private void onDebug() {
-        hBoxStart.setVisible(true);
-        btnDebug.setDisable(true);
-        btnRun.setDisable(true);
-        debugging = true;
-        sumOfCyclesDebugging = 0;
-        lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
+        if (programService.isFinishedDebugging()){
+            programService.resetDebugger();
+            onProgramLoaded();
+        }
+        if (debuggerLevel==0){
+            highlightCurrentInstruction();
+        }
+        debugging=true;
+        inputsContainer.setDisable(!debugging);
+        hBoxStart.setVisible(debugging);
+        btnStepOver.setDisable(debugging);
+        btnDebug.setDisable(debugging);
+        btnRun.setDisable(debugging);
     }
 
     @FXML
     private void onStepOver() {
         if (!debugging) return;
 
-        long y = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
-        sumOfCyclesDebugging += programService.getCycles();
+
+        output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
+
+        sumOfCyclesDebugging = programService.getEngine().getSumOfCycles();
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
-        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
+        if (programService.isFinishedDebugging()){
+            varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
+        }
 
         highlightCurrentInstruction();
         if (debuggerLevel != FINISHED_DEBUGGING) {
@@ -114,21 +128,23 @@ public class ExecutionController {
         refreshButtons();
     }
 
-    @FXML
     private void onClear() {
         debugging = false;
         programService.resetMaps();
-        sumOfCyclesDebugging = 0;
-        lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
-        refreshButtons();
+        onProgramLoaded();
+
     }
 
     @FXML
     private void onStop() {
+        debuggerLevel =Math.max(0, debuggerLevel - 2);
+        programService.addHistory(parent.getDegree(), output);
+        programService.resetDebugger();
         debugging = false;
         debuggerLevel = 0;
         prgExecution.setProgress(0);
         refreshButtons();
+        onClear();
 
         // NEW: עצרת דיבוג – נקה סימון
         if (parent != null) parent.clearInstructionHighlight();
@@ -137,6 +153,7 @@ public class ExecutionController {
     @FXML
     private void onStart() {
         applyVarsValues();
+        inputsContainer.setDisable(true);
         hBoxStart.setVisible(false);
         hBoxStart.getStyleClass().add("highlight");
 
@@ -149,8 +166,8 @@ public class ExecutionController {
         if (runAwaitingStart) {
             runAwaitingStart = false;
             btnRun.setDisable(true);
-            btnClear.setDisable(false);
             doRun();
+            refreshButtons();
         }
     }
 
@@ -158,18 +175,19 @@ public class ExecutionController {
     private void onResume() {
         debuggerLevel = FINISHED_DEBUGGING;
         onStepOver();
+        onClear();
     }
 
     private void doRun() {
         long y = programService.executeProgram(parent.getDegree());
         lblCycles.setText(String.valueOf(programService.getCycles()));
+        programService.resetCycles();
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
 
         programService.resetMaps();
         prgExecution.setProgress(1.0);
 
-        btnRun.setDisable(true);
-        btnClear.setDisable(false);
+        btnStop.setDisable(true);
 
         if (parent != null) parent.clearInstructionHighlight();
     }
@@ -212,10 +230,16 @@ public class ExecutionController {
 
         var vars = programService.getVariables();
         boolean has = !vars.isEmpty();
+        for (var node : vars) {
+            TextField tf = new TextField();
+            tf.setPromptText(node.getName());
+            inputsContainer.getChildren().add(tf);
+        }
         inputsContainer.setManaged(has);
-        inputsContainer.setVisible(has);
+        inputsContainer.setVisible(true);
+        inputsContainer.setDisable(true);
         if (!has) return;
-        addTailField(1);
+
     }
 
     private void addTailField(int index) {
@@ -249,7 +273,7 @@ public class ExecutionController {
 
             return;
         }
-        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariables()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getAllVars()));
 
     }
 
@@ -259,9 +283,9 @@ public class ExecutionController {
 
         btnRun.setDisable(debugging);
         btnDebug.setDisable(debugging);
-        btnResume.setDisable(!debugging);
+        btnResume.setDisable(!debugging || atEnd);
         btnStepOver.setDisable(!debugging || atEnd);
-        btnClear.setDisable(!debugging);
+        btnStop.setDisable(!debugging ||atEnd);
 
         parent.getBtnExpand().setDisable(debugging);
         parent.getBtnCollapse().setDisable(debugging);

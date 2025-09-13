@@ -63,4 +63,8 @@ public class EngineDTO {
     public void resetDebugger() {
         engine.resetDebugger();
     }
+
+    public int getSumOfCyclesDebugger() {
+        return engine.getSumOfCyclesDebugger();
+    }
 }

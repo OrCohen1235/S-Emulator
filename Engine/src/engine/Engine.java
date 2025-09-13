@@ -73,9 +73,13 @@ public class Engine {
     }
 
     public int getSumOfCycles() {
-        int sumCycles = programExecutor.getSumOfCycles();
-        resetSumOfCycles();
-        return sumCycles; // Return total executed cycles
+        return programExecutor.getSumOfCycles(); // Return total executed cycles
+    }
+
+    public int getSumOfCyclesDebugger() {
+        int sum = programExecutor.getSumOfCycles();
+        programExecutor.resetSumOfCycles();
+        return sum; // Return total executed cycles
     }
 
     public int getCurrentInstructionIndex() {

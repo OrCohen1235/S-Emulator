@@ -25,6 +25,8 @@ public class ProgramExecutorImpl {
         return sumOfCycles; // Return total cycles executed
     }
 
+
+
     public void resetSumOfCycles() {
         this.sumOfCycles = 0; // Reset cycle counter
     }
@@ -101,12 +103,9 @@ public class ProgramExecutorImpl {
         return isFinishDebugging;
     }
 
-    public void setFinishDebugging(Boolean finishDebugging) {
-        isFinishDebugging = finishDebugging;
-    }
-
     public void resetDebugger() {
         isFinishDebugging=false;
         currentIndex=0;
+        sumOfCycles=0;
     }
 }
