@@ -24,8 +24,8 @@ import ui.services.HistoryService;
 import ui.services.ProgramService;
 
 import java.io.File;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class RootController {
 
@@ -40,19 +40,17 @@ public class RootController {
 
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
-    @FXML private HistoryController historyController;
+    @FXML private HistoryController historyController; // אופציונלי ב-FXML
 
     private final ProgramService programService = new ProgramService();
     private final HistoryService historyService = new HistoryService();
+
     private File selectedFile;
     private Tooltip tooltip;
 
-
     @FXML private void initialize() {
-
         if (instructionsController != null) instructionsController.setParent(this);
         if (executionController != null) executionController.setParent(this);
-
 
         if (spnDegree != null) {
             spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
@@ -67,15 +65,20 @@ public class RootController {
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
 
+        // אינטגרציית היסטוריה - בטוח לבצע גם אם historyController לא מוזרק
         programService.setHistory(historyService);
-        historyController.init(historyService);
+        if (historyController != null) {
+            historyController.init(historyService);
+        }
     }
 
     public ProgramService getProgramService() { return programService; }
+
     public int getDegree() {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
     }
 
+    // שמירת תאימות: שם חדש
     @FXML private void onHighLightVarOrLabel(ActionEvent e) {
         TextField filter = new TextField();
         ListView<String> list = new ListView<>();
@@ -94,55 +97,61 @@ public class RootController {
 
         Stage stage = new Stage(StageStyle.DECORATED);
         stage.setTitle("Choose a variable or a label");
-        stage.initOwner(((Node)e.getSource()).getScene().getWindow());      // קישור לחלון האב
-        stage.initModality(Modality.WINDOW_MODAL);                           // מודאלי רק מול האב
+        stage.initOwner(((Node)e.getSource()).getScene().getWindow());
+        stage.initModality(Modality.WINDOW_MODAL);
         stage.setScene(new Scene(root, 360, 360));
         stage.setResizable(false);
 
         // לסגור בהקלקה כפולה ולבצע היילייט
         list.setOnMouseClicked(ev -> {
             if (ev.getClickCount() == 2 && list.getSelectionModel().getSelectedItem() != null) {
-                highlightVariable(list.getSelectionModel().getSelectedItem()); // מימוש שלך
+                highlightVariable(list.getSelectionModel().getSelectedItem());
                 stage.close();
             }
         });
 
-        stage.showAndWait(); // או show() אם לא צריך לחסום
+        stage.showAndWait();
     }
 
+    // שמירת תאימות: שם ישן (FXML ישנים) -> מפנה לחדש
+    @FXML private void onHighLight(ActionEvent e) { onHighLightVarOrLabel(e); }
+
     private void highlightVariable(String selectedItem) {
-        List<Integer> res= new ArrayList<>();
-        int index=0;
+        List<Integer> res = new ArrayList<>();
+        int index = 0;
         for (InstructionDTO dto : programService.getInstructionsDTO()){
             if (dto.getLabel().equals(selectedItem)){
                 res.add(index);
-            }
-            else if (dto.getCommand().contains(selectedItem)){
+            } else if (dto.getCommand().contains(selectedItem)){
                 res.add(index);
             }
             index++;
         }
-        for (Integer i : res){
-            instructionsController.highlightRow(i);
+
+        // העדפה: סימון מרובה דרך ה-Controller (אם תומך)
+        try {
+            // אם קיימת מתודה setHighLightedRowIndexes(List<Integer>) ב-InstructionsController
+            instructionsController.setHighLightedRowIndexes(res);
+        } catch (Throwable t) {
+            // נפילה אחורה: לעבור אחת-אחת
+            for (Integer i : res) instructionsController.highlightRow(i);
         }
     }
-
 
     @FXML private void onLoadFile() {
         FileChooser fc = new FileChooser();
         fc.setTitle("Choose Program XML");
         File file = fc.showOpenDialog((lblFilePath != null) ? lblFilePath.getScene().getWindow() : null);
+        if (file == null) return; // תקון NPE
+
         this.selectedFile = file;
         String fullPath = selectedFile.getAbsolutePath();
-
         tooltip = new Tooltip(fullPath);
-        if (file == null) return;
 
-        spnDegree.setDisable(true);
+        if (spnDegree != null) spnDegree.setDisable(true);
 
         try {
             programService.loadXml(file);
-
 
             // UI updates
             if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
@@ -153,14 +162,12 @@ public class RootController {
             if (instructionsController != null) instructionsController.refresh(getDegree());
             if (executionController != null) executionController.onProgramLoaded();
 
-
         } catch (ProgramLoadException ex) {
             showError("Load failed", ex.getMessage());
         } catch (Exception ex) {
             showError("Unexpected error", String.valueOf(ex));
         }
     }
-
 
     @FXML private void onExpand() {
         if (spnDegree == null || spnDegree.isDisabled()) return;
@@ -176,7 +183,6 @@ public class RootController {
         if (cur > 0) spnDegree.getValueFactory().setValue(cur - 1);
         if (instructionsController != null) instructionsController.refresh(getDegree());
     }
-
 
     private void setMaxDegree(int max) {
         int m = Math.max(0, max);
@@ -199,13 +205,11 @@ public class RootController {
         a.showAndWait();
     }
 
-
     public void highlightInstruction(int index) {
         if (instructionsController != null) {
             instructionsController.highlightRow(index);
         }
     }
-
 
     public void clearInstructionHighlight() {
         if (instructionsController != null) {
@@ -217,23 +221,17 @@ public class RootController {
         return instructionsController.getInstructionCount();
     }
 
-    public Button getBtnExpand() {
-        return btnExpand;
-    }
+    public Button getBtnExpand() { return btnExpand; }
 
-    public Button getBtnCollapse() {
-        return btnCollapse;
-    }
+    public Button getBtnCollapse() { return btnCollapse; }
 
     @FXML public void mouseEnter(MouseEvent mouseEvent) {
-        Tooltip.install(lblFilePath, tooltip);
+        if (lblFilePath != null && tooltip != null) {
+            Tooltip.install(lblFilePath, tooltip);
+        }
     }
 
-    @FXML public void mouseExit(MouseEvent mouseEvent) {
+    @FXML public void mouseExit(MouseEvent mouseEvent) { /* no-op */ }
 
-    }
-
-    public ExecutionController getExecutionController() {
-        return executionController;
-    }
+    public ExecutionController getExecutionController() { return executionController; }
 }
