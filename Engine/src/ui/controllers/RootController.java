@@ -26,6 +26,7 @@ import ui.services.ProgramService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class RootController {
 
@@ -68,7 +69,7 @@ public class RootController {
         // אינטגרציית היסטוריה - בטוח לבצע גם אם historyController לא מוזרק
         programService.setHistory(historyService);
         if (historyController != null) {
-            historyController.init(historyService);
+            historyController.init(historyService, this, executionController);
         }
     }
 
@@ -78,7 +79,10 @@ public class RootController {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
     }
 
-    // שמירת תאימות: שם חדש
+    public void setSpnDegree(int degree) {
+        this.spnDegree.getValueFactory().setValue(degree);
+    }
+
     @FXML private void onHighLightVarOrLabel(ActionEvent e) {
         TextField filter = new TextField();
         ListView<String> list = new ListView<>();
@@ -155,12 +159,18 @@ public class RootController {
 
             // UI updates
             if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
+
+            if (spnDegree != null) {
+                spnDegree.setDisable(false);
+                spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
+            }
             setMaxDegree(programService.getMaxDegree());
-            if (spnDegree != null) spnDegree.setDisable(false);
+
 
             // רענון הפאנלים
             if (instructionsController != null) instructionsController.refresh(getDegree());
             if (executionController != null) executionController.onProgramLoaded();
+            if (historyController != null) { historyController.clearHistory();}
 
         } catch (ProgramLoadException ex) {
             showError("Load failed", ex.getMessage());
@@ -234,4 +244,5 @@ public class RootController {
     @FXML public void mouseExit(MouseEvent mouseEvent) { /* no-op */ }
 
     public ExecutionController getExecutionController() { return executionController; }
+
 }

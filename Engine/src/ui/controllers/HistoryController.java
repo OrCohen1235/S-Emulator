@@ -1,7 +1,6 @@
 package ui.controllers;
 
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,9 +19,11 @@ public class HistoryController {
     @FXML private TableView<HistoryRow> historyTable;
     @FXML private TableColumn<HistoryRow, String> colRunNumber, colY, colDegree, colCycles;
 
-    @FXML private Button btnShow, btnReRun;
+    @FXML private Button btnShowStatus, btnReRun;
 
     private HistoryService historyService;
+    private RootController parent;
+    private ExecutionController executionController;
 
     @FXML private void initialize() {
         colRunNumber.setCellValueFactory(cellData -> cellData.getValue().runNumberProperty());
@@ -34,7 +35,7 @@ public class HistoryController {
         unChooseHistoryRow();
     }
 
-    public void init(HistoryService historyService) {
+    public void init(HistoryService historyService,  RootController parent,  ExecutionController executionController) {
         this.historyService = historyService;
         if (historyTable != null) {
             historyTable.setItems(historyService.getHistory());
@@ -43,9 +44,12 @@ public class HistoryController {
                     historyTable.setItems(historyService.getHistory())
             );
         }
+        this.parent = parent;
+        this.executionController = executionController;
     }
 
-    @FXML public void onShow(ActionEvent actionEvent) {
+
+    @FXML public void onShowStatus() {
         HistoryRow row = historyTable.getSelectionModel().getSelectedItem();
         if (row == null) return;
 
@@ -74,7 +78,19 @@ public class HistoryController {
         }
     }
 
-    @FXML public void onRerun(ActionEvent actionEvent) {
+    @FXML public void onRerun() {
+        HistoryRow row = historyTable.getSelectionModel().getSelectedItem();
+        if (row == null) return;
+
+        parent.setSpnDegree(row.getDegree());
+
+        executionController.NewRunOrDebugChoiceFromReRunButton();
+
+        if (executionController != null) {
+            executionController.setPendingRerunInputs(
+                    new java.util.ArrayList<>(row.getStatingInput()));
+        }
+
     }
 
     private void chooseHistoryRow() {
@@ -82,7 +98,7 @@ public class HistoryController {
 
         historyTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
             boolean hasSelection = (newSel != null);
-            btnShow.setDisable(!hasSelection);
+            btnShowStatus.setDisable(!hasSelection);
             btnReRun.setDisable(!hasSelection);
         });
     }
@@ -93,7 +109,7 @@ public class HistoryController {
             newScene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, ev -> {
                 javafx.scene.Node t = (javafx.scene.Node) ev.getTarget();
                 if (isAncestorOf(t, historyTable)) return;
-                if (isAncestorOf(t, btnShow) || isAncestorOf(t, btnReRun)) return;
+                if (isAncestorOf(t, btnShowStatus) || isAncestorOf(t, btnReRun)) return;
 
                 historyTable.getSelectionModel().clearSelection();
             });
@@ -113,6 +129,10 @@ public class HistoryController {
             n = n.getParent();
         }
         return false;
+    }
+
+    public void clearHistory(){
+        historyTable.getItems().clear();
     }
 
 }

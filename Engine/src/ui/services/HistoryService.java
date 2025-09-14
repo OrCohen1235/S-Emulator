@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import ui.model.HistoryRow;
 import ui.model.VarRow;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryService {
@@ -18,9 +19,18 @@ public class HistoryService {
         String y = String.valueOf(executeOutput);
         String deg = String.valueOf(degree);
         String cyc = String.valueOf(cycles);
-        String  runNumber = String.valueOf(history.size() + 1);
-        HistoryRow newHistory = new HistoryRow(runNumber, y, deg, cyc, vars);
-        history.add(newHistory);
+        String  runNumber = String.valueOf(history.size());
+        history.getLast().setAllRemainingHistory(runNumber, y, deg, cyc, vars);
     }
+
+    public void createHistory(List<Long> statingInput) {
+        HistoryRow newHistory = new HistoryRow(statingInput);
+        this.history.add(newHistory);
+    }
+
+
+
+
+
 
 }

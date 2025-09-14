@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 
 public class ProgramService {
@@ -56,7 +55,7 @@ public class ProgramService {
         return program.getInstructionDTOs();
     }
 
-    public List<VarRow> getVariables() {
+    public List<VarRow> getInputsVars() {
         List<VarRow> rows = new ArrayList<>();
         for (String var : program.getXVariables()) {
             rows.add(new VarRow(var.toUpperCase(), "INPUT", program.getVarValue(var)));
@@ -64,7 +63,7 @@ public class ProgramService {
         return rows;
     }
 
-    public List<VarRow> getVariablesEND() {
+    public List<VarRow> getVarsAtEndRun() {
         List<VarRow> rows = new ArrayList<>();
         Map<String, Long> values = program.getVariablesValues();
 
@@ -95,7 +94,7 @@ public class ProgramService {
         return vars;
     }
 
-    public List<VarRow> getAllVars() {
+    public List<VarRow> getAllVarsSorted() {
         List<VarRow> rows = new ArrayList<>();
         List<String> vars = program.getAllVariables();
         for (String var : sortListFromYtoZ(vars)) {
@@ -142,6 +141,7 @@ public class ProgramService {
 
     public void loadVars(List<Long> vars) {
         engine.loadInputVars(vars);
+        history.createHistory(vars);
     }
 
     public long executeProgram(int degree) {
@@ -153,7 +153,7 @@ public class ProgramService {
 
         long executeOutput = engine.runProgramExecutor(degree);
 
-        history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVariablesEND());
+        history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVarsAtEndRun());
 
         return executeOutput;
     }
@@ -168,17 +168,14 @@ public class ProgramService {
         long executeOutput = engine.runProgramExecutorDebugger(level);
 
         if(isFinishedDebugging()){
-            history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVariablesEND());
+            history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVarsAtEndRun());
         }
         return executeOutput;
     }
 
     public void addHistory(int degree,long y){
-        history.addHistory(y, degree, engine.getSumOfCycles(), getVariablesEND());
+        history.addHistory(y, degree, engine.getSumOfCycles(), getVarsAtEndRun());
     }
-
-
-
 
 
     public int getCurrentInstructionIndex() {
@@ -221,8 +218,7 @@ public class ProgramService {
     public void setHistory(HistoryService history) {
         this.history = history;
     }
-
-
+    
     public static void sortXNumerically(List<String> items) {
         items.sort(Comparator.comparingInt(s -> Integer.parseInt(s.substring(1))));
     }

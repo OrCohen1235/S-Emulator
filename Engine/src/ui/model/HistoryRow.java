@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryRow {
@@ -13,13 +14,10 @@ public class HistoryRow {
     private final StringProperty y = new SimpleStringProperty();
     private final StringProperty cycles = new SimpleStringProperty();
     private final StringProperty degree = new SimpleStringProperty();
+    private List<Long> statingInput =  new ArrayList();
 
-    public HistoryRow(String runNumber, String y, String degree, String cycles, List<VarRow> vars) {
-        this.vars.setAll(vars);
-        this.runNumber.set(runNumber);
-        this.y.set(y);
-        this.cycles.set(cycles);
-        this.degree.set(degree);
+    public HistoryRow(List<Long>  statingInput) {
+        this.statingInput.addAll(statingInput);
     }
 
     public StringProperty runNumberProperty() { return runNumber; }
@@ -29,5 +27,21 @@ public class HistoryRow {
 
     public ObservableList<VarRow> getVars() {
         return vars;
+    }
+
+    public void setAllRemainingHistory(String runNumber, String y, String degree, String cycles, List<VarRow> vars){
+        this.vars.setAll(vars);
+        this.runNumber.setValue(runNumber);
+        this.y.setValue(y);
+        this.cycles.setValue(cycles);
+        this.degree.setValue(degree);
+    }
+
+    public int getDegree() {
+        return Integer.valueOf(degree.getValue());
+    }
+
+    public List<Long> getStatingInput() {
+        return statingInput;
     }
 }

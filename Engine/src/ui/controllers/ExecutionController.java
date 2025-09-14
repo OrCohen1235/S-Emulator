@@ -6,10 +6,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import ui.model.VarRow;
+import ui.services.HistoryService;
 import ui.services.ProgramService;
-import ui.viewmodel.StartButtonAnimator;
-import ui.viewmodel.WorkFX;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +15,8 @@ import java.util.List;
 public class ExecutionController {
 
     private final int FINISHED_DEBUGGING = -1;
+    private boolean onReRun = false;
+    private List<Long> reRunInputs = new ArrayList<>();
 
     // Buttons
     @FXML private Button btnRun, btnDebug, btnStepOver, btnClear, btnStop, btnStart, btnResume;
@@ -54,6 +54,7 @@ public class ExecutionController {
 
 
     public void onProgramLoaded() {
+        varsTableController.clearVarsTable();
         rebuildInputFields();
         showInitialVariables();
         inputsScroll.setVvalue(0.0);
@@ -71,6 +72,7 @@ public class ExecutionController {
 
     @FXML
     private void onRun() {
+        varsTableController.clearVarsTable();
         onClear();
         inputsContainer.setDisable(false);
         hBoxStart.setVisible(true);
@@ -78,6 +80,8 @@ public class ExecutionController {
 
         debugging = false;
         debuggerLevel = 0;
+
+        prefillInputsIfNeeded();
 
         refreshButtons();
         btnRun.setDisable(runAwaitingStart);
@@ -97,6 +101,7 @@ public class ExecutionController {
             onProgramLoaded();
         }
         if (debuggerLevel==0){
+            onProgramLoaded();
             highlightCurrentInstruction();
         }
         debugging=true;
@@ -105,25 +110,28 @@ public class ExecutionController {
         btnStepOver.setDisable(debugging);
         btnDebug.setDisable(debugging);
         btnRun.setDisable(debugging);
+        prefillInputsIfNeeded();
     }
 
     @FXML
     private void onStepOver() {
         if (!debugging) return;
 
-
         output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
 
         sumOfCyclesDebugging = programService.getEngine().getSumOfCycles();
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
-        if (programService.isFinishedDebugging()){
-            varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
-        }
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
 
         highlightCurrentInstruction();
         if (debuggerLevel != FINISHED_DEBUGGING) {
             debuggerLevel = Math.max(0, debuggerLevel + 1);
+        }
+        if (programService.isFinishedDebugging()){
+            debugging = false;
+            refreshButtons();
+            return;
         }
         refreshButtons();
     }
@@ -131,7 +139,9 @@ public class ExecutionController {
     private void onClear() {
         debugging = false;
         programService.resetMaps();
+        programService.resetCycles();
         onProgramLoaded();
+        varsTableController.setdebugger(false);
 
     }
 
@@ -156,6 +166,7 @@ public class ExecutionController {
         inputsContainer.setDisable(true);
         hBoxStart.setVisible(false);
         hBoxStart.getStyleClass().add("highlight");
+        varsTableController.setdebugger(debugging);
 
         if (debugging) {
             runAwaitingStart = false;
@@ -175,14 +186,13 @@ public class ExecutionController {
     private void onResume() {
         debuggerLevel = FINISHED_DEBUGGING;
         onStepOver();
-        onClear();
     }
 
     private void doRun() {
         long y = programService.executeProgram(parent.getDegree());
         lblCycles.setText(String.valueOf(programService.getCycles()));
         programService.resetCycles();
-        varsTableController.setItems(FXCollections.observableArrayList(programService.getVariablesEND()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
 
         programService.resetMaps();
         prgExecution.setProgress(1.0);
@@ -205,7 +215,6 @@ public class ExecutionController {
         List<Long> vals = new ArrayList<>();
         int size = inputsContainer.getChildren().size();
         for (var node : inputsContainer.getChildren()) {
-            if (inputsContainer.getChildren().get(size - 1) != node) {
                 if (node instanceof TextField tf) {
                     String v = tf.getText();
                     try {
@@ -213,7 +222,6 @@ public class ExecutionController {
                     } catch (NumberFormatException nfe) {
                         vals.add(0L);
                     }
-                }
             }
         }
         programService.loadVars(vals);
@@ -228,7 +236,7 @@ public class ExecutionController {
             return;
         }
 
-        var vars = programService.getVariables();
+        var vars = programService.getInputsVars();
         boolean has = !vars.isEmpty();
         for (var node : vars) {
             TextField tf = new TextField();
@@ -268,12 +276,13 @@ public class ExecutionController {
     }
 
     private void showInitialVariables() {
+        programService.resetMaps();
         if (programService == null || !programService.hasProgram()) {
             varsTableController.setItems(FXCollections.observableArrayList());
 
             return;
         }
-        varsTableController.setItems(FXCollections.observableArrayList(programService.getAllVars()));
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getAllVarsSorted()));
 
     }
 
@@ -289,5 +298,43 @@ public class ExecutionController {
 
         parent.getBtnExpand().setDisable(debugging);
         parent.getBtnCollapse().setDisable(debugging);
+    }
+
+    public void setPendingRerunInputs(List<Long> inputs) {
+        this.reRunInputs = inputs;
+        this.onReRun = true;
+    }
+
+    private void prefillInputsIfNeeded() {
+        if (!onReRun) return;
+
+        if (inputsContainer.getChildren().isEmpty()) {
+            rebuildInputFields();
+        }
+
+        fillInputFields(reRunInputs);
+        onReRun = false;
+    }
+
+    private void fillInputFields(List<Long> inputs) {
+        int i = 0;
+        for (var node : inputsContainer.getChildren()) {
+            if (node instanceof TextField tf) {
+                String val = (i < inputs.size()) ? String.valueOf(inputs.get(i)) : "";
+                tf.setText(val);
+                i++;
+            }
+        }
+    }
+
+    public void NewRunOrDebugChoiceFromReRunButton() {
+        debugging = false;
+        debuggerLevel = 0;
+
+        runAwaitingStart = false;
+        hBoxStart.setVisible(false);
+        inputsContainer.setDisable(true);
+
+        refreshButtons();
     }
 }

@@ -27,7 +27,7 @@
                 </TableView>
                 <ToolBar>
                     <items>
-                        <Button fx:id="btnShow" onAction="#onShow" text="Show" disable="true"/>
+                        <Button fx:id="btnShowStatus" onAction="#onShowStatus" text="Show" disable="true"/>
                         <Button fx:id="btnReRun" onAction="#onRerun" text="Re-run" disable="true" />
                         <Pane />
                     </items>
