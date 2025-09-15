@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane stylesheets="@semulator.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.RootController">
+<BorderPane stylesheets="@semulator.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.RootController">
 
   <top>
     <VBox spacing="8" BorderPane.alignment="CENTER_LEFT">
@@ -13,7 +13,7 @@
           <items>
             <Button onAction="#onLoadFile" text="Load File" />
             <Separator orientation="VERTICAL" />
-            <Label onMouseEntered="#mouseEnter" onMouseExited="#mouseExit" text="Currently Loaded:" />
+            <Label text="Currently Loaded:" />
             <Label fx:id="lblFilePath" prefHeight="17.0" prefWidth="761.0" textOverrun="LEADING_ELLIPSIS" />
             <Pane />
           </items>
@@ -63,16 +63,21 @@
     </SplitPane>
   </center>
 
-  <!-- BOTTOM: Status bar -->
+  <!-- BOTTOM: Status bar + Progress -->
   <bottom>
-    <HBox spacing="12">
+    <HBox spacing="12" alignment="CENTER_LEFT">
       <children>
         <Label text="Engine:" />
         <Label fx:id="lblEngineState" text="Idle" />
         <Separator orientation="VERTICAL" />
         <Label text="Selection:" />
         <Label fx:id="lblSelection" text="—" />
-        <Pane />
+        <Pane HBox.hgrow="ALWAYS" />
+        <Label fx:id="lblStatus" text="" />
+        <ProgressBar fx:id="progressBar" prefWidth="220.0" progress="0.0" />
+        <!-- אופציונלי: כפתור ביטול -->
+        <!-- <Button fx:id="btnCancelLoad" text="Cancel" onAction="#onCancelLoad" /> -->
+        <Separator orientation="VERTICAL" />
         <Label text="FPS:" />
         <Label fx:id="lblFps" text="0" />
       </children>

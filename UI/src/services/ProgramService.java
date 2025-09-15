@@ -1,10 +1,10 @@
-package ui.services;
+package services;
 
 import logic.dto.EngineDTO;
 import logic.dto.InstructionDTO;
 import logic.dto.ProgramDTO;
 import program.ProgramLoadException;
-import ui.model.VarRow;
+import model.VarRow;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -1,18 +1,19 @@
-package ui.controllers;
+package controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -20,16 +21,17 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import logic.dto.InstructionDTO;
 import program.ProgramLoadException;
-import ui.services.HistoryService;
-import ui.services.ProgramService;
+import services.HistoryService;
+import services.ProgramService;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class RootController {
 
+    @FXML private ProgressBar progressBar;
+    @FXML private Label lblStatus;
     @FXML private Spinner<Integer> spnDegree;
 
     @FXML private Label lblFilePath;
@@ -66,7 +68,6 @@ public class RootController {
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
 
-        // אינטגרציית היסטוריה - בטוח לבצע גם אם historyController לא מוזרק
         programService.setHistory(historyService);
         if (historyController != null) {
             historyController.init(historyService, this, executionController);
@@ -106,7 +107,6 @@ public class RootController {
         stage.setScene(new Scene(root, 360, 360));
         stage.setResizable(false);
 
-        // לסגור בהקלקה כפולה ולבצע היילייט
         list.setOnMouseClicked(ev -> {
             if (ev.getClickCount() == 2 && list.getSelectionModel().getSelectedItem() != null) {
                 highlightVariable(list.getSelectionModel().getSelectedItem());
@@ -117,7 +117,6 @@ public class RootController {
         stage.showAndWait();
     }
 
-    // שמירת תאימות: שם ישן (FXML ישנים) -> מפנה לחדש
     @FXML private void onHighLight(ActionEvent e) { onHighLightVarOrLabel(e); }
 
     private void highlightVariable(String selectedItem) {
@@ -132,51 +131,128 @@ public class RootController {
             index++;
         }
 
-        // העדפה: סימון מרובה דרך ה-Controller (אם תומך)
         try {
-            // אם קיימת מתודה setHighLightedRowIndexes(List<Integer>) ב-InstructionsController
             instructionsController.setHighLightedRowIndexes(res);
         } catch (Throwable t) {
-            // נפילה אחורה: לעבור אחת-אחת
             for (Integer i : res) instructionsController.highlightRow(i);
         }
     }
 
-    @FXML private void onLoadFile() {
+    @FXML
+    private void onLoadFile() {
         FileChooser fc = new FileChooser();
         fc.setTitle("Choose Program XML");
-        File file = fc.showOpenDialog((lblFilePath != null) ? lblFilePath.getScene().getWindow() : null);
-        if (file == null) return; // תקון NPE
+        File file = fc.showOpenDialog(
+                (lblFilePath != null) ? lblFilePath.getScene().getWindow() : null
+        );
+        if (file == null) return;
 
         this.selectedFile = file;
-        String fullPath = selectedFile.getAbsolutePath();
-        tooltip = new Tooltip(fullPath);
+        tooltip = new Tooltip(file.getAbsolutePath());
 
         if (spnDegree != null) spnDegree.setDisable(true);
+        if (lblFilePath != null) lblFilePath.setText("Loading… " + file.getName());
 
-        try {
-            programService.loadXml(file);
+        // --- Task שמבצע את העבודה הכבדה ---
+        Task<Integer> loadTask = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                updateMessage("Reading file…");
+                updateProgress(0, 1);
 
-            // UI updates
+                // העבודה הכבדה
+                programService.loadXml(file);
+
+                updateMessage("Finalizing…");
+                int maxDegree = programService.getMaxDegree();
+
+                updateProgress(1, 1);
+                updateMessage("Done");
+                return maxDegree;
+            }
+        };
+
+        // --- הצגת דיאלוג חסימתי שמראה את ההתקדמות ---
+        showLoadingDialog(loadTask);
+
+        // --- Binding ל־UI התחתון (אם קיים) ---
+        if (progressBar != null) {
+            progressBar.progressProperty().bind(loadTask.progressProperty());
+            progressBar.visibleProperty().bind(loadTask.runningProperty());
+            progressBar.managedProperty().bind(progressBar.visibleProperty());
+        }
+        if (lblStatus != null) {
+            lblStatus.textProperty().bind(loadTask.messageProperty());
+            lblStatus.visibleProperty().bind(loadTask.runningProperty());
+            lblStatus.managedProperty().bind(lblStatus.visibleProperty());
+        }
+
+        // --- Handlers לסיום/כישלון/ביטול ---
+        loadTask.setOnSucceeded(evt -> {
+            int maxDegree = loadTask.getValue();
+
             if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
 
             if (spnDegree != null) {
                 spnDegree.setDisable(false);
                 spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
             }
-            setMaxDegree(programService.getMaxDegree());
+            setMaxDegree(maxDegree);
 
-
-            // רענון הפאנלים
             if (instructionsController != null) instructionsController.refresh(getDegree());
             if (executionController != null) executionController.onProgramLoaded();
-            if (historyController != null) { historyController.clearHistory();}
+            if (historyController != null) historyController.clearHistory();
 
-        } catch (ProgramLoadException ex) {
-            showError("Load failed", ex.getMessage());
-        } catch (Exception ex) {
-            showError("Unexpected error", String.valueOf(ex));
-        }
+            // ניקוי binding ואיפוס ויזואלי
+            if (progressBar != null) {
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(0);
+            }
+            if (lblStatus != null) {
+                lblStatus.textProperty().unbind();
+                lblStatus.setText("");
+            }
+        });
+
+        loadTask.setOnFailed(evt -> {
+            Throwable ex = loadTask.getException();
+            if (ex instanceof ProgramLoadException ple) {
+                showError("Load failed", ple.getMessage());
+            } else {
+                showError("Load failed", ex != null ? ex.getMessage() : "Unknown error");
+            }
+
+            if (spnDegree != null) spnDegree.setDisable(false);
+            if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
+
+            if (progressBar != null) {
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(0);
+            }
+            if (lblStatus != null) {
+                lblStatus.textProperty().unbind();
+                lblStatus.setText("");
+            }
+        });
+
+        loadTask.setOnCancelled(evt -> {
+            if (spnDegree != null) spnDegree.setDisable(false);
+            if (lblFilePath != null) lblFilePath.setText("Cancelled: " + file.getName());
+
+            if (progressBar != null) {
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(0);
+            }
+            if (lblStatus != null) {
+                lblStatus.textProperty().unbind();
+                lblStatus.setText("");
+            }
+        });
+
+        // --- הפעלה ב־Thread נפרד (פעם אחת!) ---
+        Thread t = new Thread(loadTask, "load-xml-task");
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML private void onExpand() {
@@ -227,22 +303,36 @@ public class RootController {
         }
     }
 
-    public int getInstructionCount() {
-        return instructionsController.getInstructionCount();
-    }
-
     public Button getBtnExpand() { return btnExpand; }
-
     public Button getBtnCollapse() { return btnCollapse; }
-
-    @FXML public void mouseEnter(MouseEvent mouseEvent) {
-        if (lblFilePath != null && tooltip != null) {
-            Tooltip.install(lblFilePath, tooltip);
-        }
-    }
-
-    @FXML public void mouseExit(MouseEvent mouseEvent) { /* no-op */ }
 
     public ExecutionController getExecutionController() { return executionController; }
 
+    // -------- דיאלוג טעינה חסימתי --------
+    private void showLoadingDialog(Task<?> task) {
+        ProgressBar pb = new ProgressBar();
+        pb.setPrefWidth(300);
+        pb.progressProperty().bind(task.progressProperty());
+
+        Label status = new Label();
+        status.textProperty().bind(task.messageProperty());
+
+        VBox box = new VBox(10, status, pb);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(20));
+
+        Stage dialog = new Stage(StageStyle.UTILITY);
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initOwner(lblFilePath != null ? lblFilePath.getScene().getWindow() : null);
+        dialog.setScene(new Scene(box));
+        dialog.setTitle("Loading...");
+        dialog.setResizable(false);
+
+        // לסגור אוטומטית כשהמשימה מסתיימת
+        task.setOnSucceeded(e -> dialog.close());
+        task.setOnFailed(e -> dialog.close());
+        task.setOnCancelled(e -> dialog.close());
+
+        dialog.show();
+    }
 }

@@ -1,4 +1,4 @@
-package ui.controllers;
+package controllers;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -9,9 +9,9 @@ import javafx.scene.control.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import ui.model.HistoryRow;
-import ui.model.VarRow;
-import ui.services.HistoryService;
+import model.HistoryRow;
+import model.VarRow;
+import services.HistoryService;
 
 import java.io.IOException;
 

@@ -1,11 +1,10 @@
-package ui.viewmodel;
+package viewmodel;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.TreeItem;
 import logic.dto.InstructionDTO;
-import ui.services.ProgramService;
+import services.ProgramService;
 
-import javax.swing.*;
 import java.util.List;
 
 public class InstructionsViewModel {

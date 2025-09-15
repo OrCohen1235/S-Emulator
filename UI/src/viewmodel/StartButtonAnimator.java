@@ -1,4 +1,4 @@
-package ui.viewmodel;
+package viewmodel;
 
 import javafx.animation.*;
 import javafx.application.Platform;

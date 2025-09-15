@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="ui.controllers.VarsTableController" spacing="8">
+      fx:controller="controllers.VarsTableController" spacing="8">
 
     <children>
         <TableView fx:id="tblVars" prefWidth="335.0" VBox.vgrow="ALWAYS">

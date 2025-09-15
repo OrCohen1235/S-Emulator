@@ -1,11 +1,10 @@
-package ui.services;
+package services;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import ui.model.HistoryRow;
-import ui.model.VarRow;
+import model.HistoryRow;
+import model.VarRow;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class HistoryService {

@@ -1,4 +1,4 @@
-package ui.model;
+package model;
 
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.SimpleStringProperty;

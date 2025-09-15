@@ -1,4 +1,4 @@
-package ui.controllers;
+package controllers;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -6,8 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import ui.services.HistoryService;
-import ui.services.ProgramService;
+import services.ProgramService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -162,7 +161,11 @@ public class ExecutionController {
 
     @FXML
     private void onStart() {
-        applyVarsValues();
+        try{applyVarsValues();}
+        catch(Exception e){
+            checkInputs(e);
+            return;
+        }
         inputsContainer.setDisable(true);
         hBoxStart.setVisible(false);
         hBoxStart.getStyleClass().add("highlight");
@@ -179,6 +182,18 @@ public class ExecutionController {
             btnRun.setDisable(true);
             doRun();
             refreshButtons();
+        }
+    }
+
+    private void checkInputs(Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error Invalid Input");
+        alert.show();
+        btnRun.setDisable(false);
+        btnDebug.setDisable(false);
+        for (var tf: inputsContainer.getChildren()){
+            TextField inputField = (TextField) tf;
+            inputField.clear();
         }
     }
 
@@ -220,7 +235,8 @@ public class ExecutionController {
                     try {
                         vals.add((v == null || v.isEmpty()) ? 0L : Long.parseLong(v));
                     } catch (NumberFormatException nfe) {
-                        vals.add(0L);
+                        throw new NumberFormatException(nfe.getMessage());
+
                     }
             }
         }

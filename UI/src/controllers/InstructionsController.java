@@ -1,4 +1,4 @@
-package ui.controllers;
+package controllers;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -12,8 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import logic.dto.InstructionDTO;
-import ui.services.ProgramService;
-import ui.viewmodel.InstructionsViewModel;
+import services.ProgramService;
+import viewmodel.InstructionsViewModel;
 
 import java.util.HashSet;
 import java.util.List;

@@ -6,7 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="ui.controllers.InstructionsController"
+      fx:controller="controllers.InstructionsController"
       spacing="8">
 
   <children>

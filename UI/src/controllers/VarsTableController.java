@@ -1,4 +1,4 @@
-package ui.controllers;
+package controllers;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -9,7 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import ui.model.VarRow;
+import model.VarRow;
 
 import java.util.*;
 import java.util.function.Function;
