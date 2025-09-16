@@ -1,14 +1,12 @@
 package jaxbsprogram;
 
+import generated.*;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 
 import java.io.File;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -56,15 +54,24 @@ public class ReadSemulatorXml {
         return simulator.getSInstructions().getSInstruction(); // Return list of instructions
     }
 
+    public List<SFunction> getSFunctionList() {
+        if (simulator.getSFunctions()!=null) {
+            return simulator.getSFunctions().getSFunction();
+        }
+        List<SFunction> functionList = new ArrayList<>();
+        return functionList;
+
+    }
+
     public String checkLabelValidity() {
         List<SInstruction> list = getSInstructionList();
 
         return list.stream()
-                .flatMap(inst -> Stream.ofNullable(inst.sInstructionArguments)
+                .flatMap(inst -> Stream.ofNullable(inst.getSInstructionArguments())
                         .flatMap(args -> args.getSInstructionArgument().stream()))
-                .map(arg -> arg.value)
+                .map(SInstructionArgument::getValue)
                 .filter(this::checkIfLabel) // Only values that represent labels
-                .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.sLabel, lbl))) // Keep labels not defined
+                .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.getSLabel(), lbl))) // Keep labels not defined
                 .reduce((first, second) -> second) // Return last invalid label
                 .orElse(""); // Empty string if all labels are valid
     }

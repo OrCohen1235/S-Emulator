@@ -1,5 +1,6 @@
 package logic.dto;
 
+import logic.expansion.ExpanderExecute;
 import logic.instructions.Instruction;
 import logic.instructions.binstruction.BaseInstruction;
 import logic.instructions.sinstruction.VariableArgumentInstruction;
@@ -23,7 +24,7 @@ public class ProgramDTO {
     /* ========== Meta ========== */
 
     public String getProgramName() {
-        return program.getNameOfProgram();
+        return program.getName();
     }
 
     public List<String> getLabels() {
@@ -64,7 +65,7 @@ public class ProgramDTO {
     /* ========== Instructions → InstructionDTO ========== */
 
     public List<InstructionDTO> getInstructionDTOs(){
-        List<Instruction> list = program.getInstructions();
+        List<Instruction> list = program.getActiveInstructions();
         List <InstructionDTO> dtos = new ArrayList<>();
         int index =1;
         for (Instruction instruction : list) {
@@ -92,7 +93,7 @@ public class ProgramDTO {
 
     public List<InstructionDTO> getExpandDTO(int index){
         List<InstructionDTO> dtos = new ArrayList<>();
-        Instruction instruction = program.getInstructions().get(index-1);
+        Instruction instruction = program.getActiveInstructions().get(index-1);
         while (instruction.getFather()!=null) {
             InstructionDTO dto = toDTO(instruction.getIndexFatherLocation(), instruction.getFather());
             dtos.add(dto);
@@ -129,34 +130,66 @@ public class ProgramDTO {
         program.useExpandedView();
     }
 
+    public List<String> getAllVariables(){
+        return program.getProgramLoad().getAllVariables();
+    }
 
     public Program getProgram() {
         return program;
     }
 
-    public List<String> getAllVariables() {
-        // רשימת כל ההוראות במבט הנוכחי (original/expanded)
-        List<Instruction> list = Optional.ofNullable(program.view())
-                .map(ProgramView.InstructionsView::list)
-                .orElseGet(List::of);
-
-        // משתנה ישיר על ההוראה
-        Stream<String> base = list.stream()
-                .map(instr -> Optional.ofNullable(instr.getVar())
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
-
-        Stream<String> fromInterface = list.stream()
-                .filter(VariableArgumentInstruction.class::isInstance)
-                .map(VariableArgumentInstruction.class::cast)
-                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
-
-        return Stream.concat(base, fromInterface)
-                .distinct()
-                .collect(Collectors.toUnmodifiableList());
+    public Long runProgramExecutor(int degree) {
+        return program.getProgramExecutor().run(); // Parameter "degree" currently not used
     }
+
+    public Long runProgramExecutorDebugger(int level) {
+        return program.getProgramExecutor().runDebugger(level); // Parameter "degree" currently not used
+    }
+
+    public void loadInputVars(List<Long> input) {
+        program.getProgramLoad().loadInputVars(input); // Load input variables into program
+    }
+
+    public ExpanderExecute getExpanderExecute() {
+        return program.getExpanderExecute();
+    }
+
+    public void resetSumOfCycles() {
+        program.getProgramExecutor().resetSumOfCycles(); // Reset cycle counter
+    }
+
+    public int getSumOfCycles() {
+        return program.getProgramExecutor().getSumOfCycles(); // Return total executed cycles
+    }
+
+    public int getSumOfCyclesDebugger() {
+        int sum = program.getProgramExecutor().getSumOfCycles();
+        program.getProgramExecutor().resetSumOfCycles();
+        return sum; // Return total executed cycles
+    }
+
+    public int getCurrentInstructionIndex() {
+        return program.getProgramExecutor().getCurrentIndex();
+    }
+
+    public boolean isFinishedDebugging() {
+        return program.getProgramExecutor().getFinishDebugging();
+    }
+
+    public void resetDebugger() {
+        program.getProgramExecutor().resetDebugger();
+    }
+
+    public int getMaxDegree() {
+        return program.getExpanderExecute().getMaxDegree(); // Return maximum expansion degree
+    }
+
+    public void loadExpansion() {
+        program.getExpanderExecute().loadExpansion(); // Load default expansion
+    }
+
+    public void loadExpansionByDegree(int degree) {
+        program.getExpanderExecute().loadExpansionByDegree(degree); // Load expansion by specific degree
+    }
+
 }

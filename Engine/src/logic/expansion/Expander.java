@@ -1,17 +1,22 @@
 package logic.expansion;
 
+import logic.instructions.JumpInstruction;
 import logic.instructions.binstruction.Decrease;
 import logic.instructions.binstruction.Increase;
 import logic.instructions.binstruction.JumpNotZero;
 import logic.instructions.binstruction.Neutral;
 import logic.instructions.Instruction;
 import logic.instructions.sinstruction.*;
+import logic.label.LabelImpl;
 import program.Program;
 import logic.label.FixedLabel;
 import logic.label.Label;
 import logic.variable.Variable;
+import program.ProgramLoadException;
 
+import java.util.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.LongStream;
@@ -35,10 +40,147 @@ public class Expander {
             case JUMP_EQUAL_VARIABLE ->  expandJumpEqualsVariable((JumpEqualVariable) inst); // if v == v' goto L
             case JUMP_ZERO ->  expandJumpZero((JumpZero) inst);                          // if v == 0 goto L
             case ZERO_VARIABLE ->   expandZeroVariable((ZeroVariable) inst);             // v <- 0
-            case JUMP_NOT_ZERO, INCREASE, DECREASE, NEUTRAL -> List.of(inst);           // already primitive
+            case JUMP_NOT_ZERO, INCREASE, DECREASE, NEUTRAL -> List.of(inst);
+            case QUOTE -> expandQuote((Quote)inst);// already primitive
+            case JUMP_EQUAL_FUNCTION -> expandJumpEqualFunction((JumpEqualFunction) inst) ;
         };
+    }
+
+    private List<Instruction> expandJumpEqualFunction(JumpEqualFunction instruction) {
+        Variable z1 = context.getFreshWorkVal();
+        Label L1 = context.getFreshLabel();
+        Label instructionLabel = instruction.getLabel();
+        Variable v = instruction.getVar();
+        Label jumpLabel= instruction.getJumpLabel();
+
+
+        return List.of(
+                new Quote(program,z1, instructionLabel, instruction.getFuncName(),instruction.getFuncArguments()),
+                new JumpEqualVariable(program,v,jumpLabel, z1));
 
     }
+
+
+    private List<Instruction> expandQuote(Quote quote) {
+        List<Instruction> result = new ArrayList<>();
+
+        Map<Variable,Variable> varsQuote= new HashMap<>();
+        Map<Label,Label> labelsQuote= new HashMap<>();
+
+        for (String val : quote.getFunctionArguments().split(",")){
+            if (!val.equals("")) {
+                Variable value = context.getFreshWorkVal();
+                Variable key = quote.getVarKeyFromMapByString(val);
+                ;
+                varsQuote.put(key, value);
+                Assignment assignment = new Assignment(program, value, key, FixedLabel.EMPTY);
+                result.add(assignment);
+            }
+        }
+        List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
+        for (Instruction inst : oldInstructions) {
+            Variable varToReplace = inst.getVar();
+            Variable newVar = varsQuote.get(varToReplace);
+            if (newVar == null) {
+                newVar = context.getFreshWorkVal();
+                varsQuote.put(varToReplace, newVar);
+            }
+
+            Label oldLabel = inst.getLabel();
+            Label newLabel;
+            if (oldLabel.getLabelRepresentation() != "" && !labelsQuote.containsKey(oldLabel)) {
+                 newLabel= context.getFreshLabel();
+                labelsQuote.put(oldLabel, newLabel);
+            }
+            else {
+                newLabel= new LabelImpl("");
+            }
+
+            Label newJumpLabel;
+            if (inst instanceof JumpInstruction) {
+                JumpInstruction jump = (JumpInstruction) inst;
+                Label oldJumpLabel = jump.getJumpLabel();
+
+                if (labelsQuote.containsKey(oldJumpLabel)) {
+                    newJumpLabel = labelsQuote.get(oldJumpLabel);
+                }
+                else {
+                    newJumpLabel = context.getFreshLabel();
+                    labelsQuote.put(oldJumpLabel, newJumpLabel);
+                }
+            }
+            else {
+                newJumpLabel = new LabelImpl("");
+            }
+            result.add(createInstructionToQuote(newVar,newLabel,newJumpLabel,varsQuote,inst));
+        }
+        Assignment assignment;
+        Label assignmentLabel=new LabelImpl("EMPTY");
+        if (labelsQuote.containsKey(FixedLabel.EXIT)){
+            assignmentLabel = labelsQuote.get(FixedLabel.EXIT);
+        }
+        assignment=new Assignment(program,quote.getVar(),varsQuote.get(Variable.RESULT),assignmentLabel);
+        result.add(assignment);
+        return result;
+
+    }
+
+    public Instruction createInstructionToQuote(Variable newVar,Label newLabel,Label newJumpLabel, Map<Variable,Variable> varsQuote,Instruction inst ) {
+        try {
+            // Map instruction name to concrete Instruction instance
+            return switch (inst.getInstructionData()) {
+                case INCREASE -> new Increase(program, newVar, newLabel);
+                case DECREASE -> new Decrease(program, newVar, newLabel);
+                case NEUTRAL  -> new Neutral(program, newVar, newLabel);
+
+                case JUMP_NOT_ZERO -> {
+                    yield new JumpNotZero(program, newVar, newJumpLabel, newLabel);
+                }
+                case ASSIGNMENT -> {
+                    Assignment assignment = (Assignment) inst;
+                    Variable assignedVariable = assignment.getAssignedVariable();
+
+                    yield new Assignment(program, newVar, varsQuote.get(assignedVariable), newLabel);
+                }
+                case CONSTANT_ASSIGNMENT -> {
+                    yield new ConstantAssignment(program, newVar, ((ConstantAssignment) inst).getConstantValue(), newLabel);
+                }
+                case GOTO_LABEL -> {
+
+                    yield new GotoLabel(program, newJumpLabel, newLabel);
+                }
+                case JUMP_ZERO -> {
+
+                    yield new JumpZero(program, newVar, newJumpLabel, newLabel);
+                }
+                case ZERO_VARIABLE -> new ZeroVariable(program, newVar, newLabel);
+                case JUMP_EQUAL_CONSTANT -> {
+                    yield new JumpEqualConstant(program, newVar, newJumpLabel, ((JumpEqualConstant)inst).getConstantValue(), newLabel);
+                }
+                case JUMP_EQUAL_VARIABLE -> {
+                    JumpEqualVariable jumpEqualVariable = (JumpEqualVariable) inst;
+                    Variable jumpVariable = jumpEqualVariable.getVariableArgument();
+
+                    yield new JumpEqualVariable(program, newVar, newJumpLabel, varsQuote.get(jumpVariable), newLabel);
+                }
+                case QUOTE -> {
+                    Quote quote = (Quote) inst;
+                    String name=inst.getName();
+                    String argument=((Quote) inst).getFunctionArguments();
+                    yield new Quote(program,newVar,newLabel,name,argument);
+                }
+                case JUMP_EQUAL_FUNCTION -> {
+                    String name=((JumpEqualFunction) inst).getFuncName();
+                    String argument=((JumpEqualFunction) inst).getFuncArguments();
+                    yield new JumpEqualFunction(program,newVar,newLabel,name,argument,newJumpLabel);
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            // Include instruction name to help locate the failing node
+            throw new ProgramLoadException("Failed to load program '" + inst.getName() + "': " + e.getMessage(), e);
+        }
+
+}
 
     private List<Instruction> expandAssignment(Assignment instruction) {
         // Implements v <- v1 using a work var z1 and three labels

@@ -10,7 +10,7 @@ public class SimulatorApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         URL url = Objects.requireNonNull(
-                SimulatorApp.class.getResource("    viewFXML/root.fxml"),
+                SimulatorApp.class.getResource("viewFXML/root.fxml"),
                 "root.fxml not found on classpath at /viewFXML/root.fxml"
         );
         FXMLLoader loader = new FXMLLoader(url);

@@ -118,7 +118,7 @@ public class ExecutionController {
 
         output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
 
-        sumOfCyclesDebugging = programService.getEngine().getSumOfCycles();
+        sumOfCyclesDebugging = programService.getProgram().getSumOfCycles();
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));

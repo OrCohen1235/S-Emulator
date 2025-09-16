@@ -36,7 +36,7 @@ public class Assignment extends Instruction implements SyntheticInstruction, Var
     }
 
     public String getCommand() {
-        return super.getVar().getRepresentation()+ " <- " +assignedVariable.getRepresentation();
+        return super.getVar().getRepresentation() + " <- " + assignedVariable.getRepresentation();
     }
 
     public Variable getAssignedVariable() {

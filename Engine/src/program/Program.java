@@ -1,33 +1,61 @@
 package program;
 
+import jaxbsprogram.ReadSemulatorXml;
+import logic.execution.ProgramExecutorImpl;
+import logic.expansion.ExpanderExecute;
+import logic.function.Function;
 import logic.instructions.Instruction;
 import logic.instructions.JumpInstruction;
 import logic.label.Label;
 import logic.variable.Variable;
+import logic.variable.VariableImpl;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class Program {
+public class Program {
 
     // ==================== Fields ====================
     private String nameOfProgram;                                     // Program name
     private final List<Instruction> instructions = new ArrayList<>(); // Original instruction list
+    private final List<Function> functions = new ArrayList<>();
     private Map<Variable, Long> xVariables = new LinkedHashMap<>();     // INPUT variables (xN -> value)
     private Map<Variable, Long> zVariables = new LinkedHashMap<>();     // WORK variables (zN -> value)
-    private Map<Variable, Long> y          = new LinkedHashMap<>();     // Output/result variable (Y)
+    private Map<Variable, Long> y = new LinkedHashMap<>();     // Output/result variable (Y)
     private List<Instruction> expandInstructionsByDegree = new ArrayList<>();
     private List<Instruction> expandInstructionsByDegreeHelper = new ArrayList<>();// Flattened view by degree
     private int maxDegree = -1;                                        // Cached max expansion degree
     private final ProgramView views = new ProgramView(() -> instructions, () -> expandInstructionsByDegree); // View switcher
 
+    private final ProgramLoad programLoad;
+    private final ProgramExecutorImpl programExecutor;
+    private final ExpanderExecute expanderExecute;
 
-    public void useOriginalView() { views.useOriginal(); } // Activate original instructions
+    public Program(ReadSemulatorXml readSem) {
+        programLoad = new ProgramLoad(this);
+        programLoad.loadProgram(readSem);
+        programExecutor = new ProgramExecutorImpl(this);
+        expanderExecute = new ExpanderExecute(this);
+    }
 
-    public void useExpandedView() { views.useExpanded(); } // Activate expanded/flattened view
+    public Program() {
+        programLoad = new ProgramLoad(this);
+        programExecutor = new ProgramExecutorImpl(this);
+        expanderExecute = new ExpanderExecute(this);
 
-    public ProgramView.InstructionsView view() { return views.active(); } // Current active view
+    }
+    public void useOriginalView() {
+        views.useOriginal();
+    } // Activate original instructions
+
+    public void useExpandedView() {
+        views.useExpanded();
+    } // Activate expanded/flattened view
+
+    public ProgramView.InstructionsView view() {
+        return views.active();
+    } // Current active view
 
     public String getMode() {
         return Optional.ofNullable(views.mode())
@@ -42,6 +70,15 @@ public final class Program {
         return view().getInstructionByIndex(index); // Get instruction from active view
     }
 
+    public Function getFunctionByName(String name) {
+        for (Function f : functions) {
+            if (name.equals(f.getName())) {
+                return f;
+            }
+        }
+        return functions.get(0);
+    }
+
     public int getIndexByInstruction(Instruction inst) {
         return view().getIndexByInstruction(inst); // Index lookup in active view
     }
@@ -49,7 +86,6 @@ public final class Program {
     public Instruction getInstructionByLabelActive(Label label) {
         return view().getInstructionByLabel(label); // Label lookup in active view
     }
-
 
 
     public int getSizeOfInstructions() {
@@ -62,27 +98,34 @@ public final class Program {
         this.instructions.addAll(Arrays.asList(instructions)); // Append initial instructions
     }
 
-    // ==================== Basic getters/setters ====================
-    public String getNameOfProgram() { return nameOfProgram; }
-
-    public List<Instruction> getInstructions() {
-            if (views.mode() == ProgramView.Mode.EXPANDED) {
-            return expandInstructionsByDegree;
-            }
-            else {
-                return instructions;
-            }
+    public void setFunctions(Function... functions) {
+        this.functions.addAll(Arrays.asList(functions));
     }
 
-    public List<Instruction> getOriginalInstructions(){
+    // ==================== Basic getters/setters ====================
+    public String getName() {
+        return nameOfProgram;
+    }
+
+    public List<Instruction> getActiveInstructions() {
+        if (views.mode() == ProgramView.Mode.EXPANDED) {
+            return expandInstructionsByDegree;
+        } else {
+            return instructions;
+        }
+    }
+
+    public List<Instruction> getOriginalInstructions() {
         return instructions;
     }
 
-    public int getMaxDegree(){
+    public int getMaxDegree() {
         return maxDegree;
     }
 
-    public void setMaxDegree(int maxDegree) { this.maxDegree = maxDegree; } // Cache for UI/queries
+    public void setMaxDegree(int maxDegree) {
+        this.maxDegree = maxDegree;
+    } // Cache for UI/queries
 
     public void setNameOfProgram(String nameOfProgram) {
         this.nameOfProgram = nameOfProgram;
@@ -108,14 +151,15 @@ public final class Program {
     public int getIndexHelper(Instruction instruction) {
         for (int i = 0; i < expandInstructionsByDegreeHelper.size(); i++) {
             if (expandInstructionsByDegreeHelper.get(i).equals(instruction)) {
-                return i+1;
+                return i + 1;
             }
         }
         return 0;
     }
 
-
-
+    public List<Function> getFunctions() {
+        return functions;
+    }
 
     // ==================== Variables (get/set) ====================
     public Long getXVariablesFromMap(Variable key) {
@@ -181,6 +225,10 @@ public final class Program {
                 .orElse(Integer.MAX_VALUE);
     }
 
+    public int getMaxWorkIndex() {
+        return zVariables.size() + 1;
+    }
+
 
     public List<String> getLabels() {
         boolean hasExit = false; // Tracks if EXIT label exists
@@ -194,7 +242,7 @@ public final class Program {
                 lab2 = ((JumpInstruction) instr).getJumpLabel().getLabelRepresentation(); // Target label
             }
 
-            if ("Exit".equalsIgnoreCase(lab2)){
+            if ("Exit".equalsIgnoreCase(lab2)) {
                 hasExit = true;
             }
 
@@ -208,7 +256,9 @@ public final class Program {
         }
 
         List<String> sorted = sortLabelsByNumber(names); // Sort L1,L2,...
-        if (hasExit) { sorted.add("EXIT"); }             // Append EXIT at end if present
+        if (hasExit) {
+            sorted.add("EXIT");
+        }             // Append EXIT at end if present
         return sorted;
     }
 
@@ -225,6 +275,89 @@ public final class Program {
         return sorted;
     }
 
+    public Variable getKeyFromMapsByString(String name) {
+        String newname= Character.toUpperCase(name.charAt(0))+name.substring(1);
+        switch (Character.toUpperCase(name.charAt(0))) {
+            case 'X': {
+                for (Variable xVar : xVariables.keySet()) {
+                    if (xVar.getRepresentation().equals(newname)) {
+                        return xVar;
+                    }
+                }
+            }
+            case 'Y': {
+                return y.keySet().iterator().next();
+            }
+            case 'Z': {
+                for (Variable zVar : zVariables.keySet()) {
+                    if (zVar.getRepresentation().equals(newname)) {
+                        return zVar;
+                    }
+                }
+            }
+            default:
+                return null;
+        }
+    }
 
 
+    public Long getValueFromMapsByString(String name) {
+        switch (name.charAt(0)) {
+            case 'X': {
+                for (Variable xVar : xVariables.keySet()) {
+                    if (xVar.getRepresentation().equals(name)) {
+                        return xVariables.get(xVar);
+                    }
+                }
+            }
+            case 'Y': {
+                return getY();
+            }
+            case 'Z': {
+                for (Variable zVar : zVariables.keySet()) {
+                    if (zVar.getRepresentation().equals(name)) {
+                        return zVariables.get(zVar);
+                    }
+                }
+            }
+            default:
+                return 0L;
+        }
+    }
+
+    public void setValueToMapsByString(String name) {
+        Variable var = new VariableImpl(name);
+        switch (name.charAt(0)) {
+            case 'X': {
+                    setXVariablesToMap(var,0L);
+                    break;
+
+            }
+            case 'Y': {
+                setY(0L);
+                break;
+            }
+            case 'Z': {
+                setZVariablesToMap(var,0L);
+                break;
+                }
+        }
+    }
+
+    public ProgramLoad getProgramLoad() {
+        return programLoad;
+    }
+
+    public ProgramExecutorImpl getProgramExecutor() {
+        return programExecutor;
+    }
+
+    public ExpanderExecute getExpanderExecute() {
+        return expanderExecute;
+    }
 }
+
+
+
+
+

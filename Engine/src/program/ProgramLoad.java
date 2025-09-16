@@ -1,6 +1,8 @@
 package program;
 
-import jaxbsprogram.SInstructionArgument;
+
+import generated.*;
+import logic.function.Function;
 import logic.instructions.binstruction.Decrease;
 import logic.instructions.binstruction.Increase;
 import logic.instructions.binstruction.JumpNotZero;
@@ -15,13 +17,17 @@ import logic.variable.VariableImpl;
 import logic.variable.VariableType;
 import jaxbsprogram.ReadSemulatorXml;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ProgramLoad {
     private final Program program; // Target program to populate
+
 
     public ProgramLoad(Program program) {
         this.program = program;
@@ -38,12 +44,20 @@ public class ProgramLoad {
                     "S-instruction list must not be null\n"
             );
 
+            var sFunctions = read.getSFunctionList();
+
+
             try{
-                Instruction[] built = sInstructions.stream()
+                if (!sFunctions.isEmpty()) {
+                    Function[] functionBuilt = sFunctions.stream()
+                            .map(this::createFunction) // Parse each SInstruction into an Instruction
+                            .toArray(Function[]::new);
+                    program.setFunctions(functionBuilt); // Load all parsed functions
+                }
+                Instruction[] instructionBuilt = sInstructions.stream()
                         .map(this::createInstruction) // Parse each SInstruction into an Instruction
                         .toArray(Instruction[]::new);
-
-                program.setInstructions(built); // Load all parsed instructions
+                program.setInstructions(instructionBuilt); // Load all parsed instructions
             } catch (ProgramLoadException e) {
                 throw new ProgramLoadException(e.getMessage());
             }
@@ -58,6 +72,9 @@ public class ProgramLoad {
             throw new ProgramLoadException(e.getMessage()+ "\n" + "Cant Load: " +read.getProgramName() + " File");
         }
     }
+
+
+
 
     public void loadInputVars(List<Long> varsInput) {
         Objects.requireNonNull(varsInput, "Variable Input must not be null\n"); // Defensive null-check
@@ -80,7 +97,7 @@ public class ProgramLoad {
     }
 
     // ==================== Parsing S-Instruction -> Instruction ====================
-    public String getArgument(jaxbsprogram.SInstruction inst) {
+    public String getArgument(SInstruction inst) {
         // Return first positional argument value
         return inst.getSInstructionArguments()
                 .getSInstructionArgument()
@@ -88,7 +105,7 @@ public class ProgramLoad {
                 .getValue();
     }
 
-    private String getArgumentByName(jaxbsprogram.SInstruction inst, String name) {
+    private String getArgumentByName(SInstruction inst, String name) {
         // Return named argument value or fail if missing
         return inst.getSInstructionArguments().getSInstructionArgument().stream()
                 .filter(a -> name.equals(a.getName()))
@@ -97,7 +114,7 @@ public class ProgramLoad {
                 .orElseThrow(() -> new IllegalArgumentException("Missing argument: " + name));
     }
 
-    public Instruction createInstruction(jaxbsprogram.SInstruction inst) {
+    public Instruction createInstruction(SInstruction inst) {
         Variable newVar  = new VariableImpl(inst.getSVariable()); // Target variable for instruction
 
         Label newLabel = Optional.ofNullable(inst.getSLabel())
@@ -142,11 +159,74 @@ public class ProgramLoad {
                     Variable variable = new VariableImpl(getArgumentByName(inst, "variableName"));
                     yield new JumpEqualVariable(program, newVar, jumpLabel, variable, newLabel);
                 }
+                case QUOTE -> {
+                    String name=getArgumentByName(inst, "functionName");
+                    String argument=getArgumentByName(inst, "functionArguments");
+                    yield new Quote(program,newVar,newLabel,name,argument);
+                }
+                case JUMP_EQUAL_FUNCTION -> {
+                    Label jumpLabel = new LabelImpl(getArgumentByName(inst, "JEFunctionLabel"));
+                    String name=getArgumentByName(inst, "functionName");
+                    String argument=getArgumentByName(inst, "functionArguments");
+                    yield new JumpEqualFunction(program,newVar,newLabel,name,argument,jumpLabel);
+                }
             };
         } catch (IllegalArgumentException e) {
             // Include instruction name to help locate the failing node
             throw new ProgramLoadException("Failed to load program '" + inst.getName() + "': " + e.getMessage(), e);
         }
     }
+
+    private Function createFunction(SFunction sFunction) {
+        Objects.requireNonNull(sFunction, "Function must not be null");
+        List<Instruction> instructionList = new ArrayList<>();
+        String name = sFunction.getName();
+        String userName=sFunction.getUserString();
+        List<SInstruction> sInstructionsList= sFunction.getSInstructions().getSInstruction();
+
+        for (SInstruction inst : sInstructionsList) {
+            instructionList.add(createInstruction(inst));
+        }
+        Function function = new Function(name,userName,instructionList);
+        return function;
+    }
+
+    public void loadStartedVars(){
+        List<String> lst = getAllVariables();
+        for (String var : lst) {
+            program.setValueToMapsByString(var);
+        }
+    }
+
+    public List<String> getAllVariables() {
+
+        List<Instruction> list = Optional.ofNullable(program.view())
+                .map(ProgramView.InstructionsView::list)
+                .orElseGet(List::of);
+
+
+        Stream<String> base = list.stream()
+                .map(instr -> Optional.ofNullable(instr.getVar())
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+        Stream<String> fromInterface = list.stream()
+                .filter(VariableArgumentInstruction.class::isInstance)
+                .map(VariableArgumentInstruction.class::cast)
+                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
+                        .map(Variable::getRepresentation)
+                        .orElse(null))
+                .filter(Objects::nonNull);
+
+
+        return Stream.concat(base, fromInterface)
+                .distinct()
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+
+
+
 
 }

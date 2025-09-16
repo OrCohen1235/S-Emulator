@@ -1,13 +1,12 @@
 package logic.instructions;
 
+import logic.function.Function;
 import program.Program;
 import logic.label.Label;
 import logic.variable.Variable;
 
-import java.util.Objects;
-
 public abstract class Instruction {
-    private final Program program;
+    private Program program;
     private final InstructionData instructionData;
     private Variable var;
     private final Label label;
@@ -58,6 +57,10 @@ public abstract class Instruction {
         this.father = father;
     }
 
+    public void setProgram(Program program) {
+        this.program=program;
+    }
+
     public int getIndexFatherLocation() {
         return indexFatherLocation;
     }
@@ -97,6 +100,15 @@ public abstract class Instruction {
               case RESULT     -> this.program.setY(newValToSet);
         };
     }
+    public Variable getVarFromMapByString(String valName) {
+        return program.getKeyFromMapsByString(valName);
+    }
+
+    public Long getValueFromMapByString(String valName) {
+        return program.getValueFromMapsByString(valName);
+    }
+
+
 
     public InstructionData getInstructionData() {
         return instructionData;
@@ -114,5 +126,9 @@ public abstract class Instruction {
     @Override
     public final int hashCode() {
         return Long.hashCode(uid);
+    }
+
+    public Function getFunctionByName(String name) {
+        return program.getFunctionByName(name);
     }
 }

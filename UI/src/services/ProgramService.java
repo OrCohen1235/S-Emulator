@@ -29,8 +29,8 @@ public class ProgramService {
     }
 
     public int getMaxDegree() {
-        engine.loadExpansion();
-        return engine.getMaxDegree();
+        program.loadExpansion();
+        return program.getMaxDegree();
     }
 
     public void loadExpasionByDegree(int degree) {
@@ -39,7 +39,7 @@ public class ProgramService {
         } else {
             program.setProgramViewToOriginal();
         }
-        engine.loadExpansionByDegree(degree);
+        program.loadExpansionByDegree(degree);
     }
 
     public boolean hasProgram() { return program != null; }
@@ -140,7 +140,7 @@ public class ProgramService {
     }
 
     public void loadVars(List<Long> vars) {
-        engine.loadInputVars(vars);
+        program.loadInputVars(vars);
         history.createHistory(vars);
     }
 
@@ -151,9 +151,9 @@ public class ProgramService {
             program.setProgramViewToOriginal();
         }
 
-        long executeOutput = engine.runProgramExecutor(degree);
+        long executeOutput = program.runProgramExecutor(degree);
 
-        history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVarsAtEndRun());
+        history.addHistory(executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
 
         return executeOutput;
     }
@@ -165,21 +165,21 @@ public class ProgramService {
             program.setProgramViewToOriginal();
         }
 
-        long executeOutput = engine.runProgramExecutorDebugger(level);
+        long executeOutput = program.runProgramExecutorDebugger(level);
 
         if(isFinishedDebugging()){
-            history.addHistory(executeOutput, degree, engine.getSumOfCycles(), getVarsAtEndRun());
+            history.addHistory(executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
         }
         return executeOutput;
     }
 
     public void addHistory(int degree,long y){
-        history.addHistory(y, degree, engine.getSumOfCycles(), getVarsAtEndRun());
+        history.addHistory(y, degree, program.getSumOfCycles(), getVarsAtEndRun());
     }
 
 
     public int getCurrentInstructionIndex() {
-        return engine.getCurrentInsructionIndex();
+        return program.getCurrentInstructionIndex();
     }
 
     public Map<String, Long> getVariablesValues() {
@@ -192,15 +192,15 @@ public class ProgramService {
     }
 
     public void resetCycles(){
-        engine.resetSumOfCycles();
+        program.resetSumOfCycles();
     }
 
     public int getCycles() {
-        return engine.getSumOfCycles();
+        return program.getSumOfCycles();
     }
 
     public int getCyclesDebugger() {
-        return engine.getSumOfCyclesDebugger();
+        return program.getSumOfCyclesDebugger();
     }
 
     public String getProgramName() {
@@ -208,11 +208,11 @@ public class ProgramService {
     }
 
     public Boolean isFinishedDebugging() {
-        return engine.isFinishedDebugging();
+        return program.isFinishedDebugging();
     }
 
     public void resetDebugger() {
-        engine.resetDebugger();
+        program.resetDebugger();
     }
 
     public void setHistory(HistoryService history) {

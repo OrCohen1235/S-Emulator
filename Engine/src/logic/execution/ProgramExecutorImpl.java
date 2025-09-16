@@ -26,7 +26,6 @@ public class ProgramExecutorImpl {
     }
 
 
-
     public void resetSumOfCycles() {
         this.sumOfCycles = 0; // Reset cycle counter
     }

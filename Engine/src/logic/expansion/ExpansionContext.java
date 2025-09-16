@@ -7,10 +7,12 @@ import logic.variable.Variable;
 import logic.variable.VariableImpl;
 import logic.variable.VariableType;
 
+import java.util.Map;
+
 public class ExpansionContext {
     private final Program program; // Owning program context
     private int nextWorkIdx;       // Counter for WORK variables (zN)
-    private int nextLabelIdx;      // Counter for generated labels (LN)
+    private int nextLabelIdx;// Counter for generated labels (LN)
 
     public ExpansionContext(Program program, int startWorkIdx, int startLabelIdx) {
         this.program = program;
@@ -23,7 +25,7 @@ public class ExpansionContext {
     }
 
     public Variable getFreshWorkVal() {
-        return new VariableImpl(VariableType.WORK, ++nextWorkIdx); // Create z{n+1}
+        return new VariableImpl(VariableType.WORK, nextWorkIdx++); // Create z{n+1}
     }
 
     public Label getFreshLabel() {

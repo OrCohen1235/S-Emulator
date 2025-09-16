@@ -1,8 +1,15 @@
 package logic.expansion;
 
 import logic.instructions.Instruction;
-import logic.instructions.sinstruction.SyntheticInstruction;
+import logic.instructions.InstructionData;
+import logic.instructions.binstruction.*;
+import logic.instructions.sinstruction.*;
+import logic.label.Label;
+import logic.label.LabelImpl;
+import logic.variable.Variable;
+import logic.variable.VariableImpl;
 import program.Program;
+import program.ProgramLoadException;
 
 import java.util.*;
 
@@ -13,14 +20,14 @@ public class ExpanderExecute {
 
     public ExpanderExecute(Program program) {
         this.program = program;
-        expansionContext = new ExpansionContext(program, 1, getMaxLabelNumber() + 1); // Start degree=1; next free label
+        expansionContext = new ExpansionContext(program, program.getMaxWorkIndex(), getMaxLabelNumber() + 1); // Start degree=1; next free label
         expander = new Expander(expansionContext);
     }
 
     public void loadExpansion() {
         int maxLabel = expansionContext.getNextLabelIdx();;
         int maxWorkIndex= expansionContext.getNextWorkIdx();
-        loadFullExpansion(program.getInstructions());
+        loadFullExpansion(program.getActiveInstructions());
         expansionContext.setNextLabelIdx(maxLabel);
         expansionContext.setNextWorkIdx(maxWorkIndex);
         program.resetMapVariables();
@@ -28,7 +35,7 @@ public class ExpanderExecute {
     }
 
     private void loadFullExpansion(List<Instruction> listOfExpansion) {
-        if (listOfExpansion.size() == 1) {
+        if (listOfExpansion.size() == 1 && listOfExpansion.get(0) instanceof BaseInstruction) {
             return; // Leaf reached
         } else {
             for (Instruction instruction : listOfExpansion) {
@@ -116,7 +123,7 @@ public class ExpanderExecute {
     public int getMaxDegree() {
         int max;
         if (program.getMaxDegree() == -1) {
-            max = calcMaxDegree(program.getInstructions());
+            max = calcMaxDegree(program.getActiveInstructions());
             program.setMaxDegree(max);
         }
         else {
@@ -148,4 +155,6 @@ public class ExpanderExecute {
                 .max()
                 .orElse(0); // Highest numeric L* label or 0 if none
     }
+
+
 }
