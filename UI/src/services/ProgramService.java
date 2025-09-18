@@ -57,7 +57,14 @@ public class ProgramService {
 
     public List<VarRow> getInputsVars() {
         List<VarRow> rows = new ArrayList<>();
-        for (String var : program.getXVariables()) {
+        List<String> xVars = program.getXVariables();
+        List<String> xVarsAddi = program.getXAdditioanl();
+        for (String xVar : xVars) {
+            if (!xVarsAddi.contains(xVar)) {
+                xVarsAddi.add(xVar);
+            }
+        }
+        for (String var : xVarsAddi) {
             rows.add(new VarRow(var.toUpperCase(), "INPUT", program.getVarValue(var)));
         }
         return rows;
@@ -97,7 +104,15 @@ public class ProgramService {
     public List<VarRow> getAllVarsSorted() {
         List<VarRow> rows = new ArrayList<>();
         List<String> vars = program.getAllVariables();
-        for (String var : sortListFromYtoZ(vars)) {
+        List<String> additoanls = program.getXAdditioanl();
+        ArrayList<String> lst = new ArrayList<>();
+        lst.addAll(vars);
+        for (String str : additoanls){
+            if (!vars.contains(str)) {
+                lst.add(str);
+            }
+        }
+        for (String var : sortListFromYtoZ(lst)) {
             switch (var.charAt(0)) {
                 case 'X':
                     rows.add(new VarRow(var, "INPUT", program.getVarValue(var)));

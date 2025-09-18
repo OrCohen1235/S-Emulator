@@ -156,5 +156,9 @@ public class ExpanderExecute {
                 .orElse(0); // Highest numeric L* label or 0 if none
     }
 
+    public Variable getFreshWork(){
+        return expansionContext.getFreshWorkVal();
+    }
+
 
 }

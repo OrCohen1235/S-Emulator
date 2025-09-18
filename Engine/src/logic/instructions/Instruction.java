@@ -108,7 +108,9 @@ public abstract class Instruction {
         return program.getValueFromMapsByString(valName);
     }
 
-
+    public Program getProgram() {
+        return program;
+    }
 
     public InstructionData getInstructionData() {
         return instructionData;

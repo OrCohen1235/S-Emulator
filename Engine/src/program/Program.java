@@ -79,6 +79,12 @@ public class Program {
         return functions.get(0);
     }
 
+    public void addSingleFunction(Function f){
+        if (!functions.contains(f)) {
+            functions.add(f);
+        }
+    }
+
     public int getIndexByInstruction(Instruction inst) {
         return view().getIndexByInstruction(inst); // Index lookup in active view
     }
@@ -100,6 +106,10 @@ public class Program {
 
     public void setFunctions(Function... functions) {
         this.functions.addAll(Arrays.asList(functions));
+    }
+
+    public void setFunctions(List<Function> functions) {
+        this.functions.addAll(functions);
     }
 
     // ==================== Basic getters/setters ====================
@@ -188,7 +198,9 @@ public class Program {
 
     public void resetMapVariables() {
         zVariables.clear();
-        xVariables.clear();
+        for (Variable xvar: xVariables.keySet()){
+            xVariables.put(xvar, 0L);
+        }
         setY(0L); // Reset all variables to 0
     }
 
@@ -302,10 +314,11 @@ public class Program {
 
 
     public Long getValueFromMapsByString(String name) {
-        switch (name.charAt(0)) {
+        String newname=Character.toUpperCase(name.charAt(0))+name.substring(1);
+        switch (newname.charAt(0)) {
             case 'X': {
                 for (Variable xVar : xVariables.keySet()) {
-                    if (xVar.getRepresentation().equals(name)) {
+                    if (xVar.getRepresentation().equals(newname)) {
                         return xVariables.get(xVar);
                     }
                 }
@@ -315,7 +328,7 @@ public class Program {
             }
             case 'Z': {
                 for (Variable zVar : zVariables.keySet()) {
-                    if (zVar.getRepresentation().equals(name)) {
+                    if (zVar.getRepresentation().equals(newname)) {
                         return zVariables.get(zVar);
                     }
                 }
@@ -326,10 +339,13 @@ public class Program {
     }
 
     public void setValueToMapsByString(String name) {
-        Variable var = new VariableImpl(name);
-        switch (name.charAt(0)) {
+        String newname= Character.toUpperCase(name.charAt(0))+name.substring(1);
+        Variable var = new VariableImpl(newname);
+        switch (newname.charAt(0)) {
             case 'X': {
-                    setXVariablesToMap(var,0L);
+                    if (!xVariables.containsKey(var)) {
+                        setXVariablesToMap(var, 0L);
+                    }
                     break;
 
             }
@@ -338,10 +354,20 @@ public class Program {
                 break;
             }
             case 'Z': {
-                setZVariablesToMap(var,0L);
+                if (!xVariables.containsKey(var)) {
+                    setZVariablesToMap(var, 0L);
+                }
                 break;
                 }
         }
+    }
+
+    public List<String> getXVarsFromXMap(){
+        List<String> xvars = new ArrayList<>();
+        for (Variable var : xVariables.keySet()){
+            xvars.add(var.getRepresentation());
+        }
+        return xvars;
     }
 
     public ProgramLoad getProgramLoad() {

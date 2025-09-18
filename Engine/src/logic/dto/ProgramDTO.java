@@ -3,6 +3,7 @@ package logic.dto;
 import logic.expansion.ExpanderExecute;
 import logic.instructions.Instruction;
 import logic.instructions.binstruction.BaseInstruction;
+import logic.instructions.sinstruction.Quote;
 import logic.instructions.sinstruction.VariableArgumentInstruction;
 import logic.variable.Variable;
 import logic.variable.VariableType;
@@ -36,30 +37,43 @@ public class ProgramDTO {
 
     public List<String> getXVariables() {
         // רשימת כל ההוראות במבט הנוכחי (original/expanded)
-        List<Instruction> list = Optional.ofNullable(program.view())
-                .map(ProgramView.InstructionsView::list)
-                .orElseGet(List::of);
+        List<Instruction> list;
+        ProgramView.InstructionsView view = program.view();
+        if (view != null && view.list() != null) {
+            list = view.list();
+        } else {
+            list = java.util.Collections.emptyList();
+        }
 
-        // משתנה ישיר על ההוראה
-        Stream<String> base = list.stream()
-                .map(instr -> Optional.ofNullable(instr.getVar())
-                        .filter(v -> v.getType() == VariableType.INPUT)
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
+        java.util.LinkedHashSet<String> uniques = new java.util.LinkedHashSet<>();
 
-        Stream<String> fromInterface = list.stream()
-                .filter(VariableArgumentInstruction.class::isInstance)
-                .map(VariableArgumentInstruction.class::cast)
-                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
-                        .filter(v -> v.getType() == VariableType.INPUT)
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
+        // משתנה ישיר על ההוראה (base)
+        for (Instruction instr : list) {
+            Variable v = instr.getVar();
+            if (v != null && v.getType() == VariableType.INPUT) {
+                String rep = v.getRepresentation();
+                if (rep != null) {
+                    uniques.add(rep);
+                }
 
-        return Stream.concat(base, fromInterface)
-                .distinct()
-                .collect(Collectors.toUnmodifiableList());
+            }
+        }
+
+        // משתנה שמגיע מ-VariableArgumentInstruction (fromInterface)
+        for (Instruction instr : list) {
+            if (instr instanceof VariableArgumentInstruction) {
+                VariableArgumentInstruction vai = (VariableArgumentInstruction) instr;
+                Variable v = vai.getVariableArgument();
+                if (v != null && v.getType() == VariableType.INPUT) {
+                    String rep = v.getRepresentation();
+                    if (rep != null) {
+                        uniques.add(rep);
+                    }
+                }
+            }
+        }
+
+        return java.util.Collections.unmodifiableList(new java.util.ArrayList<>(uniques));
     }
 
     /* ========== Instructions → InstructionDTO ========== */
@@ -191,5 +205,10 @@ public class ProgramDTO {
     public void loadExpansionByDegree(int degree) {
         program.getExpanderExecute().loadExpansionByDegree(degree); // Load expansion by specific degree
     }
+
+    public List<String> getXAdditioanl(){
+        return program.getXVarsFromXMap();
+    }
+
 
 }

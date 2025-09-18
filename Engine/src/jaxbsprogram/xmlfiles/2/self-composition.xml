@@ -5,7 +5,7 @@
 			<S-Variable>y</S-Variable>
 			<S-Instruction-Arguments>
 				<S-Instruction-Argument name="functionName" value="Successor"/>
-				<S-Instruction-Argument name="functionArguments" value="x1"/>
+				<S-Instruction-Argument name="functionArguments" value="(Successor,x1)"/>
 			</S-Instruction-Arguments>
 		</S-Instruction>		
 	</S-Instructions>

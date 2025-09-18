@@ -47,12 +47,15 @@ public class ProgramLoad {
             var sFunctions = read.getSFunctionList();
 
 
-            try{
+            try {
                 if (!sFunctions.isEmpty()) {
-                    Function[] functionBuilt = sFunctions.stream()
-                            .map(this::createFunction) // Parse each SInstruction into an Instruction
-                            .toArray(Function[]::new);
-                    program.setFunctions(functionBuilt); // Load all parsed functions
+                    for (SFunction sFunction : sFunctions) {
+                        Function f = createFunction(sFunction);
+                        program.addSingleFunction(f);
+                    }
+                    for (Function f : program.getFunctions()) {
+                        f.setFunctions(program.getFunctions());
+                    }
                 }
                 Instruction[] instructionBuilt = sInstructions.stream()
                         .map(this::createInstruction) // Parse each SInstruction into an Instruction
@@ -69,11 +72,9 @@ public class ProgramLoad {
             throw new ProgramLoadException("Failed to load program '" + read.getProgramName() + "': " + e.getMessage(), e);
         } catch (RuntimeException e) {
             // Fallback for unexpected runtime issues
-            throw new ProgramLoadException(e.getMessage()+ "\n" + "Cant Load: " +read.getProgramName() + " File");
+            throw new ProgramLoadException(e.getMessage() + "\n" + "Cant Load: " + read.getProgramName() + " File");
         }
     }
-
-
 
 
     public void loadInputVars(List<Long> varsInput) {

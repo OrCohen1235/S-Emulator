@@ -165,7 +165,7 @@ public class Expander {
                 }
                 case QUOTE -> {
                     Quote quote = (Quote) inst;
-                    String name=inst.getName();
+                    String name=((Quote) inst).getFunctionName();
                     String argument=((Quote) inst).getFunctionArguments();
                     yield new Quote(program,newVar,newLabel,name,argument);
                 }
