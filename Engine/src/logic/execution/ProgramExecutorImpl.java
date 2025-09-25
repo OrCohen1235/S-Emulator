@@ -1,6 +1,7 @@
 package logic.execution;
 
 import logic.instructions.Instruction;
+import logic.instructions.sinstruction.Quote;
 import program.Program;
 import logic.label.*;
 import logic.label.Label;
@@ -36,8 +37,10 @@ public class ProgramExecutorImpl {
 
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
+
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
+
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction
@@ -66,9 +69,9 @@ public class ProgramExecutorImpl {
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
 
-
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
+
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction
@@ -107,4 +110,5 @@ public class ProgramExecutorImpl {
         currentIndex=0;
         sumOfCycles=0;
     }
+
 }

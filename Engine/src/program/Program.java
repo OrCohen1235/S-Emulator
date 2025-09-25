@@ -9,6 +9,7 @@ import logic.instructions.JumpInstruction;
 import logic.label.Label;
 import logic.variable.Variable;
 import logic.variable.VariableImpl;
+import logic.variable.VariableType;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -27,16 +28,18 @@ public class Program {
     private List<Instruction> expandInstructionsByDegreeHelper = new ArrayList<>();// Flattened view by degree
     private int maxDegree = -1;                                        // Cached max expansion degree
     private final ProgramView views = new ProgramView(() -> instructions, () -> expandInstructionsByDegree); // View switcher
+    private Boolean isMainProgram = false;
 
     private final ProgramLoad programLoad;
     private final ProgramExecutorImpl programExecutor;
     private final ExpanderExecute expanderExecute;
 
-    public Program(ReadSemulatorXml readSem) {
+    public Program(ReadSemulatorXml readSem,Boolean isMainProgram) {
         programLoad = new ProgramLoad(this);
         programLoad.loadProgram(readSem);
         programExecutor = new ProgramExecutorImpl(this);
         expanderExecute = new ExpanderExecute(this);
+        this.isMainProgram = isMainProgram;
     }
 
     public Program() {
@@ -102,6 +105,11 @@ public class Program {
 
     public void setInstructions(Instruction... instructions) {
         this.instructions.addAll(Arrays.asList(instructions)); // Append initial instructions
+    }
+
+    public void clearAndSetInstructions(List<Instruction> lst) {
+        this.instructions.clear();
+        this.instructions.addAll(lst); // Append initial instructions
     }
 
     public void setFunctions(Function... functions) {
@@ -204,6 +212,12 @@ public class Program {
         setY(0L); // Reset all variables to 0
     }
 
+    public void resetFunctions(){
+        for (Function f: functions) {
+            f.resetMapVariables();
+        }
+    }
+
     // ==================== Aggregated variables view ====================
     public Map<String, Long> getVariablesValues() {
         Map<String, Long> result = new LinkedHashMap<>();
@@ -272,6 +286,10 @@ public class Program {
             sorted.add("EXIT");
         }             // Append EXIT at end if present
         return sorted;
+    }
+
+    public Boolean getIsMainProgram(){
+        return isMainProgram;
     }
 
 
@@ -354,7 +372,7 @@ public class Program {
                 break;
             }
             case 'Z': {
-                if (!xVariables.containsKey(var)) {
+                if (!zVariables.containsKey(var)) {
                     setZVariablesToMap(var, 0L);
                 }
                 break;
@@ -370,6 +388,44 @@ public class Program {
         return xvars;
     }
 
+    public List<Long> getXVarsValuesFromXMap(){
+        List<Long> xvars = new ArrayList<>();
+        for (Variable var : xVariables.keySet()){
+            xvars.add(xVariables.get(var));
+        }
+        return xvars;
+    }
+
+    public void setValuesToXMap(List<Long> vars) {
+        if (vars == null) {
+            throw new IllegalArgumentException("Input vars cannot be null");
+        }
+
+        if (!xVariables.isEmpty()) {
+            int i = 0;
+            for (Variable var : xVariables.keySet()) {
+                Long value = (i < vars.size() && vars.get(i) != null) ? vars.get(i) : 0L;
+                xVariables.put(var, value);
+                i++;
+            }
+            while (i<vars.size()) {
+                Variable x = new VariableImpl(VariableType.INPUT, i + 1);
+                setXVariablesToMap(x, vars.get(i));
+                i++;
+            }
+        } else {
+            programLoad.loadInputVars(vars);
+        }
+    }
+
+    public Map<Variable, Long> getxVariables() {
+        return xVariables;
+    }
+
+    public Map<Variable, Long> getzVariables() {
+        return zVariables;
+    }
+
     public ProgramLoad getProgramLoad() {
         return programLoad;
     }
@@ -381,6 +437,7 @@ public class Program {
     public ExpanderExecute getExpanderExecute() {
         return expanderExecute;
     }
+
 }
 
 

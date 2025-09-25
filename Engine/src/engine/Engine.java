@@ -35,7 +35,7 @@ public class Engine {
         } catch (Exception e) {
             throw e; // Re-throw original exception
         }
-        program = new Program(readSem);
+        program = new Program(readSem,true);
         programDTO = new ProgramDTO(program);
     }
 

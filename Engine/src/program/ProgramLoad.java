@@ -17,10 +17,7 @@ import logic.variable.VariableImpl;
 import logic.variable.VariableType;
 import jaxbsprogram.ReadSemulatorXml;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -75,6 +72,7 @@ public class ProgramLoad {
             throw new ProgramLoadException(e.getMessage() + "\n" + "Cant Load: " + read.getProgramName() + " File");
         }
     }
+
 
 
     public void loadInputVars(List<Long> varsInput) {
@@ -192,40 +190,39 @@ public class ProgramLoad {
         return function;
     }
 
-    public void loadStartedVars(){
+   /* public void loadStartedVars(){
         List<String> lst = getAllVariables();
         for (String var : lst) {
             program.setValueToMapsByString(var);
         }
-    }
+    }*/
 
     public List<String> getAllVariables() {
-
-        List<Instruction> list = Optional.ofNullable(program.view())
+        // קבלת רשימת הוראות
+        List<Instruction> instructions = Optional.ofNullable(program.view())
                 .map(ProgramView.InstructionsView::list)
                 .orElseGet(List::of);
 
+        Set<String> variableNames = new HashSet<>();
 
-        Stream<String> base = list.stream()
-                .map(instr -> Optional.ofNullable(instr.getVar())
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
+        for (Instruction instruction : instructions) {
+            // הוספת משתנה בסיסי של ההוראה
+            if (instruction.getVar() != null) {
+                variableNames.add(instruction.getVar().getRepresentation());
+            }
 
-        Stream<String> fromInterface = list.stream()
-                .filter(VariableArgumentInstruction.class::isInstance)
-                .map(VariableArgumentInstruction.class::cast)
-                .map(vai -> Optional.ofNullable(vai.getVariableArgument())
-                        .map(Variable::getRepresentation)
-                        .orElse(null))
-                .filter(Objects::nonNull);
+            // הוספת משתנים מארגומנטים
+            if (instruction instanceof VariableArgumentInstruction vai) {
+                if (vai.getVariableArgument() != null) {
+                    variableNames.add(vai.getVariableArgument().getRepresentation());
+                }
+            }
+        }
 
 
-        return Stream.concat(base, fromInterface)
-                .distinct()
-                .collect(Collectors.toUnmodifiableList());
+
+        return new ArrayList<>(variableNames);
     }
-
 
 
 

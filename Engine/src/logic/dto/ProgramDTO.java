@@ -1,6 +1,7 @@
 package logic.dto;
 
 import logic.expansion.ExpanderExecute;
+import logic.function.Function;
 import logic.instructions.Instruction;
 import logic.instructions.binstruction.BaseInstruction;
 import logic.instructions.sinstruction.Quote;
@@ -11,11 +12,13 @@ import program.Program;
 import program.ProgramView;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProgramDTO {
-
+    private static final Pattern X_VAR = Pattern.compile("\\b(x\\w*)\\b");
     private final Program program;
 
     public ProgramDTO(Program program) {
@@ -51,11 +54,13 @@ public class ProgramDTO {
         for (Instruction instr : list) {
             Variable v = instr.getVar();
             if (v != null && v.getType() == VariableType.INPUT) {
-                String rep = v.getRepresentation();
+                String rep = v.getRepresentation().toLowerCase();
                 if (rep != null) {
                     uniques.add(rep);
                 }
-
+            }
+            if (v!= null && v.getType() == VariableType.WORK) {
+                program.getZVariablesFromMap(v);
             }
         }
 
@@ -65,15 +70,36 @@ public class ProgramDTO {
                 VariableArgumentInstruction vai = (VariableArgumentInstruction) instr;
                 Variable v = vai.getVariableArgument();
                 if (v != null && v.getType() == VariableType.INPUT) {
-                    String rep = v.getRepresentation();
+                    String rep = v.getRepresentation().toLowerCase();
                     if (rep != null) {
                         uniques.add(rep);
+                    }
+                }
+                if (v!= null && v.getType() == VariableType.WORK) {
+                    program.getZVariablesFromMap(v);
+                }
+            }
+
+            if (instr instanceof Quote) {
+                Quote q = (Quote) instr;
+                String functionArguments = q.getFunctionArguments();
+                if (functionArguments != null && !functionArguments.trim().isEmpty()) {
+                    for (String val : functionArguments.split(",")) {
+                        if (val == null || val.trim().isEmpty()) continue;
+
+                        Matcher m = X_VAR.matcher(val.trim());
+                        while (m.find()) {
+                            String varName = m.group(1); // תיקון: group(1) במקום group()
+                            if (varName != null && !varName.isEmpty()) {
+                                uniques.add(varName);
+                            }
+                        }
                     }
                 }
             }
         }
 
-        return java.util.Collections.unmodifiableList(new java.util.ArrayList<>(uniques));
+        return new ArrayList<>(uniques);
     }
 
     /* ========== Instructions → InstructionDTO ========== */
@@ -161,6 +187,9 @@ public class ProgramDTO {
     }
 
     public void loadInputVars(List<Long> input) {
+        for (Function func : program.getFunctions()) {
+            func.getProgramLoad().loadInputVars(input);
+        }
         program.getProgramLoad().loadInputVars(input); // Load input variables into program
     }
 
@@ -211,4 +240,7 @@ public class ProgramDTO {
     }
 
 
+    public void resetFunctions() {
+        program.resetFunctions();
+    }
 }

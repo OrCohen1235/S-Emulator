@@ -1,5 +1,6 @@
 package logic.expansion;
 
+import logic.function.Function;
 import logic.instructions.Instruction;
 import logic.instructions.InstructionData;
 import logic.instructions.binstruction.*;
@@ -14,13 +15,18 @@ import program.ProgramLoadException;
 import java.util.*;
 
 public class ExpanderExecute {
-    private final Program program;                     // Target program to expand
+    private final Program program;
     private final ExpansionContext expansionContext;   // Supplies fresh labels/vars and config
     private final Expander expander;                   // Performs instruction-level expansion
 
     public ExpanderExecute(Program program) {
         this.program = program;
-        expansionContext = new ExpansionContext(program, program.getMaxWorkIndex(), getMaxLabelNumber() + 1); // Start degree=1; next free label
+        if (!program.getIsMainProgram()) {
+            expansionContext = new ExpansionContext(program, 10, getMaxLabelNumber() + 1);
+        }// Start degree=1; next free label
+        else {
+            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex(), getMaxLabelNumber() + 1);
+        }
         expander = new Expander(expansionContext);
     }
 
