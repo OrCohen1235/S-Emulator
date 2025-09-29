@@ -133,4 +133,8 @@ public abstract class Instruction {
     public Function getFunctionByName(String name) {
         return program.getFunctionByName(name);
     }
+
+    public Program getInstruncionProgram() {
+        return program;
+    }
 }

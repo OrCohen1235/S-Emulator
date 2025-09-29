@@ -1,5 +1,6 @@
 package logic.expansion;
 
+import logic.function.Function;
 import logic.instructions.JumpInstruction;
 import logic.instructions.binstruction.Decrease;
 import logic.instructions.binstruction.Increase;
@@ -67,16 +68,39 @@ public class Expander {
         Map<Variable,Variable> varsQuote= new HashMap<>();
         Map<Label,Label> labelsQuote= new HashMap<>();
 
-        for (String val : quote.getFunctionArguments().split(",")){
-            if (!val.equals("")) {
+        List<String> functionArgumentsList = quote.functionArgumentsToStringList(quote.getFunctionArguments());
+        List<Variable> xVars = quote.getFunction().getMainProgram().getInputVariables();
+        int i = 0;
+
+        for (String arg : functionArgumentsList) {
+            if (quote.isFirstArgIsVar(arg)){
+                if (!arg.equals("")) {
+                    Variable value = context.getFreshWorkVal();
+                    Variable key = quote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
+                    varsQuote.put(key, value);
+                    Assignment assignment = new Assignment(program, value, key, FixedLabel.EMPTY);
+                    result.add(assignment);
+                }
+            } else {
                 Variable value = context.getFreshWorkVal();
-                Variable key = quote.getVarKeyFromMapByString(val);
-                ;
+                Variable key = xVars.get(i);
+                i++;
                 varsQuote.put(key, value);
-                Assignment assignment = new Assignment(program, value, key, FixedLabel.EMPTY);
-                result.add(assignment);
+
+                String nameOffunctionToQuote;
+                String functionsArgumentsToQuote = "";
+                if (arg.indexOf(",") != -1){
+                    nameOffunctionToQuote = arg.substring(0,arg.indexOf(","));
+                    functionsArgumentsToQuote = arg.substring(arg.indexOf(",") + 1);
+                } else {
+                    nameOffunctionToQuote = arg;
+                }
+
+                Quote newQuote = new Quote(program, value, FixedLabel.EMPTY, nameOffunctionToQuote, functionsArgumentsToQuote);
+                result.add(newQuote);
             }
         }
+
         List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
         for (Instruction inst : oldInstructions) {
             Variable varToReplace = inst.getVar();
@@ -140,7 +164,16 @@ public class Expander {
                     Assignment assignment = (Assignment) inst;
                     Variable assignedVariable = assignment.getAssignedVariable();
 
-                    yield new Assignment(program, newVar, varsQuote.get(assignedVariable), newLabel);
+                    if (assignedVariable == null) {
+                        yield new Assignment(program, newVar, context.getFreshWorkVal(), newLabel);
+                    } else {
+                        Variable mappedVar = varsQuote.get(assignedVariable);
+
+                        if (mappedVar == null) {
+                            mappedVar = context.getFreshWorkVal();
+                        }
+                        yield new Assignment(program, newVar, mappedVar, newLabel);
+                    }
                 }
                 case CONSTANT_ASSIGNMENT -> {
                     yield new ConstantAssignment(program, newVar, ((ConstantAssignment) inst).getConstantValue(), newLabel);
@@ -276,7 +309,7 @@ public class Expander {
         out.add(new GotoLabel(program, jumpLabel, FixedLabel.EMPTY));
 
         // L1: not equal anchor
-        out.add(new Neutral(program, Variable.RESULT, L1));
+         out.add(new Neutral(program, Variable.RESULT, L1));
 
         return out;
     }

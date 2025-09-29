@@ -6,6 +6,9 @@ import logic.expansion.ExpanderExecute;
 import logic.function.Function;
 import logic.instructions.Instruction;
 import logic.instructions.JumpInstruction;
+import logic.instructions.sinstruction.Assignment;
+import logic.instructions.sinstruction.JumpEqualVariable;
+import logic.instructions.sinstruction.Quote;
 import logic.label.Label;
 import logic.variable.Variable;
 import logic.variable.VariableImpl;
@@ -46,8 +49,25 @@ public class Program {
         programLoad = new ProgramLoad(this);
         programExecutor = new ProgramExecutorImpl(this);
         expanderExecute = new ExpanderExecute(this);
-
     }
+
+    public int getMinFreeWorkIndex() {
+        // 1. אוספת את כל האינדקסים (המספרים אחרי ה-Z) שמשתמשים בהם כבר במפה
+        Set<Integer> used = new HashSet<>();
+        for (Variable v : zVariables.keySet()) {
+            used.add(v.getVariableIndex()); // מניח של-VariableImpl יש מתודה getIndex()
+        }
+
+        // 2. מתחילה לבדוק מספרים טבעיים מה-1 ומעלה
+        int candidate = 1;
+        while (used.contains(candidate)) {
+            candidate++; // כל עוד האינדקס תפוס, קופצת לאינדקס הבא
+        }
+
+        // 3. ברגע שמצאנו אינדקס שלא נמצא במפה — זה האינדקס המינימלי הפנוי
+        return candidate;
+    }
+
     public void useOriginalView() {
         views.useOriginal();
     } // Activate original instructions
@@ -205,9 +225,11 @@ public class Program {
     }
 
     public void resetMapVariables() {
-        zVariables.clear();
         for (Variable xvar: xVariables.keySet()){
             xVariables.put(xvar, 0L);
+        }
+        for (Variable zvar: zVariables.keySet()){
+            zVariables.put(zvar, 0L);
         }
         setY(0L); // Reset all variables to 0
     }
@@ -388,6 +410,65 @@ public class Program {
         return xvars;
     }
 
+    public List<Variable> getAllInputVarsFromInstructionsList() {
+        List<Variable> res = new ArrayList<>();
+
+        for (Instruction instr : instructions) {
+            if (instr.getVar().getType() == VariableType.INPUT && !res.contains(instr.getVar())) {
+                res.add(instr.getVar());
+            }
+
+            switch (instr.getInstructionData()) {
+                case ASSIGNMENT:
+                    Assignment assign = (Assignment) instr;
+                    if (assign.getAssignedVariable().getType() == VariableType.INPUT && !res.contains(instr.getVar())) {
+                        res.add(instr.getVar());
+                    }
+                    break;
+
+                case JUMP_EQUAL_VARIABLE:
+                    JumpEqualVariable jump = (JumpEqualVariable) instr;
+                    if (jump.getVariableArgument().getType() == VariableType.INPUT && !res.contains(instr.getVar())) {
+                        res.add(instr.getVar());
+                    }
+                    break;
+
+                case QUOTE:
+                    Quote quote = (Quote) instr;
+                    List<String> argus = quote.extractXVariables();
+                    for (String argu : argus) {
+                        Variable var = new VariableImpl(argu);
+                        if (!res.contains(instr.getVar())) {
+                            res.add(var);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        return res;
+    }
+
+    public void initAllVariablesToZero(Set<Variable> variables) {
+        for (Variable var : variables) {
+            switch (var.getType()) {
+                case VariableType.INPUT:
+                    xVariables.put(var, 0L);
+                    break;
+                case VariableType.RESULT:
+                    y.put(var, 0L);
+                    break;
+                case VariableType.WORK:
+                    zVariables.put(var, 0L);
+                    break;
+            }
+        }
+    }
+
+
     public List<Long> getXVarsValuesFromXMap(){
         List<Long> xvars = new ArrayList<>();
         for (Variable var : xVariables.keySet()){
@@ -436,6 +517,10 @@ public class Program {
 
     public ExpanderExecute getExpanderExecute() {
         return expanderExecute;
+    }
+
+    public List<Variable> getInputVariables() {
+        return programLoad.getInputVariables();
     }
 
 }

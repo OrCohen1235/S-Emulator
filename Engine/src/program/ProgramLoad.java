@@ -24,7 +24,8 @@ import java.util.stream.Stream;
 
 public class ProgramLoad {
     private final Program program; // Target program to populate
-
+    private Set<Variable> variables = new HashSet<>();
+    private Set<Variable> inputVariables = new HashSet<>();
 
     public ProgramLoad(Program program) {
         this.program = program;
@@ -62,7 +63,8 @@ public class ProgramLoad {
                 throw new ProgramLoadException(e.getMessage());
             }
 
-            program.setY(0L); // Initialize output register Y
+
+            program.initAllVariablesToZero(variables);
 
         } catch (IllegalArgumentException | NullPointerException e) {
             // Wrap parsing/validation errors with program context
@@ -115,6 +117,10 @@ public class ProgramLoad {
 
     public Instruction createInstruction(SInstruction inst) {
         Variable newVar  = new VariableImpl(inst.getSVariable()); // Target variable for instruction
+        variables.add(newVar);
+        if (newVar.getType() == VariableType.INPUT) {
+            inputVariables.add(newVar);
+        }
 
         Label newLabel = Optional.ofNullable(inst.getSLabel())
                 .map(LabelImpl::new)
@@ -133,6 +139,10 @@ public class ProgramLoad {
                 }
                 case ASSIGNMENT -> {
                     Variable assignmentVariable = new VariableImpl(getArgument(inst));
+                    variables.add(assignmentVariable);
+                    if (assignmentVariable.getType() == VariableType.INPUT) {
+                        inputVariables.add(newVar);
+                    }
                     yield new Assignment(program, newVar, assignmentVariable, newLabel);
                 }
                 case CONSTANT_ASSIGNMENT -> {
@@ -156,12 +166,22 @@ public class ProgramLoad {
                 case JUMP_EQUAL_VARIABLE -> {
                     Label jumpLabel   = new LabelImpl(getArgumentByName(inst, "JEVariableLabel"));
                     Variable variable = new VariableImpl(getArgumentByName(inst, "variableName"));
+                    variables.add(variable);
+                    if (variable.getType() == VariableType.INPUT) {
+                        inputVariables.add(newVar);
+                    }
                     yield new JumpEqualVariable(program, newVar, jumpLabel, variable, newLabel);
                 }
                 case QUOTE -> {
-                    String name=getArgumentByName(inst, "functionName");
-                    String argument=getArgumentByName(inst, "functionArguments");
-                    yield new Quote(program,newVar,newLabel,name,argument);
+                    String name = getArgumentByName(inst, "functionName");
+                    String argument = getArgumentByName(inst, "functionArguments");
+                    Quote quote = new Quote(program,newVar,newLabel,name,argument);
+                    List<String> argus = quote.extractXVariables();
+                    for (String argu : argus) {
+                        variables.add(new VariableImpl(argu));
+                        inputVariables.add(new VariableImpl(argu));
+                    }
+                    yield quote;
                 }
                 case JUMP_EQUAL_FUNCTION -> {
                     Label jumpLabel = new LabelImpl(getArgumentByName(inst, "JEFunctionLabel"));
@@ -198,7 +218,6 @@ public class ProgramLoad {
     }*/
 
     public List<String> getAllVariables() {
-        // קבלת רשימת הוראות
         List<Instruction> instructions = Optional.ofNullable(program.view())
                 .map(ProgramView.InstructionsView::list)
                 .orElseGet(List::of);
@@ -206,25 +225,23 @@ public class ProgramLoad {
         Set<String> variableNames = new HashSet<>();
 
         for (Instruction instruction : instructions) {
-            // הוספת משתנה בסיסי של ההוראה
             if (instruction.getVar() != null) {
                 variableNames.add(instruction.getVar().getRepresentation());
             }
 
-            // הוספת משתנים מארגומנטים
             if (instruction instanceof VariableArgumentInstruction vai) {
                 if (vai.getVariableArgument() != null) {
                     variableNames.add(vai.getVariableArgument().getRepresentation());
                 }
             }
         }
-
-
-
         return new ArrayList<>(variableNames);
     }
 
-
+    public List<Variable> getInputVariables() {
+        List<Variable> variables = new ArrayList<>(inputVariables);
+        return variables;
+    }
 
 
 }

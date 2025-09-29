@@ -41,8 +41,14 @@ public class JumpEqualFunction extends Instruction implements SyntheticInstructi
 
     @Override
     public String getCommand() {
-        return "IF" + getVar().getRepresentation() + " = " + "(" + funcName + ", " + funcArguments + ")"
-        +"GOTO" + JEFunctionLabel.getLabelRepresentation();
+        String command;
+        command = "IF " + getVar().getRepresentation() + " = " + "(" + funcToQuote.getFunction().getUserName();
+        if (!funcArguments.isEmpty()) {
+            command += ", " + funcArguments.toUpperCase();
+        }
+        command +=") " +"GOTO " + JEFunctionLabel.getLabelRepresentation();
+
+        return command;
     }
 
     @Override

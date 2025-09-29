@@ -7,11 +7,13 @@ import logic.label.FixedLabel;
 import logic.label.Label;
 import logic.variable.Variable;
 import logic.variable.VariableImpl;
+import logic.variable.VariableType;
 import program.Program;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Quote extends Instruction implements SyntheticInstruction {
     private String functionName;
@@ -227,8 +229,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
         // יצירת משתנה עבודה חדש
         //Variable workVar = getProgram().getExpanderExecute().getFreshWork();
-        Variable workVar = function.getFreshWORK();
-
+        Variable workVar = new VariableImpl(VariableType.WORK, function.getMinFreeWorkIndex());
         // יצירת Quote חדש לקריאה המקוננת
         Quote childQuote = new Quote(function, workVar, FixedLabel.EMPTY, functionName, functionArgs, getProgram());
 
@@ -370,9 +371,12 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
     @Override
     public String getCommand() {
-        String returnVal = super.getVar().getRepresentation() + " <- " + "(" + functionName + ", ";
-        returnVal += functionArguments + ")";
-        return returnVal;
+        String command = super.getVar().getRepresentation() + " <- " + "(" + function.getUserName();
+        if (!functionArguments.isEmpty()){
+            command += ", " + functionArguments.toUpperCase();
+        }
+        command += ")";
+        return command;
     }
 
     public String getFunctionArguments() {
@@ -395,5 +399,75 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return functionName;
     }
 
+
+    public List<String> functionArgumentsToStringList(String args) {
+        List<String> lst = new ArrayList<>();
+        String str = String.valueOf(args);
+
+        while (!str.isEmpty()) {
+            str = str.replaceFirst("^[(),]+", "");
+
+            if (!str.isEmpty()) {
+                lst.add(findArgument(str));
+                str = str.replace(lst.getLast(), "");
+            }
+        }
+
+        return lst;
+    }
+
+    private String findArgument(String subArg) {
+        int index = subArg.indexOf(",");
+
+        if (index == -1) {
+            return subArg.replaceAll("\\)", "");
+        }
+
+        String str = subArg.substring(0, index);
+        if (isFirstArgIsVar(str)) {
+            return str;
+        }
+
+        int counter = 1, ind = 0;
+
+        while (counter != 0) {
+            if (subArg.charAt(ind) == '(') {
+                counter++;
+            }
+            else if (subArg.charAt(ind) == ')') {
+                counter--;
+            }
+            ind++;
+        }
+        return subArg.substring(0, ind - 1);
+
+    }
+
+    public boolean isFirstArgIsVar(String arg) {
+        char ch = Character.toUpperCase(arg.charAt(0));
+
+        if (ch != 'Z' && ch != 'Y' && ch != 'X') {
+            return false;
+        }
+        if (ch == 'Y'&& arg.length() == 1) {
+            return true;
+        }
+
+        try {
+            String str = arg.substring(1);
+            int i = Integer.parseInt(str);
+            return true;
+        }
+        catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            return false;
+        }
+    }
+
+    public List<String> extractXVariables() {
+        return Arrays.stream(functionArguments.split("[^a-zA-Z0-9]+"))
+                .filter(part -> part.matches("[xX]\\d+"))
+                .distinct()
+                .collect(Collectors.toList());
+    }
 
 }

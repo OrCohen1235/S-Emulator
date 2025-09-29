@@ -62,6 +62,9 @@ public class VariableImpl implements Variable {
     }
 
     @Override
+    public int getVariableIndex() { return number; }
+
+    @Override
     public String getRepresentation() {
         return type.getVariableRepresentation(number);
     }
