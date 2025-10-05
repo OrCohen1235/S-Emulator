@@ -27,6 +27,7 @@ import services.ProgramService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class RootController {
 
@@ -125,8 +126,14 @@ public class RootController {
         for (InstructionDTO dto : programService.getInstructionsDTO()){
             if (dto.getLabel().equals(selectedItem)){
                 res.add(index);
-            } else if (dto.getCommand().contains(selectedItem)){
-                res.add(index);
+            }
+            else {
+                String [] command = dto.getCommand().split(" ");
+                for (String word : command){
+                    if (word.equals(selectedItem)){
+                        res.add(index);
+                    }
+                }
             }
             index++;
         }
@@ -334,5 +341,35 @@ public class RootController {
         task.setOnCancelled(e -> dialog.close());
 
         dialog.show();
+    }
+
+    public void onFunctionSelector(ActionEvent actionEvent) {
+        // נניח שהרשימה מגיעה מבחוץ
+        List<String> functions = programService.getFunctionsNames();
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(functions.get(0), functions);
+        dialog.setTitle("Choose Function");
+        dialog.setHeaderText("Function to show");
+        dialog.setContentText("Function:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(programService::switchToFunction);
+        instructionsController.refresh(0);
+        int maxDegree = programService.getMaxDegree();
+        setMaxDegree(maxDegree);
+        spnDegree.requestFocus();
+    }
+
+    public void onFunctionSelector(String functionName,int degree) {
+
+        programService.switchToFunction(functionName);
+        instructionsController.refresh(degree);
+        int maxDegree = programService.getMaxDegree();
+        setMaxDegree(maxDegree);
+        spnDegree.requestFocus();
+    }
+
+    public void refreshInstructions(){
+        instructionsController.refresh(getDegree());
     }
 }

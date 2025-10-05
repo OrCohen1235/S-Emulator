@@ -235,4 +235,5 @@ public class InstructionsController {
         highlightedRows.clear();
         trvInstructions.refresh();
     }
+
 }

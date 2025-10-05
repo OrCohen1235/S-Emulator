@@ -206,9 +206,11 @@ public class ExecutionController {
     private void doRun() {
         long y = programService.executeProgram(parent.getDegree());
         lblCycles.setText(String.valueOf(programService.getCycles()));
-        programService.resetCycles();
-        varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
 
+        varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
+        parent.refreshInstructions();
+
+        programService.resetCycles();
         programService.resetMaps();
         prgExecution.setProgress(1.0);
 

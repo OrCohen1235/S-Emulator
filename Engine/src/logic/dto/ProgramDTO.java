@@ -19,10 +19,12 @@ import java.util.stream.Stream;
 
 public class ProgramDTO {
     private static final Pattern X_VAR = Pattern.compile("\\b(x\\w*)\\b");
-    private final Program program;
+    private Program program;
+    private final Program mainProgram;
 
     public ProgramDTO(Program program) {
         this.program = Objects.requireNonNull(program, "program must not be null");
+        this.mainProgram = program;
     }
 
     /* ========== Meta ========== */
@@ -242,5 +244,23 @@ public class ProgramDTO {
 
     public void resetFunctions() {
         program.resetFunctions();
+    }
+
+    public List<String> getFunctionsNames() {
+        List<String> res = new ArrayList<>();
+        res.add(mainProgram.getName());
+        for (Function function : program.getFunctions()) {
+            res.add(function.getName());
+        }
+        return res;
+    }
+
+    public void switchToFunction(String functionName) {
+        if (functionName.equals(mainProgram.getName())) {
+            this.program=mainProgram;
+            return;
+        }
+
+        this.program = program.getFunctionByName(functionName);
     }
 }

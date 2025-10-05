@@ -157,7 +157,7 @@ public class ProgramService {
 
         long executeOutput = program.runProgramExecutor(degree);
 
-        history.addHistory(executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
+        history.addHistory(program.getProgram(),executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
 
         return executeOutput;
     }
@@ -172,13 +172,13 @@ public class ProgramService {
         long executeOutput = program.runProgramExecutorDebugger(level);
 
         if(isFinishedDebugging()){
-            history.addHistory(executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
+            history.addHistory(program.getProgram(),executeOutput, degree, program.getSumOfCycles(), getVarsAtEndRun());
         }
         return executeOutput;
     }
 
     public void addHistory(int degree,long y){
-        history.addHistory(y, degree, program.getSumOfCycles(), getVarsAtEndRun());
+        history.addHistory(program.getProgram(),y, degree, program.getSumOfCycles(), getVarsAtEndRun());
     }
 
 
@@ -227,4 +227,11 @@ public class ProgramService {
         items.sort(Comparator.comparingInt(s -> Integer.parseInt(s.substring(1))));
     }
 
+    public List<String> getFunctionsNames() {
+        return program.getFunctionsNames();
+    }
+
+    public void switchToFunction(String functionName) {
+        program.switchToFunction(functionName);
+    }
 }

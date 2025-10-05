@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public class ProgramLoad {
     private final Program program; // Target program to populate
     private Set<Variable> variables = new HashSet<>();
-    private Set<Variable> inputVariables = new HashSet<>();
+    private Set<Variable> inputVariables = new LinkedHashSet<>();
 
     public ProgramLoad(Program program) {
         this.program = program;

@@ -71,9 +71,11 @@ public class VariableImpl implements Variable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        VariableImpl variable = (VariableImpl) o;
-        return number == variable.number && type == variable.type;
+        if (this == o) return true;
+        if (!(o instanceof Variable)) return false;
+        Variable other = (Variable) o;
+        return this.number == other.getVariableIndex()
+                && this.type == other.getType();
     }
 
     @Override

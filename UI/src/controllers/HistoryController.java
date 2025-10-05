@@ -83,6 +83,8 @@ public class HistoryController {
         if (row == null) return;
 
         parent.setSpnDegree(row.getDegree());
+        parent.onFunctionSelector(row.getFunctionName(),row.getDegree());
+
 
         executionController.NewRunOrDebugChoiceFromReRunButton();
 

@@ -38,8 +38,8 @@ public class ProgramExecutorImpl {
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
 
-            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
+            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
 
 
             if (nextLabel == FixedLabel.EMPTY) {
@@ -69,8 +69,8 @@ public class ProgramExecutorImpl {
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
 
-            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
+            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
 
 
             if (nextLabel == FixedLabel.EMPTY) {

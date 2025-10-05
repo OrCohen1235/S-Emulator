@@ -10,7 +10,7 @@ public class InstructionDTO {
     private final String type;
     private final String label;
     private final String command;
-    private final int cycles;
+    private int cycles;
     private int father;
 
     public InstructionDTO(int displayIndex, String type, String label, String command, int cycles,int father) {

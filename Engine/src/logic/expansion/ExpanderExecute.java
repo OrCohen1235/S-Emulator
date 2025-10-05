@@ -56,6 +56,7 @@ public class ExpanderExecute {
 
     // -------------------- Expansion: by degree (build linear list) --------------------
     public void loadExpansionByDegree(int degree) {
+        expander.setCurrDeg(degree);
         List<Instruction> out = new ArrayList<>();
         int maxLabel = expansionContext.getNextLabelIdx();;
         int maxWorkIndex= expansionContext.getNextWorkIdx();

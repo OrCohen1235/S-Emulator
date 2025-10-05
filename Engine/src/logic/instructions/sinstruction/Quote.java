@@ -20,6 +20,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
     private String functionArguments;
     private final String originalArguments;
     private final Function function;
+    private int cycles = 0;
     private static final Pattern X_VAR = Pattern.compile("\\b([xyzXYZ]\\w*)\\b");
 
     public Quote(Program program, Variable var, Label label, String quoteName, String arguments) {
@@ -45,12 +46,13 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
     public long calcQuotationValue() {
         long y = function.getProgramExecutor().run();
+        cycles+= function.getProgramExecutor().getSumOfCycles();
         return y;
     }
 
     @Override
     public int calcCycles() {
-        return 5 + function.getProgramExecutor().getSumOfCycles();
+        return 5 + cycles;
     }
 
     private void putVarsInMapsFromFather(Boolean check) {

@@ -74,7 +74,13 @@ public abstract class Instruction {
     }
 
     public int getCycles() {
-        return instructionData.getCycles();
+        if (instructionData.getName().equals(InstructionData.QUOTE.getName())){
+            int x = this.calcCycles();
+            return x;
+        }
+        else {
+            return instructionData.getCycles();
+        }
     }
 
     public Long getVarValueFromMap() {

@@ -44,15 +44,15 @@ public final class LabelImpl implements Label {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        LabelImpl label1 = (LabelImpl) o;
-        return Objects.equals(label, label1.label);
+        if (this == o) return true;
+        if (!(o instanceof Label)) return false;       // במקום בדיקת getClass()
+        Label other = (Label) o;
+        return Objects.equals(this.label, other.getLabelRepresentation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(label);
+        return Objects.hash(label);
     }
-
 
 }
