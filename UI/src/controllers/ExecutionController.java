@@ -155,7 +155,6 @@ public class ExecutionController {
         refreshButtons();
         onClear();
 
-        // NEW: עצרת דיבוג – נקה סימון
         if (parent != null) parent.clearInstructionHighlight();
     }
 

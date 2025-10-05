@@ -210,12 +210,6 @@ public class ProgramLoad {
         return function;
     }
 
-   /* public void loadStartedVars(){
-        List<String> lst = getAllVariables();
-        for (String var : lst) {
-            program.setValueToMapsByString(var);
-        }
-    }*/
 
     public List<String> getAllVariables() {
         List<Instruction> instructions = Optional.ofNullable(program.view())

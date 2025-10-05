@@ -7,7 +7,6 @@ public class VarRow {
     private final StringProperty type = new SimpleStringProperty();
     private final StringProperty value = new SimpleStringProperty();
 
-    // דגל לצביעה
     private final BooleanProperty changed = new SimpleBooleanProperty(false);
 
     public VarRow(String name, String type, String value) {

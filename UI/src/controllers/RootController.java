@@ -44,7 +44,7 @@ public class RootController {
 
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
-    @FXML private HistoryController historyController; // אופציונלי ב-FXML
+    @FXML private HistoryController historyController;
 
     private final ProgramService programService = new ProgramService();
     private final HistoryService historyService = new HistoryService();
@@ -160,14 +160,12 @@ public class RootController {
         if (spnDegree != null) spnDegree.setDisable(true);
         if (lblFilePath != null) lblFilePath.setText("Loading… " + file.getName());
 
-        // --- Task שמבצע את העבודה הכבדה ---
         Task<Integer> loadTask = new Task<>() {
             @Override
             protected Integer call() throws Exception {
                 updateMessage("Reading file…");
                 updateProgress(0, 1);
 
-                // העבודה הכבדה
                 programService.loadXml(file);
 
                 updateMessage("Finalizing…");
@@ -179,10 +177,8 @@ public class RootController {
             }
         };
 
-        // --- הצגת דיאלוג חסימתי שמראה את ההתקדמות ---
         showLoadingDialog(loadTask);
 
-        // --- Binding ל־UI התחתון (אם קיים) ---
         if (progressBar != null) {
             progressBar.progressProperty().bind(loadTask.progressProperty());
             progressBar.visibleProperty().bind(loadTask.runningProperty());
@@ -194,7 +190,6 @@ public class RootController {
             lblStatus.managedProperty().bind(lblStatus.visibleProperty());
         }
 
-        // --- Handlers לסיום/כישלון/ביטול ---
         loadTask.setOnSucceeded(evt -> {
             int maxDegree = loadTask.getValue();
 
@@ -210,7 +205,6 @@ public class RootController {
             if (executionController != null) executionController.onProgramLoaded();
             if (historyController != null) historyController.clearHistory();
 
-            // ניקוי binding ואיפוס ויזואלי
             if (progressBar != null) {
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
@@ -256,7 +250,6 @@ public class RootController {
             }
         });
 
-        // --- הפעלה ב־Thread נפרד (פעם אחת!) ---
         Thread t = new Thread(loadTask, "load-xml-task");
         t.setDaemon(true);
         t.start();
@@ -315,7 +308,6 @@ public class RootController {
 
     public ExecutionController getExecutionController() { return executionController; }
 
-    // -------- דיאלוג טעינה חסימתי --------
     private void showLoadingDialog(Task<?> task) {
         ProgressBar pb = new ProgressBar();
         pb.setPrefWidth(300);
@@ -335,7 +327,6 @@ public class RootController {
         dialog.setTitle("Loading...");
         dialog.setResizable(false);
 
-        // לסגור אוטומטית כשהמשימה מסתיימת
         task.setOnSucceeded(e -> dialog.close());
         task.setOnFailed(e -> dialog.close());
         task.setOnCancelled(e -> dialog.close());
@@ -344,7 +335,6 @@ public class RootController {
     }
 
     public void onFunctionSelector(ActionEvent actionEvent) {
-        // נניח שהרשימה מגיעה מבחוץ
         List<String> functions = programService.getFunctionsNames();
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(functions.get(0), functions);

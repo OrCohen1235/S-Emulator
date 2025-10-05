@@ -17,7 +17,6 @@ public class Function extends Program  {
            instruction.setProgram(this);
        }
        super.clearAndSetInstructions(instructionList);
-      // this.getProgramLoad().loadStartedVars();
        super.resetMapVariables();
    }
 

@@ -122,12 +122,8 @@ public class Quote extends Instruction implements SyntheticInstruction {
         }
     }
 
-    /** קריאה כשנמצא מזהה שאינו x<i>/z<i>/y. אפשר להחליף ל-throw, log וכו'. */
     private void onNonXYZIdentifier(String name) {
-        // דוגמה: לוג לאזהרה
         System.err.println("Non-XYZ identifier detected: " + name);
-        // או:
-        // throw new IllegalArgumentException("Unsupported identifier: " + name);
     }
 
 
@@ -135,29 +131,21 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
     @Override
     public Label calculateInstruction() {
-        // שלב 1: טעינת ערכי קלט מהאב
         putVarsInMapsFromFather(false);
 
-        // שלב 2: עיבוד ארגומנטים עם קריאות מקוננות
         String processedArgs = processNestedCalls(functionArguments != null ? functionArguments : "");
 
-        // שלב 3: טעינת הארגומנטים המעובדים לפונקציה
         functionArguments = processedArgs;
         loadInputsToFunction();
 
-        // שלב 4: חישוב התוצאה
         long y = calcQuotationValue();
         setVarValueInMap(y);
 
-        // שלב 5: החזרת הארגומנטים המקוריים
         setFunctionArgumentsToOriginal();
 
         return FixedLabel.EMPTY;
     }
 
-    /**
-     * מעבד קריאות מקוננות ומחזיר מחרוזת ארגומנטים מעובדת
-     */
     private String processNestedCalls(String arguments) {
         if (arguments == null || arguments.trim().isEmpty()) {
             return arguments;
@@ -169,11 +157,9 @@ public class Quote extends Instruction implements SyntheticInstruction {
         for (String arg : topLevelArgs) {
             String trimmedArg = arg.trim();
             if (trimmedArg.startsWith("(") && trimmedArg.endsWith(")")) {
-                // זו קריאה מקוננת - נעבד אותה
                 String processedCall = processNestedCall(trimmedArg);
                 processedArgs.add(processedCall);
             } else {
-                // זה ארגומנט רגיל
                 processedArgs.add(trimmedArg);
             }
         }
@@ -181,9 +167,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return String.join(",", processedArgs);
     }
 
-    /**
-     * מפצל ארגומנטים ברמה העליונה (לא בתוך סוגריים)
-     */
     private List<String> splitTopLevelArguments(String arguments) {
         List<String> result = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -197,7 +180,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
             } else if (ch == ')') {
                 depth--;
             } else if (ch == ',' && depth == 0) {
-                // פסיק ברמה העליונה - מסיימים ארגומנט נוכחי
                 String arg = current.toString().trim();
                 if (!arg.isEmpty()) {
                     result.add(arg);
@@ -209,7 +191,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
             current.append(ch);
         }
 
-        // מוסיפים את הארגומנט האחרון
         String lastArg = current.toString().trim();
         if (!lastArg.isEmpty()) {
             result.add(lastArg);
@@ -218,38 +199,23 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return result;
     }
 
-    /**
-     * מעבד קריאה מקוננת יחידה
-     */
     private String processNestedCall(String nestedCall) {
-        // הסרת הסוגריים החיצוניים
         String inner = nestedCall.substring(1, nestedCall.length() - 1);
 
-        // חילוץ שם הפונקציה והארגומנטים
         String functionName = extractFunctionNameFromCall(inner);
         String functionArgs = extractArgumentsFromCall(inner, functionName);
 
-        // יצירת משתנה עבודה חדש
-        //Variable workVar = getProgram().getExpanderExecute().getFreshWork();
         Variable workVar = new VariableImpl(VariableType.WORK, function.getMinFreeWorkIndex());
-        // יצירת Quote חדש לקריאה המקוננת
         Quote childQuote = new Quote(function, workVar, FixedLabel.EMPTY, functionName, functionArgs, getProgram());
 
-        // העברת כל המשתנים לילד
         transferAllVariablesToChild(childQuote);
 
-        // הרצת הקריאה המקוננת
         childQuote.calculateInstruction();
 
-        // החזרת שם המשתנה החדש
         return workVar.getRepresentation();
     }
 
-    /**
-     * מעביר את כל המשתנים הנוכחיים לקריאה הפנימית - גרסה מתוקנת
-     */
     private void transferAllVariablesToChild(Quote child) {
-        // העברת משתני X
         Map<Variable, Long> currentXVars = function.getxVariables();
         if (currentXVars != null) {
             for (Map.Entry<Variable, Long> entry : currentXVars.entrySet()) {
@@ -257,7 +223,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
             }
         }
 
-        // העברת משתני Z
         Map<Variable, Long> currentZVars = function.getzVariables();
         if (currentZVars != null) {
             for (Map.Entry<Variable, Long> entry : currentZVars.entrySet()) {
@@ -265,13 +230,11 @@ public class Quote extends Instruction implements SyntheticInstruction {
             }
         }
 
-        // העברת Y
         Long currentY = function.getY();
         if (currentY != null) {
             child.function.setY(currentY);
         }
 
-        // העברת המשתנים גם מהתוכנית הראשית אם יש
         Program mainProgram = function.getMainProgram();
         if (mainProgram != null && mainProgram != function) {
             Map<Variable, Long> mainXVars = mainProgram.getxVariables();
@@ -289,23 +252,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
             }
         }
 
-
-//        List<Long> orderedValues = new ArrayList<>();
-//        if (child.functionArguments != null && !child.functionArguments.isEmpty()) {
-//            String[] args = child.functionArguments.split(",");
-//            for (String arg : args) {
-//                String trimmedArg = arg.trim();
-//                if (!trimmedArg.isEmpty()) {
-//                    Long val = child.function.getValueFromMapsByString(trimmedArg);
-//                    if (val != null) {
-//                        orderedValues.add(val);
-//                    }
-//                }
-//            }
-//        }
-//        if (!orderedValues.isEmpty()) {
-//            child.function.setValuesToXMap(orderedValues);
-//        }
     }
 
     private String extractFunctionNameFromCall(String call) {
@@ -321,9 +267,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
         }
     }
 
-    /**
-     * חולץ ארגומנטים מקריאה מקוננת
-     */
     private String extractArgumentsFromCall(String call, String functionName) {
         if (call == null || functionName == null) return "";
 
@@ -332,7 +275,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
         if (nameLength >= trimmed.length()) return "";
 
-        // מחפשים את הפסיק הראשון אחרי השם
         int commaIndex = trimmed.indexOf(',', nameLength);
         if (commaIndex == -1) return "";
 

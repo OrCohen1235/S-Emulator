@@ -11,29 +11,23 @@ public final class StartButtonAnimator {
 
     private StartButtonAnimator() {}
 
-    /** מחבר אנימציית "נשימה" + גרדיאנט ומחזיר Handle לניהול */
     public static Handle attach(Button btn) {
         return attach(btn, Duration.millis(650), Color.web("#4facfe"), Color.web("#00f2fe"));
     }
 
-    /** גרסה ניתנת להגדרה */
     public static Handle attach(Button btn, Duration breathingDuration, Color c1, Color c2) {
         if (btn == null) throw new IllegalArgumentException("btn is null");
 
-        // שמירת סטייל מקורי להשבה בעת dispose
         final String originalStyle = btn.getStyle();
 
-        // סטייל בסיסי
         String base = baseStyle(c1, c2, Color.WHITE);
         btn.setStyle(base);
 
-        // זוהר עדין
         DropShadow glow = new DropShadow();
         glow.setColor(Color.web("#6df0ff"));
         glow.setRadius(18);
         btn.setEffect(glow);
 
-        // "נשימה"
         ScaleTransition breathing = new ScaleTransition(breathingDuration, btn);
         breathing.setFromX(1.0);
         breathing.setFromY(1.0);
@@ -42,7 +36,6 @@ public final class StartButtonAnimator {
         breathing.setAutoReverse(true);
         breathing.setCycleCount(Animation.INDEFINITE);
 
-        // גרדיאנט זורם (היפוך צבעים)
         Timeline gradient = new Timeline(
                 new KeyFrame(Duration.ZERO,
                         new KeyValue(btn.styleProperty(), baseStyle(c1, c2, Color.WHITE))),
@@ -52,7 +45,6 @@ public final class StartButtonAnimator {
         gradient.setAutoReverse(true);
         gradient.setCycleCount(Animation.INDEFINITE);
 
-        // הפעלה
         breathing.play();
         gradient.play();
 
@@ -80,7 +72,6 @@ public final class StartButtonAnimator {
                 (int)Math.round(c.getBlue()*255));
     }
 
-    /** ידית שליטה באנימציה עבור כפתור נתון */
     public static final class Handle {
         private final Button btn;
         private final ScaleTransition breathing;
@@ -98,7 +89,6 @@ public final class StartButtonAnimator {
             this.c1 = c1; this.c2 = c2;
         }
 
-        /** אנימציית קליק קצרה (קפיצה + פלאש) */
         public void playClick() {
             if (disposed) return;
             Runnable r = () -> {
@@ -125,20 +115,17 @@ public final class StartButtonAnimator {
             if (Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
         }
 
-        /** השהיית האנימציות ה"רצות ברקע" */
         public void pause() {
             if (disposed) return;
             breathing.pause();
         }
 
-        /** חידוש האנימציות ה"רצות ברקע" */
         public void resume() {
             if (disposed) return;
             breathing.play();
             gradient.play();
         }
 
-        /** ניתוק מלא: עצירה והשבת סטייל מקורי */
         public void dispose() {
             if (disposed) return;
             disposed = true;

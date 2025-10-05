@@ -11,7 +11,6 @@
 
   <children>
 
-    <!-- ===== TitledPane 1: Instructions ===== -->
     <TitledPane expanded="true" text="Instructions" VBox.vgrow="ALWAYS">
       <content>
         <VBox spacing="0">
@@ -26,7 +25,6 @@
               </columns>
             </TreeTableView>
 
-            <!-- Summary line נשאר בתוך ה-TitledPane הזה -->
             <HBox spacing="8">
               <children>
                 <Label text="Summary:" />
@@ -41,7 +39,6 @@
       </content>
     </TitledPane>
 
-    <!-- ===== TitledPane 2: Expand Instruction (ללא Summary) ===== -->
     <TitledPane expanded="true" text="Instruction History" VBox.vgrow="ALWAYS">
       <content>
         <VBox spacing="0">

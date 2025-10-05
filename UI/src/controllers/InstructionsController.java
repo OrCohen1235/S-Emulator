@@ -45,7 +45,6 @@ public class InstructionsController {
 
     @FXML
     private void initialize() {
-        // ===== טבלת ההוראות =====
         trvInstructions.setShowRoot(false);
         colIndex.setCellValueFactory(new TreeItemPropertyValueFactory<>("displayIndex"));
         colType.setCellValueFactory(new TreeItemPropertyValueFactory<>("type"));
@@ -53,7 +52,6 @@ public class InstructionsController {
         colCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
 
-        // ===== טבלת ההרחבות/היסטוריה =====
         trvInstructionHistory.setShowRoot(false);
         colExIndex.setCellValueFactory(new TreeItemPropertyValueFactory<>("displayIndex"));
         colExType.setCellValueFactory(new TreeItemPropertyValueFactory<>("type"));
@@ -67,7 +65,6 @@ public class InstructionsController {
 
         trvInstructions.setMouseTransparent(false);
 
-        // RowFactory + קליק על שורה
         trvInstructions.setRowFactory(tv -> {
             TreeTableRow<InstructionDTO> row = new TreeTableRow<>() {
                 @Override
@@ -83,9 +80,9 @@ public class InstructionsController {
                 if (!row.isEmpty() && event.getClickCount() == 2) {
                     InstructionDTO dto = row.getItem();
                     if (dto != null && programService != null) {
-                        var list = programService.getExpansionFor(dto); // מחזיר List<InstructionDTO>
-                        vm.onExpand(list,dto);                               // ממלא expandroot
-                        trvInstructionHistory.setRoot(vm.getExpandRoot()); // מציג בטבלה השנייה
+                        var list = programService.getExpansionFor(dto);
+                        vm.onExpand(list,dto);
+                        trvInstructionHistory.setRoot(vm.getExpandRoot());
                         trvInstructionHistory.refresh();
                     }
                 }
@@ -97,7 +94,6 @@ public class InstructionsController {
             return row;
         });
 
-        // גיבוי: קליק בכל מקום בטבלה ימופה לשורה
         trvInstructions.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
             Node node = e.getPickResult().getIntersectedNode();
             while (node != null && !(node instanceof TreeTableRow)) node = node.getParent();
@@ -133,7 +129,7 @@ public class InstructionsController {
 
         // להגדיר שורשים לשתי הטבלאות
         trvInstructions.setRoot(vm.getRoot());
-        trvInstructionHistory.setRoot(vm.getExpandRoot()); // ריק בתחילה אבל חי
+        trvInstructionHistory.setRoot(vm.getExpandRoot());
         trvInstructions.refresh();
         trvInstructionHistory.refresh();
 
@@ -161,7 +157,6 @@ public class InstructionsController {
         trvInstructions.refresh();
     }
 
-    // ===== סימון שורות =====
     private void applyPseudoClasses(TreeTableRow<InstructionDTO> row) {
         boolean empty = row.isEmpty() || row.getItem() == null;
         if (empty) {

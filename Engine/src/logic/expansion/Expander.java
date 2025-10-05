@@ -79,7 +79,6 @@ public class Expander {
                 if (!arg.isEmpty()) {
                     Variable value = context.getFreshWorkVal();
                     Variable key = quote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
-                    //varsQuote.put(key, value);
                     Label quoteLabel = FixedLabel.EMPTY;
                     if (isFirstArg) {
                         quoteLabel = quote.getLabel();
@@ -90,9 +89,6 @@ public class Expander {
                 }
             } else {
                 Variable value = context.getFreshWorkVal();
-//                Variable key = xVars.get(i);
-//                i++;
-//                varsQuote.put(key, value);
 
                 String nameOffunctionToQuote;
                 String functionsArgumentsToQuote = "";
@@ -104,8 +100,12 @@ public class Expander {
                 }
 
                 String replacedArguments = replaceVariablesInArguments(functionsArgumentsToQuote, varsQuote, quote);
-
-                Quote newQuote = new Quote(program, value, FixedLabel.EMPTY, nameOffunctionToQuote, replacedArguments);
+                Label quoteLabel = FixedLabel.EMPTY;
+                if (isFirstArg) {
+                    quoteLabel = quote.getLabel();
+                    isFirstArg = false;
+                }
+                Quote newQuote = new Quote(program, value, quoteLabel, nameOffunctionToQuote, replacedArguments);
                 result.add(newQuote);
             }
         }
@@ -167,7 +167,6 @@ public class Expander {
         return result;
     }
 
-    // פונקציה עזר להחלפת משתנים במחרוזת הארגומנטים
     private String replaceVariablesInArguments(String arguments, Map<Variable,Variable> varsQuote, Quote originalQuote) {
         if (arguments == null || arguments.isEmpty()) {
             return arguments;
