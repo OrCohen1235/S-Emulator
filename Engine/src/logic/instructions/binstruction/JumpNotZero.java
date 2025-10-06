@@ -43,6 +43,9 @@ public class JumpNotZero extends Instruction implements BaseInstruction, JumpIns
     }
 
     public String getCommand() {
+        if (super.getVar().getRepresentation() == null){
+            int x=0;
+        }
         return "IF " +super.getVar().getRepresentation()+ " != 0 " +" GOTO "+ jnzlabel.getLabelRepresentation();
     }
 

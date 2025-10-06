@@ -207,7 +207,7 @@ public class ExecutionController {
         lblCycles.setText(String.valueOf(programService.getCycles()));
 
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
-        parent.refreshInstructions();
+//        parent.refreshInstructions();
 
         programService.resetCycles();
         programService.resetMaps();

@@ -1,6 +1,5 @@
 package logic.expansion;
 
-import logic.function.Function;
 import logic.instructions.JumpInstruction;
 import logic.instructions.binstruction.Decrease;
 import logic.instructions.binstruction.Increase;
@@ -69,7 +68,7 @@ public class Expander {
 
         Map<Variable,Variable> varsQuote= new HashMap<>();
         Map<Label,Label> labelsQuote= new HashMap<>();
-
+        int m=1;
         List<String> functionArgumentsList = quote.functionArgumentsToStringList(quote.getFunctionArguments());
         List<Variable> xVars = quote.getFunction().getMainProgram().getInputVariables();
         int i = 0;
@@ -77,14 +76,19 @@ public class Expander {
         for (String arg : functionArgumentsList) {
             if (quote.isFirstArgIsVar(arg)){
                 if (!arg.isEmpty()) {
-                    Variable value = context.getFreshWorkVal();
+                    Variable value;
+                    value = context.getFreshWorkVal();
+                    quote.getFunction().getMainProgram().setValueToMapsByString(value.getRepresentation());
                     Variable key = quote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
                     Label quoteLabel = FixedLabel.EMPTY;
                     if (isFirstArg) {
                         quoteLabel = quote.getLabel();
                         isFirstArg = false;
                     }
-                    Assignment assignment = new Assignment(program, value, key,quoteLabel);
+                    if (key == null){
+                        key = value;
+                    }
+                    Assignment assignment = new Assignment(program, value, key, quoteLabel);
                     result.add(assignment);
                 }
             } else {
@@ -99,7 +103,7 @@ public class Expander {
                     nameOffunctionToQuote = arg;
                 }
 
-                String replacedArguments = replaceVariablesInArguments(functionsArgumentsToQuote, varsQuote, quote);
+                String replacedArguments = replaceVariablesInArguments1(functionsArgumentsToQuote, varsQuote, quote);
                 Label quoteLabel = FixedLabel.EMPTY;
                 if (isFirstArg) {
                     quoteLabel = quote.getLabel();
@@ -109,51 +113,50 @@ public class Expander {
                 result.add(newQuote);
             }
         }
-
-        for (int j=1; j<=functionArgumentsList.size(); j++ ) {
-            varsQuote.put(new VariableImpl(VariableType.INPUT,j), result.get(j-1).getVar());
+        for (int j=1; j<=functionArgumentsList.size(); j++) {
+            varsQuote.put(new VariableImpl(VariableType.INPUT, j), result.get(j - 1).getVar());
         }
 
-        List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
-        for (Instruction inst : oldInstructions) {
-            Variable varToReplace = inst.getVar();
-            Variable newVar = varsQuote.get(varToReplace);
-            if (newVar == null) {
-                newVar = context.getFreshWorkVal();
-            }
-            varsQuote.put(varToReplace, newVar);
+            List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
+            for (Instruction inst : oldInstructions) {
 
-            Label oldLabel = inst.getLabel();
-            Label newLabel;
-            if (oldLabel.getLabelRepresentation() != "" && !labelsQuote.containsKey(oldLabel)) {
-                newLabel= context.getFreshLabel();
-                labelsQuote.put(oldLabel, newLabel);
-            }
-            else if (labelsQuote.containsKey(oldLabel)){
-                newLabel = labelsQuote.get(oldLabel);
-            }
-            else {
-                newLabel= new LabelImpl("");
-            }
-
-            Label newJumpLabel;
-            if (inst instanceof JumpInstruction) {
-                JumpInstruction jump = (JumpInstruction) inst;
-                Label oldJumpLabel = jump.getJumpLabel();
-
-                if (labelsQuote.containsKey(oldJumpLabel)) {
-                    newJumpLabel = labelsQuote.get(oldJumpLabel);
+                Variable varToReplace = inst.getVar();
+                Variable newVar = varsQuote.get(varToReplace);
+                if (newVar == null) {
+                    newVar = context.getFreshWorkVal();
                 }
-                else {
-                    newJumpLabel = context.getFreshLabel();
-                    labelsQuote.put(oldJumpLabel, newJumpLabel);
+                if (!(inst instanceof GotoLabel)) {
+                    varsQuote.put(varToReplace, newVar);
                 }
+
+                Label oldLabel = inst.getLabel();
+                Label newLabel;
+                if (!Objects.equals(oldLabel.getLabelRepresentation(), "") && !labelsQuote.containsKey(oldLabel)) {
+                    newLabel = context.getFreshLabel();
+                    labelsQuote.put(oldLabel, newLabel);
+                } else if (labelsQuote.containsKey(oldLabel)) {
+                    newLabel = labelsQuote.get(oldLabel);
+                } else {
+                    newLabel = new LabelImpl("");
+                }
+
+                Label newJumpLabel;
+                if (inst instanceof JumpInstruction jump) {
+                    Label oldJumpLabel = jump.getJumpLabel();
+
+                    if (labelsQuote.containsKey(oldJumpLabel)) {
+                        newJumpLabel = labelsQuote.get(oldJumpLabel);
+                    } else {
+                        newJumpLabel = context.getFreshLabel();
+                        labelsQuote.put(oldJumpLabel, newJumpLabel);
+                    }
+                } else {
+                    newJumpLabel = new LabelImpl("");
+                }
+
+                result.add(createInstructionToQuote(newVar, newLabel, newJumpLabel, varsQuote, inst, varToReplace));
             }
-            else {
-                newJumpLabel = new LabelImpl("");
-            }
-            result.add(createInstructionToQuote(newVar,newLabel,newJumpLabel,varsQuote,inst, varToReplace));
-        }
+
 
         Assignment assignment;
         Label assignmentLabel=new LabelImpl("EMPTY");
@@ -179,7 +182,6 @@ public class Expander {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i].trim();
 
-            // בדיקה האם זה משתנה שצריך להחליף
             if (originalQuote.isFirstArgIsVar(arg)) {
                 Variable oldVar = originalQuote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
                 if (oldVar != null && varsQuote.containsKey(oldVar)) {
@@ -189,7 +191,6 @@ public class Expander {
                     result.append(arg);
                 }
             } else {
-                // זו הפעלת פונקציה - נשאיר אותה כמו שהיא (תטופל רקורסיבית בהרחבה הבאה)
                 result.append(arg);
             }
 
@@ -200,6 +201,92 @@ public class Expander {
 
         return result.toString();
     }
+
+    private String replaceVariablesInArguments1(String arguments, Map<Variable,Variable> varsQuote, Quote originalQuote) {
+        if (arguments == null || arguments.isEmpty()) {
+            return arguments;
+        }
+
+        StringBuilder result = new StringBuilder();
+        StringBuilder currentArg = new StringBuilder();
+        int depth = 0; // עומק של סוגריים
+
+        for (int i = 0; i < arguments.length(); i++) {
+            char ch = arguments.charAt(i);
+
+            if (ch == '(') {
+                depth++;
+                currentArg.append(ch);
+            }
+            else if (ch == ')') {
+                depth--;
+                currentArg.append(ch);
+            }
+            else if (ch == ',' && depth == 0) {
+                // הגענו לסוף ארגומנט ברמה העליונה
+                String arg = currentArg.toString().trim();
+
+                if (!result.isEmpty()) {
+                    result.append(",");
+                }
+                result.append(processArgument(arg, varsQuote, originalQuote));
+
+
+                currentArg = new StringBuilder();
+            }
+            else {
+                currentArg.append(ch);
+            }
+        }
+
+        // טפל בארגומנט האחרון
+        if (currentArg.length() > 0) {
+            String arg = currentArg.toString().trim();
+            if (!result.isEmpty()) {
+                result.append(",");
+            }
+            result.append(processArgument(arg, varsQuote, originalQuote));
+        }
+
+        return result.toString();
+    }
+
+    // מתודת עזר שמעבדת ארגומנט בודד
+    private String processArgument(String arg, Map<Variable,Variable> varsQuote, Quote originalQuote) {
+        // אם זה משתנה פשוט
+        if (originalQuote.isFirstArgIsVar(arg)) {
+            Variable oldVar = originalQuote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
+            if (oldVar != null && varsQuote.containsKey(oldVar)) {
+                Variable newVar = varsQuote.get(oldVar);
+                return newVar.getRepresentation();
+            } else {
+                return arg;
+            }
+        }
+
+        // אם זו פונקציה מקוננת
+        if (arg.startsWith("(") && arg.endsWith(")")) {
+            String inner = arg.substring(1, arg.length() - 1);
+
+            int firstComma = inner.indexOf(',');
+            if (firstComma != -1) {
+                String functionName = inner.substring(0, firstComma).trim();
+                String functionArgs = inner.substring(firstComma + 1).trim();
+
+                // החלף משתנים בארגומנטים של הפונקציה המקוננת - רקורסיה
+                String replacedArgs = replaceVariablesInArguments1(functionArgs, varsQuote, originalQuote);
+
+                return "(" + functionName + "," + replacedArgs + ")";
+            } else {
+                // פונקציה ללא ארגומנטים
+                return arg;
+            }
+        }
+
+        // משהו אחר
+        return arg;
+    }
+
 
     public Instruction createInstructionToQuote(Variable newVar,Label newLabel,Label newJumpLabel, Map<Variable,Variable> varsQuote,Instruction inst, Variable varToReplace) {
         try {
@@ -239,6 +326,7 @@ public class Expander {
                     Quote quote = (Quote) inst;
                     String name=((Quote) inst).getFunctionName();
                     String argument=((Quote) inst).getFunctionArguments();
+                    argument = replaceVariablesInArguments1(argument, varsQuote, quote);
                     yield new Quote(program,newVar,newLabel,name,argument);
                 }
                 case JUMP_EQUAL_FUNCTION -> {

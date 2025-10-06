@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class HistoryController {
     @FXML private TableView<HistoryRow> historyTable;
-    @FXML private TableColumn<HistoryRow, String> colRunNumber, colY, colDegree, colCycles;
+    @FXML private TableColumn<HistoryRow, String> colRunNumber, colY, colDegree, colCycles, colProgramName;
 
     @FXML private Button btnShowStatus, btnReRun;
 
@@ -30,6 +30,7 @@ public class HistoryController {
         colY.setCellValueFactory(cellData -> cellData.getValue().yProperty());
         colDegree.setCellValueFactory(cellData -> cellData.getValue().degreeProperty());
         colCycles.setCellValueFactory(cellData -> cellData.getValue().cyclesProperty());
+        colProgramName.setCellValueFactory(cellData -> cellData.getValue().programNameProperty());
 
         chooseHistoryRow();
         unChooseHistoryRow();

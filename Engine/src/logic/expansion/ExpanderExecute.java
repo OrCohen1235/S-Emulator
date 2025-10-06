@@ -22,10 +22,10 @@ public class ExpanderExecute {
     public ExpanderExecute(Program program) {
         this.program = program;
         if (!program.getIsMainProgram()) {
-            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex(), getMaxLabelNumber() + 1);
+            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex()+1, getMaxLabelNumber() + 1);
         }// Start degree=1; next free label
         else {
-            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex(), getMaxLabelNumber() + 1);
+            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex()+1, getMaxLabelNumber() + 1);
         }
         expander = new Expander(expansionContext);
     }
@@ -37,6 +37,7 @@ public class ExpanderExecute {
         expansionContext.setNextLabelIdx(maxLabel);
         expansionContext.setNextWorkIdx(maxWorkIndex);
         program.resetMapVariables();
+        program.resetFunctions();
         // Compute degrees for full expansion tree
     }
 
@@ -63,6 +64,7 @@ public class ExpanderExecute {
         int expand=0; // 1-based parent index in flattened view
 
         for (int i=0; i<=degree; i++) {
+
             if (i==0)
             {
                 program.setExpandInstructionsByDegreeHelper(program.getOriginalInstructions());
@@ -94,11 +96,12 @@ public class ExpanderExecute {
 
         expansionContext.setNextLabelIdx(maxLabel);
         expansionContext.setNextWorkIdx(maxWorkIndex);
-        program.resetMapVariables();
-
         program.setExpandInstructionsByDegree(out);
+        program.resetMapVariables();
+        program.resetFunctions();
         out.clear();
-        program.setExpandInstructionsByDegreeHelper(out);// Materialize chosen-degree view
+        program.setExpandInstructionsByDegreeHelper(out);
+        // Materialize chosen-degree view
     }
 
 
@@ -137,6 +140,7 @@ public class ExpanderExecute {
             max=program.getMaxDegree();
         }
         program.resetMapVariables();
+        program.resetFunctions();
         return max;
     }
 

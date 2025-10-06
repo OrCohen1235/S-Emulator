@@ -15,6 +15,7 @@ public class HistoryRow {
     private final StringProperty y = new SimpleStringProperty();
     private final StringProperty cycles = new SimpleStringProperty();
     private final StringProperty degree = new SimpleStringProperty();
+    private final StringProperty programName = new SimpleStringProperty();
     private List<Long> statingInput =  new ArrayList();
     private Program program;
 
@@ -26,6 +27,7 @@ public class HistoryRow {
     public StringProperty yProperty() { return y; }
     public StringProperty cyclesProperty() { return cycles; }
     public StringProperty degreeProperty() { return degree; }
+    public StringProperty programNameProperty() { return programName; }
 
     public ObservableList<VarRow> getVars() {
         return vars;
@@ -38,6 +40,7 @@ public class HistoryRow {
         this.y.setValue(y);
         this.cycles.setValue(cycles);
         this.degree.setValue(degree);
+        this.programName.set(currentFunction.getName());
     }
 
     public int getDegree() {

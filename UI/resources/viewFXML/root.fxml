@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
@@ -56,10 +57,12 @@
 
   <!-- CENTER -->
   <center>
+    <!-- שמאלה: Instructions | ימינה: VBox עם Execution למעלה והיסטוריה מתחת, כמו בצילום -->
     <SplitPane dividerPositions="0.62">
       <items>
         <fx:include fx:id="instructions" source="instructions.fxml" />
 
+        <!-- צד ימין עטוף ב-VBox: Execution נמתח, History מתחתיו -->
         <VBox spacing="8">
           <children>
             <fx:include fx:id="execution" source="execution.fxml" VBox.vgrow="ALWAYS" />
@@ -70,6 +73,7 @@
     </SplitPane>
   </center>
 
+  <!-- BOTTOM: Status bar + Progress -->
   <bottom>
     <HBox alignment="CENTER_LEFT" spacing="12">
       <children>
@@ -81,6 +85,8 @@
         <Pane HBox.hgrow="ALWAYS" />
         <Label fx:id="lblStatus" text="" />
         <ProgressBar fx:id="progressBar" prefWidth="220.0" progress="0.0" />
+        <!-- אופציונלי: כפתור ביטול -->
+        <!-- <Button fx:id="btnCancelLoad" text="Cancel" onAction="#onCancelLoad" /> -->
         <Separator orientation="VERTICAL" />
         <Label text="FPS:" />
         <Label fx:id="lblFps" text="0" />

@@ -19,7 +19,8 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="colRunNumber" prefWidth="186.0" text="Run Number" />
+                        <TableColumn fx:id="colRunNumber" prefWidth="120" text="Run Number" />
+                        <TableColumn fx:id="colProgramName" prefWidth="150" text="Program Name" />
                         <TableColumn fx:id="colDegree" prefWidth="120" text="Degree" />
                         <TableColumn fx:id="colY" prefWidth="80" text="Y" />
                         <TableColumn fx:id="colCycles" prefWidth="90" text="Cycles" />

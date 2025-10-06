@@ -34,6 +34,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
     }
 
+
     private Quote(Program program, Variable var, Label label, String quoteName, String arguments, Program mainProgram) {
         super(program, InstructionData.QUOTE, var, label);
         this.functionName = quoteName;

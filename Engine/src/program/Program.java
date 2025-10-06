@@ -132,9 +132,6 @@ public class Program {
         this.instructions.addAll(lst); // Append initial instructions
     }
 
-    public void setFunctions(Function... functions) {
-        this.functions.addAll(Arrays.asList(functions));
-    }
 
     public void setFunctions(List<Function> functions) {
         this.functions.addAll(functions);
@@ -205,6 +202,9 @@ public class Program {
     }
 
     public Long getZVariablesFromMap(Variable key) {
+        if (!zVariables.containsKey(key)) {
+            int x =0 ;
+        }
         return zVariables.computeIfAbsent(key, k -> 0L); // Default to 0 if missing
     }
 

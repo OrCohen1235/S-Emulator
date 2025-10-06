@@ -127,7 +127,6 @@ public class InstructionsController {
 
         vm.reloadInstructions(programService, degree);
 
-        // להגדיר שורשים לשתי הטבלאות
         trvInstructions.setRoot(vm.getRoot());
         trvInstructionHistory.setRoot(vm.getExpandRoot());
         trvInstructions.refresh();
@@ -230,5 +229,7 @@ public class InstructionsController {
         highlightedRows.clear();
         trvInstructions.refresh();
     }
+
+
 
 }
