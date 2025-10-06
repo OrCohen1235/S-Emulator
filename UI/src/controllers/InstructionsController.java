@@ -125,7 +125,7 @@ public class InstructionsController {
         if (programService == null) return;
         refreshHighlightRows();
 
-        vm.reloadInstructions(programService, degree);
+        vm.reloadInstructions(programService, degree,programService.getInstructionsDTO());
 
         trvInstructions.setRoot(vm.getRoot());
         trvInstructionHistory.setRoot(vm.getExpandRoot());
