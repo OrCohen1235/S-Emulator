@@ -1,9 +1,7 @@
 package logic.dto;
 
 //import org.glassfish.jaxb.runtime.v2.schemagen.xmlschema.List;
-import org.glassfish.jaxb.runtime.v2.schemagen.xmlschema.List;
 
-import java.util.*;
 
 public class InstructionDTO {
     private final int displayIndex;
@@ -12,14 +10,16 @@ public class InstructionDTO {
     private final String command;
     private int cycles;
     private int father;
+    private final String instructionName;
 
-    public InstructionDTO(int displayIndex, String type, String label, String command, int cycles,int father) {
+    public InstructionDTO(int displayIndex, String type, String label, String command, int cycles,int father, String instructionName) {
         this.displayIndex = displayIndex;
         this.type = type;
         this.label = label;
         this.command = command;
         this.cycles = cycles;
         this.father = father;
+        this.instructionName = instructionName;
     }
     public int getDisplayIndex() {
         return displayIndex;
@@ -39,6 +39,10 @@ public class InstructionDTO {
 
     public String getCycles() {
         return String.valueOf(cycles);
+    }
+
+    public String getInstructionName() {
+        return instructionName;
     }
 
     public String getFather() {

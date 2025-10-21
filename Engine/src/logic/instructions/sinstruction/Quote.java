@@ -318,8 +318,26 @@ public class Quote extends Instruction implements SyntheticInstruction {
     public String getCommand() {
         String command = super.getVar().getRepresentation() + " <- " + "(" + function.getUserName();
         if (!functionArguments.isEmpty()){
-            command += ", " + functionArguments.toUpperCase();
+            command += ", ";
+            List<String> args = functionArgumentsToStringList(functionArguments);
+            for (String arg : args) {
+                if (isFirstArgIsVar(arg)){
+                    command += arg.toUpperCase() + ", ";
+                } else {
+                    String funcArgUserName = function.getFunctionByName(arg).getUserName();
+
+                    int commaIndex = arg.indexOf(',');
+                    String result = funcArgUserName;
+                    if (commaIndex != -1) {
+                        String restPart = arg.substring(commaIndex);
+
+                        result += restPart;
+                    }
+                    command += "(" + result.toUpperCase() +  ")" + " ,";
+                }
+            }
         }
+        command  = command.substring(0, command.length() - 2);
         command += ")";
         return command;
     }

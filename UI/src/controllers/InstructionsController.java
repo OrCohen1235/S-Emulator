@@ -41,6 +41,8 @@ public class InstructionsController {
     private final IntegerProperty highlightedRowIndex = new SimpleIntegerProperty(-1);
     private final ObservableSet<Integer> highlightedRows = FXCollections.observableSet();
 
+    private boolean hasExecuted = false;
+
     public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
 
     @FXML
@@ -58,6 +60,38 @@ public class InstructionsController {
         colExLabel.setCellValueFactory(new TreeItemPropertyValueFactory<>("label"));
         colExCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colExInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
+
+
+        colCycles.setCellFactory(column -> new TreeTableCell<InstructionDTO, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    return;
+                }
+
+                TreeTableRow<InstructionDTO> row = getTableRow();
+                InstructionDTO dto = (row != null) ? row.getItem() : null;
+
+                if (dto == null) {
+                    setText(item);
+                    return;
+                }
+
+                String instructionName = dto.getInstructionName();
+                boolean needsPlus = ("QUOTE".equals(instructionName) ||
+                        "JUMP_EQUAL_FUNCTION".equals(instructionName));
+
+                boolean hasFinished = hasExecuted || (programService != null && programService.isFinishedDebugging());
+
+                if (!needsPlus) {
+                    setText(item);
+                } else {
+                    setText(hasFinished ? item : item + "+");
+                }
+            }
+        });
 
         if (lblSummary != null) lblSummary.setText("Instructions: 0 | B/S: 0/0");
 
@@ -230,6 +264,9 @@ public class InstructionsController {
         trvInstructions.refresh();
     }
 
-
+    public void markAsExecuted(boolean executed) {
+        this.hasExecuted = executed;
+        trvInstructions.refresh();
+    }
 
 }

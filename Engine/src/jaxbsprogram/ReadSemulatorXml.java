@@ -70,15 +70,108 @@ public class ReadSemulatorXml {
                 .flatMap(inst -> Stream.ofNullable(inst.getSInstructionArguments())
                         .flatMap(args -> args.getSInstructionArgument().stream()))
                 .map(SInstructionArgument::getValue)
-                .filter(this::checkIfLabel) // Only values that represent labels
-                .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.getSLabel(), lbl))) // Keep labels not defined
-                .reduce((first, second) -> second) // Return last invalid label
-                .orElse(""); // Empty string if all labels are valid
+                .filter(this::checkIfLabel)
+                .filter(lbl -> !"EXIT".equals(lbl))
+                .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.getSLabel(), lbl)))
+                .reduce((first, second) -> second)
+                .orElse("");
+    }
+
+    public String checkFunctionValidity() {
+        List<SFunction> functions = getSFunctionList();
+        List<SInstruction> mainInstructions = getSInstructionList();
+
+        Set<String> definedFunctions = new HashSet<>();
+        for (SFunction func : functions) {
+            definedFunctions.add(func.getName());
+        }
+
+        String error = checkInstructionsForUndefinedFunctions(mainInstructions, definedFunctions, "main program");
+        if (!error.isEmpty()) {
+            return error;
+        }
+
+        for (SFunction function : functions) {
+            List<SInstruction> functionInstructions = function.getSInstructions().getSInstruction();
+            error = checkInstructionsForUndefinedFunctions(
+                    functionInstructions,
+                    definedFunctions,
+                    "function '" + function.getName() + "'"
+            );
+            if (!error.isEmpty()) {
+                return error;
+            }
+        }
+
+        return "";
+    }
+
+    private String checkInstructionsForUndefinedFunctions(
+            List<SInstruction> instructions,
+            Set<String> definedFunctions,
+            String context) {
+
+        for (SInstruction inst : instructions) {
+            if (inst.getSInstructionArguments() == null) {
+                continue;
+            }
+
+            List<SInstructionArgument> args = inst.getSInstructionArguments().getSInstructionArgument();
+            String instructionName = inst.getName();
+
+            if ("QUOTE".equals(instructionName) || "JUMP_EQUAL_FUNCTION".equals(instructionName)) {
+                if (!args.isEmpty()) {
+                    String functionName = args.get(0).getValue();
+
+                    if (checkIfLabel(functionName)) {
+                        continue; // זו תווית, לא פונקציה - הכל בסדר
+                    }
+
+                    if (!definedFunctions.contains(functionName)) {
+                        return "Error in " + context + ": Function '" + functionName + "' is not defined";
+                    }
+                }
+            }
+        }
+
+        return "";
     }
 
     private boolean checkIfLabel(String str) {
-        return str != null && !str.isEmpty() && str.charAt(0) == 'L'; // Label must start with 'L'
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+
+        if ("EXIT".equals(str)) {
+            return true;
+        }
+
+        if (str.charAt(0) == 'L') {
+            return true;
+        }
+
+        List<SInstruction> instructions = getSInstructionList();
+        for (SInstruction inst : instructions) {
+            if (str.equals(inst.getSLabel())) {
+                return true;
+            }
+        }
+
+        List<SFunction> functions = getSFunctionList();
+        for (SFunction func : functions) {
+            List<SInstruction> funcInstructions = func.getSInstructions().getSInstruction();
+            for (SInstruction inst : funcInstructions) {
+                if (str.equals(inst.getSLabel())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
+//    private boolean checkIfLabel(String str) {
+//        return str != null && !str.isEmpty() && (str.charAt(0) == 'L' || str.equals("EXIT"));
+//    }
 
     /** -------- New: validation logic moved into the engine (throws exceptions instead of printing) -------- */
     public static String validateXmlPath(String rawPath) {

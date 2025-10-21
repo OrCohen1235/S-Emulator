@@ -111,7 +111,7 @@ public class ProgramDTO {
         List <InstructionDTO> dtos = new ArrayList<>();
         int index =1;
         for (Instruction instruction : list) {
-                InstructionDTO dto =toDTO(index, instruction);
+            InstructionDTO dto =toDTO(index, instruction);
             if (instruction.getFather()!=null)
             {
                 dto.setFather(instruction.getIndexFatherLocation());
@@ -129,8 +129,9 @@ public class ProgramDTO {
         String label = instr.getLabel() != null ? instr.getLabel().getLabelRepresentation() : "";
         String command = instr.getCommand();
         int cycles = instr.getCycles();
+        String instructionName = instr.getName();
 
-        return new InstructionDTO(displayIndex, type, label, command, cycles, 0);
+        return new InstructionDTO(displayIndex, type, label, command, cycles, 0, instructionName);
     }
 
     public List<InstructionDTO> getExpandDTO(int index){

@@ -65,14 +65,12 @@ public class Expander {
 
     private List<Instruction> expandQuote(Quote quote) {
         List<Instruction> result = new ArrayList<>();
-
         Map<Variable,Variable> varsQuote= new HashMap<>();
         Map<Label,Label> labelsQuote= new HashMap<>();
-        int m=1;
         List<String> functionArgumentsList = quote.functionArgumentsToStringList(quote.getFunctionArguments());
         List<Variable> xVars = quote.getFunction().getMainProgram().getInputVariables();
-        int i = 0;
         boolean isFirstArg = true;
+
         for (String arg : functionArgumentsList) {
             if (quote.isFirstArgIsVar(arg)){
                 if (!arg.isEmpty()) {
@@ -117,45 +115,45 @@ public class Expander {
             varsQuote.put(new VariableImpl(VariableType.INPUT, j), result.get(j - 1).getVar());
         }
 
-            List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
-            for (Instruction inst : oldInstructions) {
+        List<Instruction> oldInstructions = quote.getInstructionsFromFunction();
+        for (Instruction inst : oldInstructions) {
 
-                Variable varToReplace = inst.getVar();
-                Variable newVar = varsQuote.get(varToReplace);
-                if (newVar == null) {
-                    newVar = context.getFreshWorkVal();
-                }
-                if (!(inst instanceof GotoLabel)) {
-                    varsQuote.put(varToReplace, newVar);
-                }
-
-                Label oldLabel = inst.getLabel();
-                Label newLabel;
-                if (!Objects.equals(oldLabel.getLabelRepresentation(), "") && !labelsQuote.containsKey(oldLabel)) {
-                    newLabel = context.getFreshLabel();
-                    labelsQuote.put(oldLabel, newLabel);
-                } else if (labelsQuote.containsKey(oldLabel)) {
-                    newLabel = labelsQuote.get(oldLabel);
-                } else {
-                    newLabel = new LabelImpl("");
-                }
-
-                Label newJumpLabel;
-                if (inst instanceof JumpInstruction jump) {
-                    Label oldJumpLabel = jump.getJumpLabel();
-
-                    if (labelsQuote.containsKey(oldJumpLabel)) {
-                        newJumpLabel = labelsQuote.get(oldJumpLabel);
-                    } else {
-                        newJumpLabel = context.getFreshLabel();
-                        labelsQuote.put(oldJumpLabel, newJumpLabel);
-                    }
-                } else {
-                    newJumpLabel = new LabelImpl("");
-                }
-
-                result.add(createInstructionToQuote(newVar, newLabel, newJumpLabel, varsQuote, inst, varToReplace));
+            Variable varToReplace = inst.getVar();
+            Variable newVar = varsQuote.get(varToReplace);
+            if (newVar == null) {
+                newVar = context.getFreshWorkVal();
             }
+            if (!(inst instanceof GotoLabel)) {
+                varsQuote.put(varToReplace, newVar);
+            }
+
+            Label oldLabel = inst.getLabel();
+            Label newLabel;
+            if (!Objects.equals(oldLabel.getLabelRepresentation(), "") && !labelsQuote.containsKey(oldLabel)) {
+                newLabel = context.getFreshLabel();
+                labelsQuote.put(oldLabel, newLabel);
+            } else if (labelsQuote.containsKey(oldLabel)) {
+                newLabel = labelsQuote.get(oldLabel);
+            } else {
+                newLabel = new LabelImpl("");
+            }
+
+            Label newJumpLabel;
+            if (inst instanceof JumpInstruction jump) {
+                Label oldJumpLabel = jump.getJumpLabel();
+
+                if (labelsQuote.containsKey(oldJumpLabel)) {
+                    newJumpLabel = labelsQuote.get(oldJumpLabel);
+                } else {
+                    newJumpLabel = context.getFreshLabel();
+                    labelsQuote.put(oldJumpLabel, newJumpLabel);
+                }
+            } else {
+                newJumpLabel = new LabelImpl("");
+            }
+
+            result.add(createInstructionToQuote(newVar, newLabel, newJumpLabel, varsQuote, inst, varToReplace));
+        }
 
 
         Assignment assignment;
@@ -170,38 +168,6 @@ public class Expander {
         return result;
     }
 
-    private String replaceVariablesInArguments(String arguments, Map<Variable,Variable> varsQuote, Quote originalQuote) {
-        if (arguments == null || arguments.isEmpty()) {
-            return arguments;
-        }
-
-        // פיצול הארגומנטים
-        String[] args = arguments.split(",");
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < args.length; i++) {
-            String arg = args[i].trim();
-
-            if (originalQuote.isFirstArgIsVar(arg)) {
-                Variable oldVar = originalQuote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
-                if (oldVar != null && varsQuote.containsKey(oldVar)) {
-                    Variable newVar = varsQuote.get(oldVar);
-                    result.append(newVar.getRepresentation());
-                } else {
-                    result.append(arg);
-                }
-            } else {
-                result.append(arg);
-            }
-
-            if (i < args.length - 1) {
-                result.append(",");
-            }
-        }
-
-        return result.toString();
-    }
-
     private String replaceVariablesInArguments1(String arguments, Map<Variable,Variable> varsQuote, Quote originalQuote) {
         if (arguments == null || arguments.isEmpty()) {
             return arguments;
@@ -209,7 +175,7 @@ public class Expander {
 
         StringBuilder result = new StringBuilder();
         StringBuilder currentArg = new StringBuilder();
-        int depth = 0; // עומק של סוגריים
+        int depth = 0;
 
         for (int i = 0; i < arguments.length(); i++) {
             char ch = arguments.charAt(i);
@@ -223,7 +189,6 @@ public class Expander {
                 currentArg.append(ch);
             }
             else if (ch == ',' && depth == 0) {
-                // הגענו לסוף ארגומנט ברמה העליונה
                 String arg = currentArg.toString().trim();
 
                 if (!result.isEmpty()) {
@@ -239,7 +204,6 @@ public class Expander {
             }
         }
 
-        // טפל בארגומנט האחרון
         if (currentArg.length() > 0) {
             String arg = currentArg.toString().trim();
             if (!result.isEmpty()) {
@@ -251,9 +215,7 @@ public class Expander {
         return result.toString();
     }
 
-    // מתודת עזר שמעבדת ארגומנט בודד
     private String processArgument(String arg, Map<Variable,Variable> varsQuote, Quote originalQuote) {
-        // אם זה משתנה פשוט
         if (originalQuote.isFirstArgIsVar(arg)) {
             Variable oldVar = originalQuote.getFunction().getMainProgram().getKeyFromMapsByString(arg);
             if (oldVar != null && varsQuote.containsKey(oldVar)) {
@@ -264,7 +226,6 @@ public class Expander {
             }
         }
 
-        // אם זו פונקציה מקוננת
         if (arg.startsWith("(") && arg.endsWith(")")) {
             String inner = arg.substring(1, arg.length() - 1);
 
@@ -273,17 +234,14 @@ public class Expander {
                 String functionName = inner.substring(0, firstComma).trim();
                 String functionArgs = inner.substring(firstComma + 1).trim();
 
-                // החלף משתנים בארגומנטים של הפונקציה המקוננת - רקורסיה
                 String replacedArgs = replaceVariablesInArguments1(functionArgs, varsQuote, originalQuote);
 
                 return "(" + functionName + "," + replacedArgs + ")";
             } else {
-                // פונקציה ללא ארגומנטים
                 return arg;
             }
         }
 
-        // משהו אחר
         return arg;
     }
 
@@ -340,7 +298,7 @@ public class Expander {
             throw new ProgramLoadException("Failed to load program '" + inst.getName() + "': " + e.getMessage(), e);
         }
 
-}
+    }
 
     private List<Instruction> expandAssignment(Assignment instruction) {
         // Implements v <- v1 using a work var z1 and three labels
@@ -436,7 +394,7 @@ public class Expander {
         out.add(new GotoLabel(program, jumpLabel, FixedLabel.EMPTY));
 
         // L1: not equal anchor
-         out.add(new Neutral(program, Variable.RESULT, L1));
+        out.add(new Neutral(program, Variable.RESULT, L1));
 
         return out;
     }

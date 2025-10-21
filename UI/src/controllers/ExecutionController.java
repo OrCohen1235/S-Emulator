@@ -62,6 +62,7 @@ public class ExecutionController {
         debuggerLevel = 0;
         prgExecution.setProgress(0);
         lblCycles.setText("0");
+        if (parent != null) parent.markInstructionsAsExecuted(false);
         refreshButtons();
 
         if (parent != null) parent.clearInstructionHighlight();
@@ -139,6 +140,7 @@ public class ExecutionController {
         debugging = false;
         programService.resetMaps();
         programService.resetCycles();
+        parent.markInstructionsAsExecuted(false);
         onProgramLoaded();
         varsTableController.setdebugger(false);
 
@@ -207,6 +209,7 @@ public class ExecutionController {
         lblCycles.setText(String.valueOf(programService.getCycles()));
 
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
+        parent.markInstructionsAsExecuted(true);
         parent.refreshInstructions();
 
         programService.resetCycles();
@@ -304,7 +307,6 @@ public class ExecutionController {
     }
 
     private void refreshButtons() {
-        //boolean atLeastOneStep = debuggerLevel > 0;
         boolean atEnd = debugging && parent != null && programService.isFinishedDebugging();
 
         btnRun.setDisable(debugging);

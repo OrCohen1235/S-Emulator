@@ -25,13 +25,21 @@ public class Engine {
     public Engine(String filePath) {
         try {
             readSem = new ReadSemulatorXml(filePath);
+
             String label = readSem.checkLabelValidity();
             if (!Objects.equals(label, "")){
                 // Thrown if there is a jump to a non-existing label
                 throw new ProgramLoadException("There is a jump command to label " + label + " that does not exist in the program.");
-            } else {
-                isLoaded = true; // Program loaded successfully
             }
+
+            String functionError = readSem.checkFunctionValidity();
+            if (!Objects.equals(functionError, "")) {
+                // Thrown if there is a reference to a non-existing function
+                throw new ProgramLoadException(functionError);
+            }
+
+            isLoaded = true; // Program loaded successfully
+
         } catch (Exception e) {
             throw e; // Re-throw original exception
         }

@@ -15,11 +15,8 @@ public class SimulatorApp extends Application {
         );
         FXMLLoader loader = new FXMLLoader(url);
         stage.setScene(new Scene(loader.load()));
-        stage.setWidth(1400);
-        stage.setHeight(900);
-        stage.setMinWidth(1100);
-        stage.setMinHeight(700);
-        stage.centerOnScreen();
+        stage.setMinWidth(800);
+        stage.setMinHeight(650);
         stage.setTitle("S-Emulator");
         stage.show();
     }

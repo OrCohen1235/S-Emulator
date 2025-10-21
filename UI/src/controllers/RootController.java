@@ -362,4 +362,10 @@ public class RootController {
     public void refreshInstructions(){
         instructionsController.refresh(getDegree());
     }
+
+    public void markInstructionsAsExecuted(boolean executed) {
+        if (instructionsController != null) {
+            instructionsController.markAsExecuted(executed);
+        }
+    }
 }
