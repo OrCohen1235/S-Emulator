@@ -13,7 +13,7 @@ public class InstructionsViewModel {
     private int countB = 0, countS = 0, sumCycles = 0;
 
     public void reloadInstructions(ProgramService ps, int degree, List<InstructionDTO> instructionsDTO) {
-        ps.loadExpasionByDegree(degree);
+        //ps.loadExpasionByDegree(degree);
         var prog = ps.getProgram();
         //var dtos = (prog != null) ? prog.getInstructionDTOs() : List.<InstructionDTO>of();
         var dtos = instructionsDTO;

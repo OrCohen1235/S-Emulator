@@ -6,6 +6,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -13,36 +14,26 @@ import java.util.stream.Stream;
 public class ReadSemulatorXml {
     private static final Pattern ENGLISH_PATH = Pattern.compile("[A-Za-z0-9\\\\/:._\\-() ]+");
 
-    private SProgram simulator; // Holds the unmarshalled program data
-    private final File xmlFile; // XML file reference
+    private SProgram simulator;
+    private InputStream fileContext;// Holds the unmarshalled program data
+     // XML file reference
 
     /** New: constructor that accepts a raw path string and validates it */
-    public ReadSemulatorXml(String rawPath) {
-        String cleaned = validateXmlPath(rawPath);   // throws on any problem
-        this.xmlFile = new File(cleaned);
+    public ReadSemulatorXml(InputStream fileContext) {
+        this.fileContext = fileContext;
         loadFiles();
     }
 
     /** Original constructor kept (still validates existence/isFile implicitly by JAXB load) */
-    public ReadSemulatorXml(File file) {
-        this.xmlFile = Optional.ofNullable(file)
-                .orElseThrow(() -> new IllegalArgumentException("file is null"));
 
-        Optional.of(xmlFile)
-                .filter(f -> f.exists() && f.isFile())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "XML file not found: " + xmlFile.getAbsolutePath() + "\n"));
-
-        loadFiles(); // Load and unmarshal the XML into simulator
-    }
 
     private void loadFiles() {
         try {
             JAXBContext context = JAXBContext.newInstance(SProgram.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
-            this.simulator = (SProgram) unmarshaller.unmarshal(xmlFile); // Convert XML to SProgram object
+            this.simulator = (SProgram) unmarshaller.unmarshal(fileContext); // Convert XML to SProgram object
         } catch (JAXBException e) {
-            throw new RuntimeException("Failed to unmarshal XML from: " + xmlFile.getAbsolutePath() + "\n", e);
+            throw new RuntimeException("Failed to unmarshal XML from: " + "\n", e);
         }
     }
 

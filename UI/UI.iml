@@ -82,5 +82,16 @@
     </orderEntry>
     <orderEntry type="module" module-name="Engine" />
     <orderEntry type="library" name="jakarta.activation-api" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../Engine/src/jaxbsprogram/xmlfiles/gson-2.11.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../Engine/src/jaxbsprogram/xmlfiles/gson-2.11.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

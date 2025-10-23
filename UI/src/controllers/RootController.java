@@ -25,6 +25,9 @@ import services.HistoryService;
 import services.ProgramService;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -166,14 +169,15 @@ public class RootController {
                 updateMessage("Reading file…");
                 updateProgress(0, 1);
 
-                programService.loadXml(file);
+                programService.loadXml(Path.of(file.getPath()));
 
                 updateMessage("Finalizing…");
-                int maxDegree = programService.getMaxDegree();
+                //int maxDegree = programService.getMaxDegree();
 
                 updateProgress(1, 1);
                 updateMessage("Done");
-                return maxDegree;
+                return 0;
+                //return maxDegree;
             }
         };
 

@@ -9,22 +9,22 @@ import logic.expansion.ExpanderExecute;
 import jaxbsprogram.ReadSemulatorXml;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
 public class Engine {
 
     // -------------------- Fields --------------------
-    private final ReadSemulatorXml readSem; // Responsible for reading XML file
-    private final Program program;          // Represents the program itself
-
-    private final ProgramDTO programDTO;    // DTO object for program data transfer
+    private  ReadSemulatorXml readSem; // Responsible for reading XML file
+    private  Program program;          // Represents the program itself
+    private  ProgramDTO programDTO;    // DTO object for program data transfer
     private Boolean isLoaded = false;       // Indicates if program was successfully loaded
 
     // -------------------- Constructor --------------------
-    public Engine(String filePath) {
+    public Engine(InputStream xmlFileContext) {
         try {
-            readSem = new ReadSemulatorXml(filePath);
+            readSem = new ReadSemulatorXml(xmlFileContext);
 
             String label = readSem.checkLabelValidity();
             if (!Objects.equals(label, "")){
@@ -47,10 +47,19 @@ public class Engine {
         programDTO = new ProgramDTO(program);
     }
 
+    public Engine(){};
+
+
+
+
     // -------------------- Basic accessors --------------------
     public Boolean getLoaded() { return isLoaded; }
 
     public ProgramDTO getProgramDTO() { return programDTO; }
+
+    public Program getProgram() {
+        return program;
+    }
 
     // -------------------- Run / Inputs --------------------
 

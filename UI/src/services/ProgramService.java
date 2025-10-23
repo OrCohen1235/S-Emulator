@@ -1,5 +1,17 @@
 package services;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import logic.dto.EngineDTO;
 import logic.dto.InstructionDTO;
 import logic.dto.ProgramDTO;
@@ -7,10 +19,7 @@ import program.ProgramLoadException;
 import model.VarRow;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 
 public class ProgramService {
@@ -19,13 +28,53 @@ public class ProgramService {
     private HistoryService history;
 
 
-    public void loadXml(File xmlPath) throws ProgramLoadException {
-        EngineDTO probe = new EngineDTO(xmlPath.toString());
-        if (!probe.getLoaded()) {
-            throw new ProgramLoadException("XML not valid for application semantics.");
+    public void loadXml(Path xmlPath) throws ProgramLoadException {
+        try {
+            String url = "http://localhost:8080/web_demo_Web/load-file";
+            String boundary = "----JavaBoundary" + UUID.randomUUID();
+            String CRLF = "\r\n";
+
+            // גוף ה-multipart
+            StringBuilder sb = new StringBuilder();
+            sb.append("--").append(boundary).append(CRLF);
+            sb.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
+                    .append(xmlPath.getFileName()).append("\"").append(CRLF);
+            sb.append("Content-Type: application/xml").append(CRLF).append(CRLF);
+
+            byte[] head = sb.toString().getBytes();
+            byte[] fileBytes = Files.readAllBytes(xmlPath);
+            byte[] tail = (CRLF + "--" + boundary + "--" + CRLF).getBytes();
+            byte[] body = new byte[head.length + fileBytes.length + tail.length];
+            System.arraycopy(head, 0, body, 0, head.length);
+            System.arraycopy(fileBytes, 0, body, head.length, fileBytes.length);
+            System.arraycopy(tail, 0, body, head.length + fileBytes.length, tail.length);
+
+            // שליחת הבקשה
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(body))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+
+            if (res.statusCode() != 200)
+                throw new ProgramLoadException("HTTP " + res.statusCode() + ": " + res.body());
+
+            // ניתוח התשובה
+
+            Resp r = new Gson().fromJson(res.body(), Resp.class);
+            if (r.error != null && !r.error.isBlank())
+                throw new ProgramLoadException("Server error: " + r.error);
+            if (!"ok".equalsIgnoreCase(r.status))
+                throw new ProgramLoadException("Unexpected status: " + r.status);
+
+            System.out.println("Loaded successfully!");
+
+        } catch (IOException | InterruptedException e) {
+            throw new ProgramLoadException("Failed to send HTTP request", e);
         }
-        this.engine = new EngineDTO(xmlPath.toString());
-        this.program = engine.getProgramDTO();
     }
 
     public int getMaxDegree() {
@@ -50,9 +99,34 @@ public class ProgramService {
         return program.getExpandDTO(parent.getDisplayIndex());
     }
 
-    public List<InstructionDTO> getInstructionsDTO()
-    {
-        return program.getInstructionDTOs();
+    public List<InstructionDTO> getInstructionsDTO() {
+        try {
+            String url = "http://localhost:8080/web_demo_Web/instructions";
+
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+
+            if (response.statusCode() == 200) {
+                Gson gson = new Gson();
+                return gson.fromJson(response.body(), new TypeToken<List<InstructionDTO>>() {}.getType());
+            } else {
+                System.err.println("Server returned error: " + response.statusCode());
+                return List.of();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return List.of();
+        }
     }
 
     public List<VarRow> getInputsVars() {
@@ -234,4 +308,11 @@ public class ProgramService {
     public void switchToFunction(String functionName) {
         program.switchToFunction(functionName);
     }
+
+    private static class Resp {
+        String status;
+        String error;
+    }
 }
+
+
