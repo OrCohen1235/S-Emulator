@@ -13,8 +13,7 @@ public class InstructionsViewModel {
     private int countB = 0, countS = 0, sumCycles = 0;
 
     public void reloadInstructions(ProgramService ps, int degree, List<InstructionDTO> instructionsDTO) {
-        //ps.loadExpasionByDegree(degree);
-        var prog = ps.getProgram();
+        ps.loadExpansionByDegree(degree);
         //var dtos = (prog != null) ? prog.getInstructionDTOs() : List.<InstructionDTO>of();
         var dtos = instructionsDTO;
         countB = 0; countS = 0; sumCycles = 0;
@@ -55,7 +54,8 @@ public class InstructionsViewModel {
 
     public String buildSummary(ProgramService ps) {
         int size = (root == null) ? 0 : root.getChildren().size();
-        return "Program loaded " + ps.getProgramName()
+        //ps.getProgramName()
+        return "Program loaded " + "hello"
                 + " | Instructions: " + size
                 + " | B/S: " + countB + "/" + countS;
     }

@@ -24,7 +24,6 @@
       <children>
         <ToolBar prefHeight="48">
           <items>
-            <Button onAction="#onLoadFile" text="Load File" />
             <Separator orientation="VERTICAL" />
             <Label text="Currently Loaded:" />
             <Label fx:id="lblFilePath" textOverrun="LEADING_ELLIPSIS" />

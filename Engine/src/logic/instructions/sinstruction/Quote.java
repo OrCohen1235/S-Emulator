@@ -51,6 +51,10 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return y;
     }
 
+    public void resetSumOfCycles() {
+        this.cycles = 0;
+    }
+
     @Override
     public int calcCycles() {
         return 5 + cycles;

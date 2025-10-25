@@ -201,6 +201,24 @@ public class ProgramDTO {
     }
 
     public void resetSumOfCycles() {
+        for (Function func : program.getFunctions()) {
+            func.getProgramExecutor().resetSumOfCycles();
+
+            for (Instruction instruction : func.getActiveInstructions()) {
+                if (instruction instanceof Quote) {
+                    Quote q = (Quote) instruction;
+                    q.resetSumOfCycles();
+                    q.getFunction().getProgramExecutor().resetSumOfCycles();
+                }
+            }
+        }
+        for (Instruction instruction : program.getActiveInstructions()) {
+            if (instruction instanceof Quote) {
+                Quote q = (Quote) instruction;
+                q.resetSumOfCycles();
+            }
+        }
+
         program.getProgramExecutor().resetSumOfCycles(); // Reset cycle counter
     }
 

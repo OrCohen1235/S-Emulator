@@ -17,7 +17,6 @@ public class HistoryRow {
     private final StringProperty degree = new SimpleStringProperty();
     private final StringProperty programName = new SimpleStringProperty();
     private List<Long> statingInput =  new ArrayList();
-    private Program program;
 
     public HistoryRow(List<Long>  statingInput) {
         this.statingInput.addAll(statingInput);
@@ -33,14 +32,13 @@ public class HistoryRow {
         return vars;
     }
 
-    public void setAllRemainingHistory(Program currentFunction, String runNumber, String y, String degree, String cycles, List<VarRow> vars){
-        this.program=currentFunction;
+    public void setAllRemainingHistory(String programName, String runNumber, String y, String degree, String cycles, List<VarRow> vars){
         this.vars.setAll(vars);
         this.runNumber.setValue(runNumber);
         this.y.setValue(y);
         this.cycles.setValue(cycles);
         this.degree.setValue(degree);
-        this.programName.set(currentFunction.getName());
+        this.programName.set(programName);
     }
 
     public int getDegree() {
@@ -51,7 +49,5 @@ public class HistoryRow {
         return statingInput;
     }
 
-    public String getFunctionName(){
-        return program.getName();
-    }
+    public String getFunctionName(){ return programName.getValue(); }
 }

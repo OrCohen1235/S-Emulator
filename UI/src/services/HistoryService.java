@@ -15,12 +15,12 @@ public class HistoryService {
         return history;
     }
 
-    public void addHistory(Program currentProgram, long executeOutput, int degree, int cycles, List<VarRow> vars){
+    public void addHistory(String currentProgramName, long executeOutput, int degree, int cycles, List<VarRow> vars){
         String y = String.valueOf(executeOutput);
         String deg = String.valueOf(degree);
         String cyc = String.valueOf(cycles);
         String  runNumber = String.valueOf(history.size());
-        history.getLast().setAllRemainingHistory(currentProgram,runNumber, y, deg, cyc, vars);
+        history.getLast().setAllRemainingHistory(currentProgramName,runNumber, y, deg, cyc, vars);
     }
 
     public void createHistory(List<Long> statingInput) {

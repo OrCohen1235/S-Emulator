@@ -148,13 +148,8 @@ public class RootController {
         }
     }
 
-    @FXML
-    private void onLoadFile() {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Choose Program XML");
-        File file = fc.showOpenDialog(
-                (lblFilePath != null) ? lblFilePath.getScene().getWindow() : null
-        );
+
+    public void onLoadFile(File file) {
         if (file == null) return;
 
         this.selectedFile = file;
@@ -169,15 +164,14 @@ public class RootController {
                 updateMessage("Reading file…");
                 updateProgress(0, 1);
 
-                programService.loadXml(Path.of(file.getPath()));
+                int maxDegree = programService.loadXml(Path.of(file.getPath()));
 
                 updateMessage("Finalizing…");
-                //int maxDegree = programService.getMaxDegree();
+
 
                 updateProgress(1, 1);
                 updateMessage("Done");
-                return 0;
-                //return maxDegree;
+                return maxDegree;
             }
         };
 
@@ -203,7 +197,6 @@ public class RootController {
                 spnDegree.setDisable(false);
                 spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
             }
-            setMaxDegree(maxDegree);
 
             if (instructionsController != null) instructionsController.refresh(getDegree());
             if (executionController != null) executionController.onProgramLoaded();

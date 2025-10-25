@@ -119,7 +119,7 @@ public class ExecutionController {
 
         output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
 
-        sumOfCyclesDebugging = programService.getProgram().getSumOfCycles();
+        sumOfCyclesDebugging = programService.getCycles();
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
@@ -250,12 +250,6 @@ public class ExecutionController {
     private void rebuildInputFields() {
         inputsContainer.getChildren().clear();
 
-        if (programService == null || !programService.hasProgram()) {
-            inputsContainer.setManaged(false);
-            inputsContainer.setVisible(false);
-            return;
-        }
-
         var vars = programService.getInputsVars();
         boolean has = !vars.isEmpty();
         for (var node : vars) {
@@ -270,38 +264,14 @@ public class ExecutionController {
 
     }
 
-    private void addTailField(int index) {
-        TextField tf = new TextField();
-        tf.setPromptText("X" + index);
-
-        tf.prefWidthProperty().bind(inputsContainer.widthProperty());
-
-        final ChangeListener<String>[] holder = new ChangeListener[1];
-
-        holder[0] = (obs, oldV, newV) -> {
-            if (newV != null && !newV.isEmpty()) {
-                tf.textProperty().removeListener(holder[0]);
-                addTailField(index + 1);
-            }
-        };
-
-        tf.textProperty().addListener(holder[0]);
-
-        inputsContainer.getChildren().add(tf);
-        inputsContainer.prefWidthProperty().bind(inputsContainer.widthProperty());
-        inputsContainer.prefHeightProperty().bind(inputsContainer.heightProperty());
-        inputsContainer.heightProperty().addListener((obs, oldV, newV) -> {
-            inputsScroll.setVvalue(1.0);
-        });
-    }
 
     private void showInitialVariables() {
         programService.resetMaps();
-        if (programService == null || !programService.hasProgram()) {
+        /*if (programService == null || !programService.hasProgram()) {
             varsTableController.setItems(FXCollections.observableArrayList());
 
             return;
-        }
+        }*/
         varsTableController.setItems(FXCollections.observableArrayList(programService.getAllVarsSorted()));
 
     }
