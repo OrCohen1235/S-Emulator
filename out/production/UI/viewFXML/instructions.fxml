@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controllers.InstructionsController"
+      spacing="8"
+      minWidth="300"
+      minHeight="400">
+
+  <children>
+
+    <TitledPane expanded="true" text="Instructions" VBox.vgrow="ALWAYS">
+      <content>
+        <VBox spacing="0" minHeight="200">
+          <children>
+            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+              <content>
+                <TreeTableView fx:id="trvInstructions" minHeight="200" VBox.vgrow="ALWAYS">
+                  <columns>
+                    <TreeTableColumn fx:id="colIndex" text="#" minWidth="50" prefWidth="60"/>
+                    <TreeTableColumn fx:id="colType" text="B/S" minWidth="50" prefWidth="80"/>
+                    <TreeTableColumn fx:id="colLabel" text="Label" minWidth="80" prefWidth="120"/>
+                    <TreeTableColumn fx:id="colCycles" text="Cycles" minWidth="60" prefWidth="80"/>
+                    <TreeTableColumn fx:id="colInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
+                  </columns>
+                  <columnResizePolicy>
+                    <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                  </columnResizePolicy>
+                </TreeTableView>
+              </content>
+            </ScrollPane>
+
+            <HBox spacing="8">
+              <children>
+                <Label text="Summary:" />
+                <Label fx:id="lblSummary" text="Instructions: 0 | B/S: 0/0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+              </children>
+              <padding>
+                <Insets top="10" right="12" bottom="10" left="12"/>
+              </padding>
+            </HBox>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+
+    <TitledPane expanded="true" text="Instruction History" VBox.vgrow="ALWAYS">
+      <content>
+        <VBox spacing="0" minHeight="200">
+          <children>
+            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+              <content>
+                <TreeTableView fx:id="trvInstructionHistory" minHeight="200" VBox.vgrow="ALWAYS">
+                  <columns>
+                    <TreeTableColumn fx:id="colExIndex" text="#" minWidth="50" prefWidth="60"/>
+                    <TreeTableColumn fx:id="colExType" text="B/S" minWidth="50" prefWidth="80"/>
+                    <TreeTableColumn fx:id="colExLabel" text="Label" minWidth="80" prefWidth="120"/>
+                    <TreeTableColumn fx:id="colExCycles" text="Cycles" minWidth="60" prefWidth="80"/>
+                    <TreeTableColumn fx:id="colExInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
+                  </columns>
+                  <columnResizePolicy>
+                    <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                  </columnResizePolicy>
+                </TreeTableView>
+              </content>
+            </ScrollPane>
+          </children>
+        </VBox>
+      </content>
+    </TitledPane>
+
+  </children>
+
+  <padding>
+    <Insets top="8" right="8" bottom="8" left="8"/>
+  </padding>
+</VBox>

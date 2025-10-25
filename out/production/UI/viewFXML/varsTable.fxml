@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="8" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.VarsTableController">
+
+    <children>
+        <TableView fx:id="tblVars" prefHeight="330.0" prefWidth="335.0" VBox.vgrow="ALWAYS">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colVarName" prefWidth="118.5" text="Name" />
+                <TableColumn fx:id="colVarType" prefWidth="114.5" text="Type" />
+                <TableColumn fx:id="colVarValue" prefWidth="103.5" text="Value" />
+            </columns>
+        </TableView>
+    </children>
+</VBox>
