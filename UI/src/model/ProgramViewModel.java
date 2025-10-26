@@ -44,7 +44,6 @@ public class ProgramViewModel {
     public void setRunCount(int count) { this.runCount.set(count); }
     public void setAvgCost(double cost) { this.avgCost.set(cost); }
 
-    // עדכון מתוך אובייקט אחר
     public void updateFrom(ProgramViewModel other) {
         this.programName.set(other.getProgramName());
         this.uploader.set(other.getUploader());

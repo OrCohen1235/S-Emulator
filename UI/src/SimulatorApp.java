@@ -1,11 +1,10 @@
+import controllers.DashboardController;
 import controllers.LoginController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import services.RemoteUserStatsService;
-import services.UserService;
-import services.UserStatsService;
+import services.*;
 
 import java.net.URL;
 import java.util.Objects;
@@ -20,6 +19,7 @@ public class SimulatorApp extends Application {
         String serverUrl = "http://localhost:8080/web_demo_Web";
         userService = new UserService();
         userStatsService = new RemoteUserStatsService(serverUrl);
+        ProgramStatsService programStatsService= new RemoteProgramStatsService(serverUrl);
 
         URL url = Objects.requireNonNull(
                 SimulatorApp.class.getResource("viewFXML/login.fxml"),
@@ -29,7 +29,7 @@ public class SimulatorApp extends Application {
         Scene scene = new Scene(loader.load());
 
         LoginController loginController = loader.getController();
-        loginController.setServices(userService, userStatsService);
+        loginController.setServices(userService, userStatsService,programStatsService);
 
         stage.setScene(scene);
         stage.setMinWidth(800);

@@ -26,10 +26,41 @@ import static services.Constants.*;
 
 public class ProgramService {
     private HistoryService history;
+
+    public void startProgram(String programName) {
+        try {
+            String url = SERVER_URL + "start-program";
+            String jsonBody = GSON.toJson(programName);
+
+            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
+                    header("Content-Type", "application/json").
+                    POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                ProgramService.Response resp = GSON.fromJson(response.body(), ProgramService.Response.class);
+            } else {
+                System.err.println("HTTP error: " + response.statusCode() + "from: executProgram");
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     //public final static Gson gson = new Gson();
     //private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    public int loadXml(Path xmlPath) throws ProgramLoadException {
+    private static class UploadResponse {
+        String status;
+        String error;
+        String message;
+        String programName;
+        int maxDegree;
+        int instructionCount;
+        String fileName;
+    }
+
+    public void loadXml(Path xmlPath) throws ProgramLoadException {
         try {
             String url = SERVER_URL + "load-file";
             String boundary = "----JavaBoundary" + UUID.randomUUID();
@@ -44,36 +75,50 @@ public class ProgramService {
             byte[] head = sb.toString().getBytes();
             byte[] fileBytes = Files.readAllBytes(xmlPath);
             byte[] tail = (CRLF + "--" + boundary + "--" + CRLF).getBytes();
+
             byte[] body = new byte[head.length + fileBytes.length + tail.length];
             System.arraycopy(head, 0, body, 0, head.length);
             System.arraycopy(fileBytes, 0, body, head.length, fileBytes.length);
             System.arraycopy(tail, 0, body, head.length + fileBytes.length, tail.length);
 
-            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url))
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
                     .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(body)).build();
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(body))
+                    .build();
 
             HttpResponse<String> res = HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
 
-            if (res.statusCode() != 200)
+            if (res.statusCode() != 200) {
+                if (res.statusCode() == 409) {
+                    throw new IllegalStateException("Program is already loaded");
+                }
                 throw new ProgramLoadException("HTTP " + res.statusCode() + ": " + res.body());
+            }
 
-            Response r = GSON.fromJson(res.body(), Response.class);
-            int maxDegree = Integer.parseInt(r.data.toString());
 
-            if (r.error != null && !r.error.isBlank())
-                throw new ProgramLoadException("Server error: " + r.error + " from: loadXml");
-            if (!"ok".equalsIgnoreCase(r.status))
+            UploadResponse r = GSON.fromJson(res.body(), UploadResponse.class);
+
+            // בדיקת שגיאה
+            if (r.error != null && !r.error.isBlank()) {
+                throw new ProgramLoadException("Server error: " + r.error);
+            }
+
+            // בדיקת סטטוס
+            if (r.status == null || !r.status.equalsIgnoreCase("ok")) {
                 throw new ProgramLoadException("Unexpected status: " + r.status);
+            }
 
-            System.out.println("Loaded successfully!");
-            return maxDegree;
+            // הצלחה!
+            System.out.println("✅ Program uploaded successfully: " + r.programName);
+            System.out.println("   Max Degree: " + r.maxDegree);
+            System.out.println("   Instructions: " + r.instructionCount);
 
         } catch (IOException | InterruptedException e) {
             throw new ProgramLoadException("Failed to send HTTP request", e);
         }
-
     }
+
 
     public int getMaxDegree() {
         try {
@@ -720,6 +765,7 @@ public class ProgramService {
         String status;
         String error;
         Object data;
+        String message;
     }
 
     private static class ExecuteProgramResponse {

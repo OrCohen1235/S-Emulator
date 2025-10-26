@@ -10,22 +10,31 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import model.HistoryRow;
 import model.ProgramViewModel;
 import model.UserViewModel;
+import program.ProgramLoadException;
 import services.ProgramService;
+import services.ProgramStatsService;
 import services.UserService;
 import services.UserStatsService;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 public class DashboardController {
 
@@ -85,7 +94,9 @@ public class DashboardController {
     private ProgramService programService;
     private RootController rootController;
     private UserStatsService userStatsService;
-    private Timeline refreshTimeline;
+    private ProgramStatsService programStatsService;
+    private Timeline refreshUsersTimeline;
+    private Timeline refreshProgramsTimeline;
     private UserService userService;
 
     // ============== Initialize ==============
@@ -142,6 +153,7 @@ public class DashboardController {
             if (colCUUsed != null) colCUUsed.setCellValueFactory(c -> c.getValue().creditsUsedProperty());
             if (colCURuns != null) colCURuns.setCellValueFactory(c -> c.getValue().runsProperty());
         }
+
         programService = new ProgramService();
         updateCreditsField();
     }
@@ -153,7 +165,12 @@ public class DashboardController {
 
     public void setUserStatsService(UserStatsService service) {
         this.userStatsService = service;
-        startRefreshLoop();
+        startRefreshUsersLoop();
+    }
+
+    public void setProgramStatsService(ProgramStatsService service) {
+        this.programStatsService = service;
+        startRefreshProgramsLoop();
     }
 
     public void setUserService(UserService userService) {
@@ -177,7 +194,15 @@ public class DashboardController {
         if (f != null) {
             if (loadedFilePathField != null) loadedFilePathField.setText(f.getAbsolutePath());
             logAction(currentUserOrDash(), "Loaded file: " + f.getName());
-            programService.loadXml(Path.of(f.getPath()));
+            try {
+                programService.loadXml(Path.of(f.getPath()));
+
+        } catch (Exception ex) {
+            showError(ex.getMessage() + f.getName());
+        }
+
+            // רענון מיידי של טבלת התוכניות אחרי העלאה
+            refreshAvailablePrograms();
         }
     }
 
@@ -207,25 +232,53 @@ public class DashboardController {
         ProgramViewModel program = (availableProgramsTable != null)
                 ? availableProgramsTable.getSelectionModel().getSelectedItem()
                 : null;
+
         if (program == null) return;
 
-        logAction(currentUserOrDash(), "Executed program: " + program.getProgramName());
-        showInfo("Program executed",
-                "Program: " + program.getProgramName() + "\nUploader: " + program.getUploader());
+        try {
+            // 1. התחלת התוכנית בשרת
+            programService.startProgram(program.getProgramName());
+
+            // 2. לוג פעולה
+            logAction(currentUserOrDash(), "Executed program: " + program.getProgramName());
+
+            // 3. עצירת refresh loops
+            dispose();
+
+            // 4. טעינת root.fxml
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/viewFXML/root.fxml")
+            );
+
+            Parent root = loader.load();
+
+            // 5. החלפת הסצנה
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Program Execution - " + program.getProgramName());
+            stage.show();
+
+        } catch (ProgramLoadException e) {
+            showError("Failed to start program: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            showError("Failed to load execution view: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // ============== Connected Users refresh ==============
-    private void startRefreshLoop() {
+    private void startRefreshUsersLoop() {
         if (userStatsService == null) {
             System.err.println("userStatsService is null – refresh loop not started");
             return;
         }
-        if (refreshTimeline != null) refreshTimeline.stop();
+        if (refreshUsersTimeline != null) refreshUsersTimeline.stop();
 
-        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> refreshConnectedUsers()));
-        refreshTimeline.setCycleCount(Animation.INDEFINITE);
-        refreshTimeline.play();
-
+        refreshUsersTimeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> refreshConnectedUsers()));
+        refreshUsersTimeline.setCycleCount(Animation.INDEFINITE);
+        refreshUsersTimeline.play();
     }
 
     private void refreshConnectedUsers() {
@@ -234,16 +287,16 @@ public class DashboardController {
                 List<UserViewModel> snapshot = userStatsService.fetchConnectedUsers();
                 if (snapshot == null) snapshot = List.of();
                 final List<UserViewModel> finalSnapshot = snapshot;
-                Platform.runLater(() -> mergeSnapshot(finalSnapshot));
+                Platform.runLater(() -> mergeUsersSnapshot(finalSnapshot));
             } catch (Exception ex) {
                 System.err.println("Failed to refresh users: " + ex.getMessage());
             }
         }, "UserStatsRefresh").start();
     }
 
-    private void mergeSnapshot(List<UserViewModel> snapshot) {
+    private void mergeUsersSnapshot(List<UserViewModel> snapshot) {
         for (UserViewModel incoming : snapshot) {
-            int idx = findIndexByName(incoming.getName());
+            int idx = findUserIndexByName(incoming.getName());
             if (idx < 0) {
                 connectedUsers.add(incoming);
             } else {
@@ -254,15 +307,65 @@ public class DashboardController {
                 snapshot.stream().noneMatch(s -> s.getName().equals(curr.getName())));
     }
 
-    private int findIndexByName(String name) {
+    private int findUserIndexByName(String name) {
         for (int i = 0; i < connectedUsers.size(); i++) {
             if (connectedUsers.get(i).getName().equals(name)) return i;
         }
         return -1;
     }
 
+    // ============== Available Programs refresh ==============
+    private void startRefreshProgramsLoop() {
+        if (programStatsService == null) {
+            System.err.println("programStatsService is null – programs refresh loop not started");
+            return;
+        }
+        if (refreshProgramsTimeline != null) refreshProgramsTimeline.stop();
+
+        refreshProgramsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailablePrograms()));
+        refreshProgramsTimeline.setCycleCount(Animation.INDEFINITE);
+        refreshProgramsTimeline.play();
+
+        // רענון ראשוני מיידי
+        refreshAvailablePrograms();
+    }
+
+    private void refreshAvailablePrograms() {
+        new Thread(() -> {
+            try {
+                List<ProgramViewModel> snapshot = programStatsService.fetchAllPrograms();
+                if (snapshot == null) snapshot = List.of();
+                final List<ProgramViewModel> finalSnapshot = snapshot;
+                Platform.runLater(() -> mergeProgramsSnapshot(finalSnapshot));
+            } catch (Exception ex) {
+                System.err.println("Failed to refresh programs: " + ex.getMessage());
+            }
+        }, "ProgramStatsRefresh").start();
+    }
+
+    private void mergeProgramsSnapshot(List<ProgramViewModel> snapshot) {
+        for (ProgramViewModel incoming : snapshot) {
+            int idx = findProgramIndexByName(incoming.getProgramName());
+            if (idx < 0) {
+                programs.add(incoming);
+            } else {
+                programs.get(idx).updateFrom(incoming);
+            }
+        }
+        programs.removeIf(curr ->
+                snapshot.stream().noneMatch(s -> s.getProgramName().equals(curr.getProgramName())));
+    }
+
+    private int findProgramIndexByName(String name) {
+        for (int i = 0; i < programs.size(); i++) {
+            if (programs.get(i).getProgramName().equals(name)) return i;
+        }
+        return -1;
+    }
+
     public void dispose() {
-        if (refreshTimeline != null) refreshTimeline.stop();
+        if (refreshUsersTimeline != null) refreshUsersTimeline.stop();
+        if (refreshProgramsTimeline != null) refreshProgramsTimeline.stop();
     }
 
     // ============== Program Management ==============

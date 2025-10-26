@@ -196,6 +196,7 @@ public class Program {
         return functions;
     }
 
+
     // ==================== Variables (get/set) ====================
     public Long getXVariablesFromMap(Variable key) {
         return xVariables.computeIfAbsent(key, k -> 0L); // Default to 0 if missing

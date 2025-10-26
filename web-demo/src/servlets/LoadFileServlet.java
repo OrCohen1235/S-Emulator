@@ -1,105 +1,213 @@
 package servlets;
 
 import com.google.gson.Gson;
-import engine.Engine;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import session.SessionManager;
-import session.UserSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+import logic.dto.SystemProgramDTO;
+import users.ProgramRepository;
+import users.SystemProgram;
 import users.User;
 import users.UserManager;
-import utils.ServletsUtills;
 
-import java.io.Console;
+import java.io.PrintWriter;
+import java.util.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
-@WebServlet(name = "LoadFileServlet", urlPatterns = "/load-file")
+@WebServlet(name = "LoadFileServlet", urlPatterns = {"/load-file","/get-all-programs-dtos"})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 1024L * 1024L * 100L,
-        maxRequestSize = 1024L * 1024L * 120L
+        fileSizeThreshold = 1024 * 1024,           // 1 MB
+        maxFileSize = 1024L * 1024L * 100L,        // 100 MB
+        maxRequestSize = 1024L * 1024L * 120L      // 120 MB
 )
-public class LoadFileServlet extends HttpServlet {
-    private SessionManager sessionManager;
-    private UserManager userManager;
-    private final Gson gson = new Gson();
+public class LoadFileServlet extends BaseServlet {
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json; charset=UTF-8");
         resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-
-        String ctype = req.getContentType();
-        if (ctype == null || !ctype.toLowerCase().startsWith("multipart/")) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\":\"Content-Type must be multipart/form-data\"}");
-            return;
-        }
 
         try {
-            Part filePart = req.getPart("file");
-            if (filePart == null || filePart.getSize() == 0) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"error\":\"Missing file part named 'file'\"}");
-                return;
-            }
-            HttpSession session = req.getSession(false);
-            String username = (String) session.getAttribute("username");
+            ProgramRepository repo = getProgramRepository();
+            Collection<SystemProgram> systemPrograms = repo.getAllPrograms();
+            List<SystemProgramDTO> dtos = new ArrayList<>();
 
-            String submittedName = getSubmittedFileName(filePart);
-            if (submittedName == null || submittedName.isBlank()) submittedName = "uploaded";
-            String safeSuffix = "-" + submittedName.replaceAll("[^a-zA-Z0-9._-]", "_");
-
-            Path tempFile = Files.createTempFile("upload-", safeSuffix);
-            try (InputStream in = filePart.getInputStream()) {
-                Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            // 2) פתיחת Stream חדש מהקובץ הזמני, ובניית Engine חדש *עבור הבקשה הזו*
-            int maxDegree = 0 ;
-            try (InputStream in2 = Files.newInputStream(tempFile)) {
-                Engine engine = ServletsUtills.createNewSystemProgram(getServletContext(), in2, username);
-                engine.getProgramDTO().loadExpansion();
-                maxDegree = engine.getProgramDTO().getMaxDegree();
+            for (SystemProgram systemProgram : systemPrograms) {
+                dtos.add(new SystemProgramDTO(systemProgram));
             }
 
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write("{\"status\":\"ok\",\"data\":\"" + escapeJson(String.valueOf(maxDegree)) + "\"}");
-
-        } catch (ServletException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"error\":\"Invalid multipart request: " + escapeJson(e.getMessage()) + "\"}");
+            try (PrintWriter out = resp.getWriter()) {
+                Gson gson = new Gson();
+                out.print(gson.toJson(dtos));
+                out.flush();
+            }
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
+            e.printStackTrace();
+            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to retrieve programs: " + e.getMessage());
         }
     }
 
-    private static String getSubmittedFileName(Part part) {
-        String cd = part.getHeader("content-disposition");
-        if (cd == null) return null;
-        for (String token : cd.split(";")) {
-            String trimmedLower = token.trim().toLowerCase();
-            if (trimmedLower.startsWith("filename=")) {
-                String name = token.substring(token.indexOf('=') + 1).trim();
-                if (name.startsWith("\"") && name.endsWith("\"") && name.length() >= 2) {
-                    name = name.substring(1, name.length() - 1);
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ServletException {
+
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+
+        // 1. בדיקת Content-Type
+        String contentType = req.getContentType();
+        if (contentType == null || !contentType.toLowerCase().startsWith("multipart/")) {
+            sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Content-Type must be multipart/form-data");
+            return;
+        }
+
+        // 2. בדיקת התחברות
+        if (!isLoggedIn(req)) {
+            sendError(resp, HttpServletResponse.SC_UNAUTHORIZED,
+                    "Not logged in");
+            return;
+        }
+
+        String username = getLoggedInUsername(req);
+
+        try {
+            // 3. קבלת הקובץ
+            Part filePart = req.getPart("file");
+
+            if (filePart == null || filePart.getSize() == 0) {
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Missing file part named 'file'");
+                return;
+            }
+
+            // 4. קבלת שם הקובץ
+            String fileName = getSubmittedFileName(filePart);
+            if (fileName == null || fileName.isBlank()) {
+                fileName = "uploaded.xml";
+            }
+
+            System.out.println("[LoadFileServlet] Uploading file: " + fileName +
+                    " by user: " + username);
+
+            // 5. העלאה למאגר תוכניות
+            ProgramRepository repo = getProgramRepository();
+
+            try (InputStream xmlStream = filePart.getInputStream()) {
+
+                // יצירת SystemProgram חדש (שומר את ה-XML!)
+                SystemProgram program = repo.uploadProgram(username, xmlStream);
+
+                // 6. טעינת expansions (אם צריך)
+                program.getProgramDTO().loadExpansion();
+
+                // 7. עדכון סטטיסטיקות משתמש
+                UserManager userMgr = getUserManager();
+                User user = userMgr.getUser(username);
+                if (user != null) {
+                    user.addMainProgram();
                 }
-                int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-                return (slash >= 0) ? name.substring(slash + 1) : name;
+
+                // 8. תשובה מוצלחת
+                SystemProgramDTO dto = new SystemProgramDTO(program);
+
+                UploadResponse uploadResp = new UploadResponse(
+                        dto.getName(),
+                        dto.getMaxDegree(),
+                        dto.getInstructionCount(),  // ✅ תוקן - לא 0
+                        fileName
+                );
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                try (PrintWriter out = resp.getWriter()) {
+                    Gson gson = new Gson();
+                    out.print(gson.toJson(uploadResp));
+                    out.flush();
+                }
+
+            } catch (IllegalArgumentException e) {
+                // תוכנית כבר קיימת
+                sendError(resp, HttpServletResponse.SC_CONFLICT,
+                        "Program already exists: " + e.getMessage());
+            }
+
+        } catch (ServletException e) {
+            sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid multipart request: " + e.getMessage());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to upload program: " + e.getMessage());
+        }
+    }
+
+    /**
+     * חילוץ שם הקובץ מה-Part
+     */
+    private static String getSubmittedFileName(Part part) {
+        String contentDisposition = part.getHeader("content-disposition");
+
+        if (contentDisposition == null) {
+            return null;
+        }
+
+        for (String token : contentDisposition.split(";")) {
+            String trimmed = token.trim().toLowerCase();
+
+            if (trimmed.startsWith("filename=")) {
+                String fileName = token.substring(token.indexOf('=') + 1).trim();
+
+                // הסרת גרשיים
+                if (fileName.startsWith("\"") && fileName.endsWith("\"") &&
+                        fileName.length() >= 2) {
+                    fileName = fileName.substring(1, fileName.length() - 1);
+                }
+
+                // הסרת נתיב (אם יש)
+                int lastSlash = Math.max(
+                        fileName.lastIndexOf('/'),
+                        fileName.lastIndexOf('\\')
+                );
+
+                if (lastSlash >= 0) {
+                    fileName = fileName.substring(lastSlash + 1);
+                }
+
+                return fileName;
             }
         }
+
         return null;
     }
 
-    private static String escapeJson(String s) {
-        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
+    /**
+     * מחלקת תשובה להעלאה מוצלחת
+     */
+    private static class UploadResponse {
+        String status;
+        String error;
+        String programName;
+        int maxDegree;
+        int instructionCount;
+        String fileName;
+        String message;
+
+        UploadResponse(String programName, int maxDegree, int instructionCount,
+                       String fileName) {
+            this.status = "ok";
+            this.error = null;
+            this.programName = programName;
+            this.maxDegree = maxDegree;
+            this.instructionCount = instructionCount;
+            this.fileName = fileName;
+            this.message = "Program uploaded successfully";
+        }
     }
 }

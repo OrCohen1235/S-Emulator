@@ -1,26 +1,28 @@
 package session;
 
 import engine.Engine;
-import logic.dto.ProgramDTO;
-import program.ProgramLoadException;
+import users.SystemProgram;
 
-import java.io.InputStream;
-import java.util.*;
 
 public class UserSession {
 
     private final String sessionId;
     private String username;
-
-    // Program management
-    private final Map<String, Engine> loadedPrograms;
     private Engine currentEngine;
 
     public UserSession(String sessionId) {
         this.sessionId = sessionId;
-        this.loadedPrograms = new HashMap<>();
     }
 
+    public void setCurrentEngine(Engine currentEngine) {
+        this.currentEngine = currentEngine;
+    }
+
+    public Engine getCurrentEngine() {
+        return currentEngine;
+    }
+
+    // ========== Getters/Setters ==========
 
     public String getSessionId() {
         return sessionId;
@@ -32,45 +34,19 @@ public class UserSession {
 
     public void setUsername(String username) {
         this.username = username;
+        System.out.println("[UserSession] " + sessionId + " → " + username);
     }
 
-    public void loadProgram(String programName, InputStream xmlContent)
-            throws ProgramLoadException {
-
-        Objects.requireNonNull(programName, "Program name cannot be null");
-        Objects.requireNonNull(xmlContent, "XML content cannot be null");
-
-        Engine engine = new Engine(xmlContent);
-
-        if (!engine.getLoaded()) {
-            throw new ProgramLoadException("Failed to load program: " + programName);
-        }
-
-        loadedPrograms.put(programName, engine);
-        currentEngine = engine;
+    /**
+     * האם המשתמש מחובר
+     */
+    public boolean isLoggedIn() {
+        return username != null;
     }
 
-    public void switchToProgram(String programName) {
-        Engine engine = loadedPrograms.get(programName);
-
-        if (engine == null) {
-            throw new NoSuchElementException(
-                    "Program '" + programName + "' not found. Available programs: "
-            );
-        }
-
-        currentEngine = engine;
+    @Override
+    public String toString() {
+        return String.format("UserSession{id=%s, user=%s}",
+                sessionId, username != null ? username : "not logged in");
     }
-
-
-    public int getProgramCount() {
-        return loadedPrograms.size();
-    }
-
-
-    public Engine getCurrentEngine() {
-        return currentEngine;
-    }
-
-
 }

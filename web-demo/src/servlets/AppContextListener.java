@@ -1,39 +1,66 @@
 package servlets;
 
-import engine.Engine;
+import session.SessionManager;
+import users.ProgramRepository;
+import users.UserManager;
+
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-import session.SessionManager;
-
-import users.UserManager;
-
-
 
 /**
- * Initializes the application context.
+ * מאתחל את המערכת בהפעלת השרת
+ * ומנקה בסגירה
  */
 @WebListener
 public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        ServletContext context = sce.getServletContext();
+        ServletContext ctx = sce.getServletContext();
 
-        // Create singleton instances
-        SessionManager sessionManager = new SessionManager();
+        System.out.println("==============================================");
+        System.out.println("   S-Emulator Server Starting...");
+        System.out.println("==============================================");
+
         UserManager userManager = new UserManager();
+        SessionManager sessionManager = new SessionManager();
+        ProgramRepository programRepository = new ProgramRepository();
 
-        // Store in context (available to all servlets)
-        context.setAttribute("sessionManager", sessionManager);
-        context.setAttribute("userManager", userManager);
+        ctx.setAttribute("userManager", userManager);
+        ctx.setAttribute("sessionManager", sessionManager);
+        ctx.setAttribute("programRepository", programRepository);
 
-
+        System.out.println("✓ UserManager initialized");
+        System.out.println("✓ SessionManager initialized");
+        System.out.println("✓ ProgramRepository initialized");
+        System.out.println("==============================================");
+        System.out.println("   S-Emulator Server Ready!");
+        System.out.println("==============================================");
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("✓ Application shutdown complete");
+        ServletContext ctx = sce.getServletContext();
+
+        System.out.println("==============================================");
+        System.out.println("   S-Emulator Server Stopping...");
+        System.out.println("==============================================");
+
+        // ניקוי
+        SessionManager sessionMgr = (SessionManager) ctx.getAttribute("sessionManager");
+        if (sessionMgr != null) {
+            sessionMgr.clearAllSessions();
+        }
+
+        ProgramRepository progRepo = (ProgramRepository) ctx.getAttribute("programRepository");
+        if (progRepo != null) {
+            progRepo.clearAllPrograms();
+        }
+
+        System.out.println("==============================================");
+        System.out.println("   S-Emulator Server Stopped");
+        System.out.println("==============================================");
     }
 }

@@ -72,6 +72,14 @@ public class RootController {
         if (lblFilePath  != null) lblFilePath.setText("-");
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
 
+        if (instructionsController != null) instructionsController.refresh(getDegree());
+        if (executionController != null) executionController.onProgramLoaded();
+        if (historyController != null) historyController.clearHistory();
+        if (spnDegree != null) {
+            spnDegree.setDisable(false);
+            spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
+        }
+        setMaxDegree(programService.getMaxDegree());
         programService.setHistory(historyService);
         if (historyController != null) {
             historyController.init(historyService, this, executionController);
@@ -149,14 +157,8 @@ public class RootController {
     }
 
 
-    public void onLoadFile(File file) {
-        if (file == null) return;
+    public void onLoadFile() {
 
-        this.selectedFile = file;
-        tooltip = new Tooltip(file.getAbsolutePath());
-
-        if (spnDegree != null) spnDegree.setDisable(true);
-        if (lblFilePath != null) lblFilePath.setText("Loading… " + file.getName());
 
         Task<Integer> loadTask = new Task<>() {
             @Override
@@ -164,14 +166,13 @@ public class RootController {
                 updateMessage("Reading file…");
                 updateProgress(0, 1);
 
-                int maxDegree = programService.loadXml(Path.of(file.getPath()));
 
                 updateMessage("Finalizing…");
 
 
                 updateProgress(1, 1);
                 updateMessage("Done");
-                return maxDegree;
+                return 0;
             }
         };
 
@@ -191,16 +192,11 @@ public class RootController {
         loadTask.setOnSucceeded(evt -> {
             int maxDegree = loadTask.getValue();
 
-            if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
 
-            if (spnDegree != null) {
-                spnDegree.setDisable(false);
-                spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
-            }
 
-            if (instructionsController != null) instructionsController.refresh(getDegree());
-            if (executionController != null) executionController.onProgramLoaded();
-            if (historyController != null) historyController.clearHistory();
+
+
+
 
             if (progressBar != null) {
                 progressBar.progressProperty().unbind();
@@ -221,7 +217,7 @@ public class RootController {
             }
 
             if (spnDegree != null) spnDegree.setDisable(false);
-            if (lblFilePath != null) lblFilePath.setText(file.getAbsolutePath());
+
 
             if (progressBar != null) {
                 progressBar.progressProperty().unbind();
@@ -235,7 +231,7 @@ public class RootController {
 
         loadTask.setOnCancelled(evt -> {
             if (spnDegree != null) spnDegree.setDisable(false);
-            if (lblFilePath != null) lblFilePath.setText("Cancelled: " + file.getName());
+
 
             if (progressBar != null) {
                 progressBar.progressProperty().unbind();

@@ -1,42 +1,65 @@
 package users;
 
 /**
- * מייצג משתמש אחד במערכת.
+ * מייצג משתמש במערכת - הסטטיסטיקות שלו
  */
 public class User {
+
     private final String username;
+
+    // סטטיסטיקות
+    private int creditsCurrent = 100;        // מתחיל עם 100 קרדיטים
+    private int creditsUsed = 0;
     private int mainProgramsUploaded = 0;
     private int functionsContributed = 0;
-    private int creditsCurrent = 0;
-    private int creditsUsed = 0;
     private int runsCount = 0;
 
     public User(String username) {
         this.username = username;
     }
 
-    // --- Getters ---
-    public String getUsername() { return username; }
-    public int getMainProgramsUploaded() { return mainProgramsUploaded; }
-    public int getFunctionsContributed() { return functionsContributed; }
-    public int getCreditsCurrent() { return creditsCurrent; }
-    public int getCreditsUsed() { return creditsUsed; }
-    public int getRunsCount() { return runsCount; }
+    // ========== Getters ==========
 
-    // --- Actions / Updates ---
-    public void addMainProgram() {
-        mainProgramsUploaded++;
+    public String getUsername() {
+        return username;
     }
 
-    public void addFunctionContribution() {
-        functionsContributed++;
+    public int getCreditsCurrent() {
+        return creditsCurrent;
     }
 
-    public void addCredits(int amount) {
-        creditsCurrent += amount;
+    public int getCreditsUsed() {
+        return creditsUsed;
     }
 
-    public boolean useCredits(int amount) {
+    public int getMainProgramsUploaded() {
+        return mainProgramsUploaded;
+    }
+
+    public int getFunctionsContributed() {
+        return functionsContributed;
+    }
+
+    public int getRunsCount() {
+        return runsCount;
+    }
+
+    // ========== Actions ==========
+
+    /**
+     * הוספת קרדיטים
+     */
+    public synchronized void addCredits(int amount) {
+        if (amount > 0) {
+            creditsCurrent += amount;
+        }
+    }
+
+    /**
+     * שימוש בקרדיטים
+     * @return true אם הצליח, false אם אין מספיק
+     */
+    public synchronized boolean useCredits(int amount) {
         if (amount <= 0 || amount > creditsCurrent) {
             return false;
         }
@@ -45,36 +68,32 @@ public class User {
         return true;
     }
 
-    public void incrementRunsCount() {
+    /**
+     * הוספת ספירת הרצות
+     */
+    public synchronized void incrementRunsCount() {
         runsCount++;
     }
 
-    // --- Utility ---
+    /**
+     * הוספת תוכנית ראשית
+     */
+    public synchronized void addMainProgram() {
+        mainProgramsUploaded++;
+    }
+
+    /**
+     * הוספת תרומת פונקציה
+     */
+    public synchronized void addFunctionContribution() {
+        functionsContributed++;
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "User{name='%s', mainPrograms=%d, functions=%d, credits=%d, used=%d, runs=%d}",
-                username, mainProgramsUploaded, functionsContributed, creditsCurrent, creditsUsed, runsCount
+                "User{username='%s', credits=%d, used=%d, programs=%d, runs=%d}",
+                username, creditsCurrent, creditsUsed, mainProgramsUploaded, runsCount
         );
-    }
-
-    public void setCreditsCurrent(int credits) {
-        this.creditsCurrent = credits;
-    }
-
-    public void setMainProgramsUploaded(int mainProgramsUploaded) {
-        this.mainProgramsUploaded = mainProgramsUploaded;
-    }
-
-    public void setFunctionsContributed(int functionsContributed) {
-        this.functionsContributed = functionsContributed;
-    }
-
-    public void setCreditsUsed(int creditsUsed) {
-        this.creditsUsed = creditsUsed;
-    }
-
-    public void setRunsCount(int runsCount) {
-        this.runsCount = runsCount;
     }
 }

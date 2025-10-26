@@ -2,6 +2,10 @@ package utils;
 
 import engine.Engine;
 import jakarta.servlet.ServletContext;
+import logic.dto.SystemFunctionDTO;
+import logic.function.Function;
+import users.ProgramRepository;
+import users.SystemFunction;
 import users.SystemProgramsManager;
 
 import java.io.InputStream;
@@ -54,6 +58,16 @@ public class ServletsUtills {
         return programs;
     }
 
+
+    public static List<SystemFunctionDTO> getAllSystemFunctions(ServletContext servletContext) {
+        ProgramRepository programRepository =(ProgramRepository) servletContext.getAttribute("programRepository");
+        List<SystemFunctionDTO> systemFunctions = new ArrayList<>();
+        for (SystemFunction systemFunction :programRepository.getSystemFunctions()){
+            SystemFunctionDTO systemFunctionDTO = new SystemFunctionDTO(systemFunction);
+            systemFunctions.add(systemFunctionDTO);
+        }
+        return systemFunctions;
+    }
 }
 
 

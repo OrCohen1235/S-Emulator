@@ -44,4 +44,5 @@ public class UserViewModel {
         creditsUsed.set(other.getCreditsUsed());
         runs.set(other.getRuns());
     }
+
 }

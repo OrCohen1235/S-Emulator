@@ -4,74 +4,81 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * מנהל את המשתמשים המחוברים למערכת.
+ * מנהל את כל המשתמשים המחוברים למערכת
  */
 public class UserManager {
 
+    // מפה: username → User
     private final Map<String, User> connectedUsers = new ConcurrentHashMap<>();
 
+    /**
+     * ניסיון התחברות
+     * @return true אם הצליח, false אם המשתמש כבר מחובר
+     */
     public synchronized boolean tryLogin(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        username = username.trim();
+
         if (connectedUsers.containsKey(username)) {
             return false; // כבר מחובר
         }
-        connectedUsers.put(username, new User(username));
-        System.out.println("User logged in: " + username);
+
+        User newUser = new User(username);
+        connectedUsers.put(username, newUser);
+
+        System.out.println("[UserManager] User logged in: " + username);
         return true;
     }
 
+    /**
+     * התנתקות
+     */
     public synchronized void logout(String username) {
-        if (connectedUsers.remove(username) != null) {
-            System.out.println("User logged out: " + username);
+        User removed = connectedUsers.remove(username);
+        if (removed != null) {
+            System.out.println("[UserManager] User logged out: " + username);
         }
     }
 
-    public Collection<User> getConnectedUsers() {
-        return connectedUsers.values();
-    }
-
+    /**
+     * קבלת משתמש לפי שם
+     */
     public User getUser(String username) {
         return connectedUsers.get(username);
     }
 
-    public void chargeCredits(String username, int amount) {
-        User u = connectedUsers.get(username);
-        if (u != null) {
-            u.addCredits(amount);
-        }
+    /**
+     * האם משתמש מחובר
+     */
+    public boolean isUserConnected(String username) {
+        return connectedUsers.containsKey(username);
     }
 
-    public boolean useCredits(String username, int amount) {
-        User u = connectedUsers.get(username);
-        return u != null && u.useCredits(amount);
+    /**
+     * כל המשתמשים המחוברים
+     */
+    public Collection<User> getConnectedUsers() {
+        return Collections.unmodifiableCollection(connectedUsers.values());
     }
 
-
-    public void addMainProgram(String username) {
-        User u = connectedUsers.get(username);
-        if (u != null) {
-            u.addMainProgram();
-        }
+    /**
+     * מספר משתמשים מחוברים
+     */
+    public int getConnectedUsersCount() {
+        return connectedUsers.size();
     }
 
-    public void addFunctionContribution(String username) {
-        User u = connectedUsers.get(username);
-        if (u != null) {
-            u.addFunctionContribution();
-        }
-    }
-
-    public void incrementRunCount(String username) {
-        User u = connectedUsers.get(username);
-        if (u != null) {
-            u.incrementRunsCount();
-        }
-    }
-
-    // Debug utility
+    /**
+     * הדפסת כל המשתמשים (debug)
+     */
     public void printAllUsers() {
-        System.out.println("Connected users:");
-        for (User u : connectedUsers.values()) {
-            System.out.println("  " + u);
+        System.out.println("=== Connected Users ===");
+        for (User user : connectedUsers.values()) {
+            System.out.println("  " + user);
         }
+        System.out.println("Total: " + connectedUsers.size());
     }
 }

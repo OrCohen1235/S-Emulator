@@ -8,10 +8,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.dto.InstructionDTO;
+import users.ProgramRepository;
+import users.SystemProgram;
 import utils.ServletsUtills;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -26,9 +29,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
         "/get-variables-values",
         "/get-all-variables",
         "/get-all-labels",
-        "/execute-program",
+        "/start-program",
         "/load-input-vars",
         "/reset-maps",
+        "/execute-program",
         "/execute-program-debugger",
         "/get-program-name-and-cycles",
         "/get-instruction-index",
@@ -44,7 +48,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 })
-public class ProgramServlet extends HttpServlet {
+public class ProgramServlet extends BaseServlet {
 
     private static final Gson GSON = new Gson();
     private static final ReentrantReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
@@ -69,6 +73,7 @@ public class ProgramServlet extends HttpServlet {
     private static final String P_SWITCH_TO_FUNCTION          = "/switch-to-function";
     private static final String P_GET_EXPANSION_FOR_INSTRUCTION = "/get-expansion-for";
     private static final String P_GET_MAX_DEGREE              = "/get-max-degree";
+    private static final String P_START_PROGRAM              = "/start-program";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -77,21 +82,21 @@ public class ProgramServlet extends HttpServlet {
 
         final String path = req.getServletPath();
         switch (path) {
-            case P_GET_INPUT_VARS        -> getInputVars(resp);
-            case P_GET_INPUT_VARS_VALUES -> getInputVarsValues(resp);
-            case P_GET_VARIABLES_VALUES  -> getVariablesValues(resp);
-            case P_GET_ALL_VARIABLES     -> getAllVariables(resp);
-            case P_GET_ALL_LABELS        -> getAllLabels(resp);
+            case P_GET_INPUT_VARS        -> getInputVars(req,resp);
+            case P_GET_INPUT_VARS_VALUES -> getInputVarsValues(req,resp);
+            case P_GET_VARIABLES_VALUES  -> getVariablesValues(req,resp);
+            case P_GET_ALL_VARIABLES     -> getAllVariables(req,resp);
+            case P_GET_ALL_LABELS        -> getAllLabels(req,resp);
             case P_EXECUTE_PROGRAM       -> executeProgram(req, resp);
             case P_EXECUTE_PROGRAM_DEBUGGER -> executeProgramDebugger(req,resp);
             case P_GET_PROGRAM_NAME_AND_CYCLES -> getProgramNameAndCyclesToHistory(req,resp);
-            case P_GET_INSTRUCTION_INDEX -> getInstructionIndex(resp);
-            case P_GET_CYCLES -> getCycles(resp);
-            case P_GET_PROGRAM_NAME -> getProgramName(resp);
-            case P_IS_FINISHED_DEBUGGING -> isFinishedDubugging(resp);
-            case P_GET_FUNCTIONS_NAMES -> getFunctionsNames(resp);
+            case P_GET_INSTRUCTION_INDEX -> getInstructionIndex(req,resp);
+            case P_GET_CYCLES -> getCycles(req,resp);
+            case P_GET_PROGRAM_NAME -> getProgramName(req,resp);
+            case P_IS_FINISHED_DEBUGGING -> isFinishedDubugging(req,resp);
+            case P_GET_FUNCTIONS_NAMES -> getFunctionsNames(req,resp);
             case P_GET_EXPANSION_FOR_INSTRUCTION -> getExpansionByIndex(req,resp);
-            case P_GET_MAX_DEGREE -> getMaxDegree(resp);
+            case P_GET_MAX_DEGREE -> getMaxDegree(req,resp);
             default -> writeJson(resp, HttpServletResponse.SC_NOT_FOUND,
                     new ErrorResp("Unknown GET path"));
         }
@@ -104,20 +109,68 @@ public class ProgramServlet extends HttpServlet {
 
         final String path = req.getServletPath();
         switch (path) {
-            case P_RESET_MAPS      -> resetMaps(resp);
+            case P_RESET_MAPS      -> resetMaps(req,resp);
             case P_LOAD_INPUT_VARS -> loadInputVars(req, resp);
-            case P_RESET_CYCLES -> resetCycles(resp);
-            case P_RESET_DEBUGGER -> resetDebugger(resp);
+            case P_RESET_CYCLES -> resetCycles(req,resp);
+            case P_RESET_DEBUGGER -> resetDebugger(req,resp);
             case P_SWITCH_TO_FUNCTION -> switchToFunction(req,resp);
+            case P_START_PROGRAM -> startProgram(req,resp);
             default -> writeJson(resp, HttpServletResponse.SC_NOT_FOUND,
                     new ErrorResp("Unknown POST path"));
         }
     }
 
-    private void getInstructionIndex(HttpServletResponse response) throws IOException {
+    private void startProgram(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            // נקרא את גוף הבקשה כטקסט
+            String programName = readRequestBody(req).trim();
+
+            if (programName == null || programName.isBlank()) {
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Missing or empty programName in request body");
+                return;
+            }
+
+            // הסרת גרשיים אם קיימים (למקרה של JSON string)
+            programName = programName.replace("\"", "");
+
+            ProgramRepository repo = getProgramRepository();
+            SystemProgram program = repo.getProgram(programName);
+
+            if (program == null) {
+                sendError(resp, HttpServletResponse.SC_NOT_FOUND,
+                        "Program not found: " + programName);
+                return;
+            }
+
+            Engine userEngine = program.createFreshEngine();
+            getUserSession(req).setCurrentEngine(userEngine);
+
+            resp.setStatus(HttpServletResponse.SC_OK);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Failed to start program: " + e.getMessage());
+        }
+    }
+
+    private static String readRequestBody(HttpServletRequest req) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(req.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        }
+        return sb.toString();
+    }
+
+    private void getInstructionIndex(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             int currentIndex = engine.getProgramDTO().getCurrentInstructionIndex();
@@ -129,10 +182,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getFunctionsNames(HttpServletResponse response) throws IOException {
+    private void getFunctionsNames(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
             List<String> names = engine.getProgramDTO().getFunctionsNames();
             writeJson(response, HttpServletResponse.SC_OK, Response.ok(names));
@@ -143,10 +196,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getCycles(HttpServletResponse response) throws IOException {
+    private void getCycles(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             int cycles = engine.getProgramDTO().getSumOfCycles();
@@ -158,10 +211,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void isFinishedDubugging(HttpServletResponse response) throws IOException {
+    private void isFinishedDubugging(HttpServletRequest request , HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             boolean isFinishedDebugging = engine.getProgramDTO().isFinishedDebugging();
@@ -173,10 +226,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getProgramName(HttpServletResponse response) throws IOException {
+    private void getProgramName(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             String programName = engine.getProgramDTO().getProgramName();
@@ -188,10 +241,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getMaxDegree(HttpServletResponse response) throws IOException {
+    private void getMaxDegree(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             int maxDegree = engine.getProgramDTO().getMaxDegree();
@@ -208,20 +261,14 @@ public class ProgramServlet extends HttpServlet {
 
     /** ---- Helpers ---- */
 
-    private Engine getEngineOrError(HttpServletResponse response) throws IOException {
-        Engine engine = ServletsUtills.getEngineManager(getServletContext(), "Divide");
-        if (engine == null || engine.getProgramDTO() == null) {
-            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    new ErrorResp("Engine or ProgramDTO not initialized"));
-            return null;
-        }
-        return engine;
+    private Engine getEngineOrError(HttpServletRequest request) throws IOException {
+        return getUserSession(request).getCurrentEngine();
     }
 
     private void getExpansionByIndex(HttpServletRequest request, HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             String index = request.getParameter("displayindex");
@@ -260,10 +307,10 @@ public class ProgramServlet extends HttpServlet {
 
     /** ---- GET Handlers ---- */
 
-    private void getInputVars(HttpServletResponse response) throws IOException {
+    private void getInputVars(HttpServletRequest request, HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             List<String> inputVars = new ArrayList<>(engine.getProgramDTO().getXVariables());
@@ -275,10 +322,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getAllLabels(HttpServletResponse response) throws IOException {
+    private void getAllLabels(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             List<String> labels = new ArrayList<>(engine.getProgramDTO().getLabels());
@@ -290,10 +337,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getAllVariables(HttpServletResponse response) throws IOException {
+    private void getAllVariables(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             List<String> variables = new ArrayList<>(engine.getProgramDTO().getAllVariables());
@@ -305,10 +352,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getVariablesValues(HttpServletResponse response) throws IOException {
+    private void getVariablesValues(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             Map<String, Long> values = new LinkedHashMap<>(engine.getProgramDTO().getVariablesValues());
@@ -320,10 +367,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void getInputVarsValues(HttpServletResponse response) throws IOException {
+    private void getInputVarsValues(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             List<String> xVariables = engine.getProgramDTO().getXVariables();
@@ -346,7 +393,7 @@ public class ProgramServlet extends HttpServlet {
     private void executeProgram(HttpServletRequest req, HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(req);
             if (engine == null) return;
 
             String degreeStr = req.getParameter("degree");
@@ -378,7 +425,7 @@ public class ProgramServlet extends HttpServlet {
     private void getProgramNameAndCyclesToHistory(HttpServletRequest req, HttpServletResponse response) throws IOException {
         RW_LOCK.readLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(req);
             if (engine == null) return;
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
@@ -396,7 +443,7 @@ public class ProgramServlet extends HttpServlet {
     private void executeProgramDebugger(HttpServletRequest req, HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(req);
             if (engine == null) return;
 
             String degreeStr = req.getParameter("degree");
@@ -434,10 +481,10 @@ public class ProgramServlet extends HttpServlet {
 
     /** ---- POST Handlers ---- */
 
-    private void resetMaps(HttpServletResponse response) throws IOException {
+    private void resetMaps(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             engine.getProgramDTO().resetMapVariables();
@@ -449,10 +496,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void resetCycles(HttpServletResponse response) throws IOException {
+    private void resetCycles(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             engine.getProgramDTO().resetSumOfCycles();
@@ -464,10 +511,10 @@ public class ProgramServlet extends HttpServlet {
         }
     }
 
-    private void resetDebugger(HttpServletResponse response) throws IOException {
+    private void resetDebugger(HttpServletRequest request,HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(request);
             if (engine == null) return;
 
             engine.getProgramDTO().resetDebugger();
@@ -482,7 +529,7 @@ public class ProgramServlet extends HttpServlet {
     private void loadInputVars(HttpServletRequest req, HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(req);
             if (engine == null) return;
 
             // קורא את ה-JSON מה-body: צפוי מערך של מספרים, למשל [10,20,30]
@@ -514,7 +561,7 @@ public class ProgramServlet extends HttpServlet {
     private void switchToFunction(HttpServletRequest req, HttpServletResponse response) throws IOException {
         RW_LOCK.writeLock().lock();
         try {
-            Engine engine = getEngineOrError(response);
+            Engine engine = getEngineOrError(req);
             if (engine == null) return;
 
             StringBuilder body = new StringBuilder();

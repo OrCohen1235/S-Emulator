@@ -90,7 +90,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            user.setCreditsCurrent(credits);
+            //user.setCreditsCurrent(credits);
             sendSuccessResponse(resp, username, "credits", credits);
 
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            user.setMainProgramsUploaded(mainPrograms);
+            //user.setMainProgramsUploaded(mainPrograms);
             sendSuccessResponse(resp, username, "mainPrograms", mainPrograms);
 
         } catch (Exception e) {
@@ -152,7 +152,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            user.setFunctionsContributed(functions);
+            //user.setFunctionsContributed(functions);
             sendSuccessResponse(resp, username, "functions", functions);
 
         } catch (Exception e) {
@@ -183,7 +183,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            user.setCreditsUsed(creditsUsed);
+            //user.setCreditsUsed(creditsUsed);
             sendSuccessResponse(resp, username, "creditsUsed", creditsUsed);
 
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            user.setRunsCount(runs);
+            //user.setRunsCount(runs);
             sendSuccessResponse(resp, username, "runs", runs);
 
         } catch (Exception e) {

@@ -185,6 +185,15 @@ public class ProgramDTO {
         return program.getProgramExecutor().run(); // Parameter "degree" currently not used
     }
 
+    public List<Function> getFunctions() {
+        return program.getFunctions();
+    }
+
+    public void setFunctions(List<Function> allFunctions) {
+        program.getFunctions().clear();
+        program.setFunctions(allFunctions);
+    }
+
     public Long runProgramExecutorDebugger(int level) {
         return program.getProgramExecutor().runDebugger(level); // Parameter "degree" currently not used
     }

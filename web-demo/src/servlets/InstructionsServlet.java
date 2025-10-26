@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {"/get-original-instructions-dtos"})
-public class InstructionsServlet extends HttpServlet {
+public class InstructionsServlet extends BaseServlet {
 
     private static final Gson gson = new Gson();
 
@@ -28,7 +28,7 @@ public class InstructionsServlet extends HttpServlet {
 
         try {
             // שליפת ה־engine
-            Engine engine = ServletsUtills.getEngineManager(getServletContext(), null);
+            Engine engine = getUserSession(request).getCurrentEngine();
             if (engine == null || engine.getProgramDTO() == null) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 result.put("status", "error");

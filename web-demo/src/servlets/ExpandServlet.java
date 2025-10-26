@@ -19,7 +19,7 @@ import static utils.ServletsUtills.getEngineManager;
 
 
 @WebServlet(urlPatterns = {"/load-expansion-by-degree"})
-public class ExpandServlet extends HttpServlet {
+public class ExpandServlet extends BaseServlet {
 
     private static final long serialVersionUID = 1L;
     private final Gson gson = new Gson();
@@ -56,7 +56,7 @@ public class ExpandServlet extends HttpServlet {
 
     private void handleGetMaxDegree(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            Engine engine = getEngineManager(getServletContext(), null);
+            Engine engine = getUserSession(request).getCurrentEngine();
             if (engine == null || engine.getProgramDTO() == null) {
                 sendJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Map.of(
                         "status", "error",
@@ -97,7 +97,7 @@ public class ExpandServlet extends HttpServlet {
                 return;
             }
 
-            Engine engine = getEngineManager(getServletContext(), null);
+            Engine engine = getUserSession(request).getCurrentEngine();
             if (engine == null || engine.getProgramDTO() == null) {
                 sendJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, Map.of(
                         "status", "error",
