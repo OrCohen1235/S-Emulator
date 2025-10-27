@@ -117,7 +117,10 @@ public class UserService {
 
     // ← הוסף את זה ←
     public boolean updateCredits(int credits) {
-        return updateUserField("api/update-credits", "credits", credits);
+        if (credits < 0) {
+            credits = 0;
+        }
+        return updateUserField("/api/update-credits", "credits", credits);
     }
 
     public boolean updateMainPrograms(int mainPrograms) {
@@ -184,6 +187,7 @@ public class UserService {
     public String getCurrentUsername() {
         return currentUsername;
     }
+
 
     public boolean isLoggedIn() {
         return currentUsername != null;

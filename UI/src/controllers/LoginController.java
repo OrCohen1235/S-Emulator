@@ -103,7 +103,9 @@ public class LoginController {
             dashboardController.setFunctionStatsService(functionStateService);
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            dashboardController.setThisScene(scene);
+            stage.setScene(scene);
             stage.setTitle("S-Emulator - " + username);
 
         } catch (IOException e) {

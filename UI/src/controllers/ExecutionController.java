@@ -58,6 +58,7 @@ public class ExecutionController {
         showInitialVariables();
         inputsScroll.setVvalue(0.0);
 
+
         debugging = false;
         debuggerLevel = 0;
         prgExecution.setProgress(0);
@@ -72,11 +73,19 @@ public class ExecutionController {
 
     @FXML
     private void onRun() {
+        if (parent.getSumOfCurrentArchitecture() > parent.getCredits()){
+            parent.showError("Error", "Not Enough Credits, You Need:"+parent.getSumOfCurrentArchitecture() +" credits");
+            return;
+        }
+        else{
+            parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
+        }
         varsTableController.clearVarsTable();
         onClear();
         inputsContainer.setDisable(false);
         hBoxStart.setVisible(true);
         runAwaitingStart = true;
+
 
         debugging = false;
         debuggerLevel = 0;
@@ -96,6 +105,10 @@ public class ExecutionController {
 
     @FXML
     private void onDebug() {
+        if (parent.getSumOfCurrentArchitecture() > parent.getCredits()){
+            parent.showError("Error", "Not Enough Credits, You Need:"+parent.getSumOfCurrentArchitecture() +" credits");
+            return;
+        }
         if (programService.isFinishedDebugging()){
             programService.resetDebugger();
             programService.resetCycles();
@@ -208,7 +221,7 @@ public class ExecutionController {
     private void doRun() {
         long y = programService.executeProgram(parent.getDegree());
         lblCycles.setText(String.valueOf(programService.getCycles()));
-
+        parent.decreaseCredits(programService.getCycles());
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
         parent.markInstructionsAsExecuted(true);
         parent.refreshInstructions();
@@ -285,7 +298,14 @@ public class ExecutionController {
         btnResume.setDisable(!debugging || atEnd);
         btnStepOver.setDisable(!debugging || atEnd);
         btnStop.setDisable(!debugging ||atEnd);
-
+        if (!parent.getArchitectureSelected()){
+            btnRun.setDisable(true);
+            btnDebug.setDisable(true);
+        }
+        else {
+            btnRun.setDisable(false);
+            btnDebug.setDisable(false);
+        }
         parent.getBtnExpand().setDisable(debugging);
         parent.getBtnCollapse().setDisable(debugging);
     }

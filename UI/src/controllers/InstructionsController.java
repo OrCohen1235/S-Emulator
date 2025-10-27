@@ -13,8 +13,10 @@ import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import logic.dto.InstructionDTO;
 import services.ProgramService;
+import viewmodel.Architecture;
 import viewmodel.InstructionsViewModel;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,7 @@ public class InstructionsController {
     private final ObservableSet<Integer> highlightedRows = FXCollections.observableSet();
 
     private boolean hasExecuted = false;
+
 
     public void updateSummary(String s) { if (lblSummary != null) lblSummary.setText(s); }
 
@@ -160,7 +163,7 @@ public class InstructionsController {
         refreshHighlightRows();
 
         vm.reloadInstructions(programService, degree,programService.getInstructionsDTO());
-
+        parent.setCurrentSumOfCycles(vm.getSumCycles());
         trvInstructions.setRoot(vm.getRoot());
         trvInstructionHistory.setRoot(vm.getExpandRoot());
         trvInstructions.refresh();
@@ -211,6 +214,49 @@ public class InstructionsController {
         row.pseudoClassStateChanged(PC_ROW_END,      isActive && lastVisible);
     }
 
+    public void setHighlitedRowIndexAccordingToArchitecture(String architecture) {
+        // אם אין בחירה – ננקה הכול
+        if (architecture == null || architecture.isBlank() || "Choose".equalsIgnoreCase(architecture)) {
+            clearAllHighlightColors();
+            if (parent != null) {
+                parent.setArchitectureSelected(false);
+                parent.setSumOfCurrentArchitecture(0); // אפס כשאין ארכיטקטורה
+            }
+            return;
+        }
+
+        Architecture arch = Architecture.parse(architecture);
+        if (arch == null) {
+            clearAllHighlightColors();
+            if (parent != null) {
+                parent.setArchitectureSelected(false);
+                parent.setSumOfCurrentArchitecture(0);
+            }
+            return;
+        }
+
+        if (parent != null) {
+            parent.setSumOfCurrentArchitecture(arch.getCreditsPerRun());
+        }
+
+        // רשימת אינדקסים שלא נתמכים (לצביעה אדום/ירוק)
+        List<Integer> redIndexes = switch (arch) {
+            case I   -> new ArrayList<>(vm.getArchitecturesI_Indexes());
+            case II  -> new ArrayList<>(vm.getArchitecturesII_Indexes());
+            case III -> new ArrayList<>(vm.getArchitecturesIII_Indexes());
+            case IV  -> new ArrayList<>(vm.getArchitecturesIV_Indexes());
+        };
+
+        // צביעה לפי האינדקסים
+        setHighLightedRowIndexesWithColors(redIndexes);
+
+        // אם אין אדומות – הכול נתמך
+        if (parent != null) parent.setArchitectureSelected(redIndexes.isEmpty());
+    }
+
+
+
+
     public void highlightRow(int i) {
         if (trvInstructions.getRoot() == null) return;
         int last = trvInstructions.getExpandedItemCount() - 1;
@@ -259,6 +305,45 @@ public class InstructionsController {
         trvInstructions.refresh();
     }
 
+    public void setHighLightedRowIndexesWithColors(List<Integer> redIndexes) {
+        System.out.println("Red indexes: " + redIndexes);
+
+        if (trvInstructions.getRoot() == null) {
+            highlightedRows.clear();
+            if (redIndexes != null) highlightedRows.addAll(redIndexes);
+            trvInstructions.refresh();
+            return;
+        }
+        if (redIndexes.isEmpty()){
+            parent.setArchitectureSelected(true);
+        }
+        else {
+            parent.setArchitectureSelected(false);
+        }
+
+
+        // ננקה קודם כל עיצובים קודמים
+        trvInstructions.setRowFactory(tv -> new TreeTableRow<InstructionDTO>() {
+            @Override
+            protected void updateItem(InstructionDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setStyle(""); // הסרה של צבעים קודמים
+                    return;
+                }
+                int index = getIndex();
+                if (redIndexes != null && redIndexes.contains(index)) {
+                    setStyle("-fx-background-color: #ffcccc;"); // אדום בהיר
+                } else {
+                    setStyle("-fx-background-color: #ccffcc;"); // ירוק בהיר
+                }
+            }
+        });
+
+        trvInstructions.refresh();
+    }
+
+
     public void refreshHighlightRows(){
         highlightedRows.clear();
         trvInstructions.refresh();
@@ -268,5 +353,45 @@ public class InstructionsController {
         this.hasExecuted = executed;
         trvInstructions.refresh();
     }
+
+    public void clearAllHighlightColors() {
+        // החזרת RowFactory לברירת מחדל (כמו ב-initialize)
+        trvInstructions.setRowFactory(tv -> {
+            TreeTableRow<InstructionDTO> row = new TreeTableRow<>() {
+                @Override
+                protected void updateItem(InstructionDTO item, boolean empty) {
+                    super.updateItem(item, empty);
+                    applyPseudoClasses(this); // יחיל את הפסאודו-קלאסים / בלי צבעי אדום-ירוק
+                }
+            };
+            row.setMouseTransparent(false);
+            row.setPickOnBounds(true);
+
+            row.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+                if (!row.isEmpty() && event.getClickCount() == 2) {
+                    InstructionDTO dto = row.getItem();
+                    if (dto != null && programService != null) {
+                        var list = programService.getExpansionFor(dto);
+                        vm.onExpand(list, dto);
+                        trvInstructionHistory.setRoot(vm.getExpandRoot());
+                        trvInstructionHistory.refresh();
+                    }
+                }
+            });
+
+            highlightedRowIndex.addListener((obs, ov, nv) -> applyPseudoClasses(row));
+            highlightedRows.addListener((SetChangeListener<Integer>) change -> applyPseudoClasses(row));
+            row.indexProperty().addListener((o, ov, nv) -> applyPseudoClasses(row));
+
+            return row;
+        });
+
+        highlightedRows.clear();
+        highlightedRowIndex.set(-1);
+
+        trvInstructions.refresh();
+    }
+
+
 
 }

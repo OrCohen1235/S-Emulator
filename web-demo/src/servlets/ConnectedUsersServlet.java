@@ -90,7 +90,7 @@ public class ConnectedUsersServlet extends HttpServlet {
                 return;
             }
 
-            //user.setCreditsCurrent(credits);
+            user.setCreditsCurrent(credits);
             sendSuccessResponse(resp, username, "credits", credits);
 
         } catch (Exception e) {

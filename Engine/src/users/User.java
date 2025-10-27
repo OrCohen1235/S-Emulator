@@ -96,4 +96,8 @@ public class User {
                 username, creditsCurrent, creditsUsed, mainProgramsUploaded, runsCount
         );
     }
+
+    public void setCreditsCurrent(int credits) {
+        this.creditsCurrent = credits;
+    }
 }

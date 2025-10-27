@@ -61,7 +61,6 @@ public class SystemProgramsServlet extends HttpServlet {
     // === שליפת פונקציות מערכת ===
     private void handleGetSystemFunctions(HttpServletResponse response, Map<String, Object> result) throws IOException {
         List<SystemFunctionDTO> systemFunctions = ServletsUtills.getAllSystemFunctions(getServletContext());
-        System.out.println("System functions loaded: " + systemFunctions.size());
 
         result.put("status", "ok");
         result.put("count", systemFunctions.size());

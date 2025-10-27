@@ -6,6 +6,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -24,9 +25,11 @@ import logic.dto.InstructionDTO;
 import program.ProgramLoadException;
 import services.HistoryService;
 import services.ProgramService;
+import services.UserService;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -38,10 +41,11 @@ public class RootController {
     @FXML private ProgressBar progressBar;
     @FXML private Label lblStatus;
     @FXML private Spinner<Integer> spnDegree;
+    @FXML private ComboBox<String> cmbArchitecture;
 
     @FXML private Label lblUserName;
     @FXML private TextField tfUserName;
-    @FXML private Label lblCreditNumber;
+    @FXML private Label lblCreditsNumber;
     @FXML private Label lblMaxDegree;
 
     @FXML private Button btnExpand;
@@ -54,9 +58,14 @@ public class RootController {
 
     private final ProgramService programService = new ProgramService();
     private final HistoryService historyService = new HistoryService();
+    private UserService userService = new UserService();
+    private DashboardController dashboardController;
+    private int sumOfCurrentArchitecture=0;
+    private int credits = 0;
+    private int currentSumOfCycles = 0;
+    private Scene previousScene;
+    private Boolean architectureSelected = false;
 
-    private File selectedFile;
-    private Tooltip tooltip;
 
     @FXML private void initialize() {
         if (instructionsController != null) instructionsController.setParent(this);
@@ -75,7 +84,24 @@ public class RootController {
 
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
 
-        //if (lblUserName != null) lblUserName.setText()
+        if (lblUserName != null) {
+            String username = userService.getCurrentUsername();
+            lblUserName.setText(username != null ? username : "Guest");
+        }
+
+        if (cmbArchitecture != null) {
+            cmbArchitecture.setValue("Choose Architecture"); // ערך התחלתי
+
+            // הוסף listener לשינויים
+            cmbArchitecture.valueProperty().addListener((obs, oldVal, newVal) -> {
+                onArchitectureChanged(newVal);
+            });
+        }
+
+        if (lblCreditsNumber != null) {
+            lblCreditsNumber.setText(String.valueOf(credits));
+
+        }
         if (instructionsController != null) instructionsController.refresh(getDegree());
         if (executionController != null) executionController.onProgramLoaded();
         if (historyController != null) historyController.clearHistory();
@@ -90,10 +116,55 @@ public class RootController {
         }
     }
 
+    public void switchArchitectureToNON(){
+        cmbArchitecture.setPromptText("Choose Architecture");
+        cmbArchitecture.setValue("Choose");
+    }
+
+    private void onArchitectureChanged(String architecture) {
+        instructionsController.setHighlitedRowIndexAccordingToArchitecture(architecture);
+        executionController.onProgramLoaded();
+    }
+
+    public void setSumOfCurrentArchitecture(int sumOfCurrentArchitecture) {
+        this.sumOfCurrentArchitecture = sumOfCurrentArchitecture;
+    }
+
+    public int getSumOfCurrentArchitecture() {
+        return sumOfCurrentArchitecture;
+    }
+
     public ProgramService getProgramService() { return programService; }
 
     public int getDegree() {
         return (spnDegree != null && spnDegree.getValue() != null) ? spnDegree.getValue() : 0;
+    }
+
+    public int getCurrentSumOfCycles() {
+        return currentSumOfCycles;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public void setDashboardController(DashboardController dashboardController) {
+        this.dashboardController = dashboardController;
+    }
+
+    public void setCredits(int credit) {
+        this.credits = credit;
+
+    }
+
+    public void decreaseCredits(int creditsToDecrease) {
+        this.credits = this.credits - creditsToDecrease;
+        dashboardController.setCredits(credits);
+        updateUserDisplay();
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public void setSpnDegree(int degree) {
@@ -133,6 +204,10 @@ public class RootController {
         stage.showAndWait();
     }
 
+    public void setCurrentSumOfCycles(int currentSumOfCycles) {
+        this.currentSumOfCycles = currentSumOfCycles;
+    }
+
     @FXML private void onHighLight(ActionEvent e) { onHighLightVarOrLabel(e); }
 
     private void highlightVariable(String selectedItem) {
@@ -161,99 +236,9 @@ public class RootController {
     }
 
 
-    public void onLoadFile() {
-
-
-        Task<Integer> loadTask = new Task<>() {
-            @Override
-            protected Integer call() throws Exception {
-                updateMessage("Reading file…");
-                updateProgress(0, 1);
-
-
-                updateMessage("Finalizing…");
-
-
-                updateProgress(1, 1);
-                updateMessage("Done");
-                return 0;
-            }
-        };
-
-        showLoadingDialog(loadTask);
-
-        if (progressBar != null) {
-            progressBar.progressProperty().bind(loadTask.progressProperty());
-            progressBar.visibleProperty().bind(loadTask.runningProperty());
-            progressBar.managedProperty().bind(progressBar.visibleProperty());
-        }
-        if (lblStatus != null) {
-            lblStatus.textProperty().bind(loadTask.messageProperty());
-            lblStatus.visibleProperty().bind(loadTask.runningProperty());
-            lblStatus.managedProperty().bind(lblStatus.visibleProperty());
-        }
-
-        loadTask.setOnSucceeded(evt -> {
-            int maxDegree = loadTask.getValue();
-
-
-
-
-
-
-
-            if (progressBar != null) {
-                progressBar.progressProperty().unbind();
-                progressBar.setProgress(0);
-            }
-            if (lblStatus != null) {
-                lblStatus.textProperty().unbind();
-                lblStatus.setText("");
-            }
-        });
-
-        loadTask.setOnFailed(evt -> {
-            Throwable ex = loadTask.getException();
-            if (ex instanceof ProgramLoadException ple) {
-                showError("Load failed", ple.getMessage());
-            } else {
-                showError("Load failed", ex != null ? ex.getMessage() : "Unknown error");
-            }
-
-            if (spnDegree != null) spnDegree.setDisable(false);
-
-
-            if (progressBar != null) {
-                progressBar.progressProperty().unbind();
-                progressBar.setProgress(0);
-            }
-            if (lblStatus != null) {
-                lblStatus.textProperty().unbind();
-                lblStatus.setText("");
-            }
-        });
-
-        loadTask.setOnCancelled(evt -> {
-            if (spnDegree != null) spnDegree.setDisable(false);
-
-
-            if (progressBar != null) {
-                progressBar.progressProperty().unbind();
-                progressBar.setProgress(0);
-            }
-            if (lblStatus != null) {
-                lblStatus.textProperty().unbind();
-                lblStatus.setText("");
-            }
-        });
-
-        Thread t = new Thread(loadTask, "load-xml-task");
-        t.setDaemon(true);
-        t.start();
-    }
-
     @FXML private void onExpand() {
         if (spnDegree == null || spnDegree.isDisabled()) return;
+        switchArchitectureToNON();
         int max = getSpinnerMax();
         int cur = getDegree();
         if (cur < max) spnDegree.getValueFactory().setValue(cur + 1);
@@ -261,6 +246,7 @@ public class RootController {
     }
 
     @FXML private void onCollapse() {
+        switchArchitectureToNON();
         if (spnDegree == null || spnDegree.isDisabled()) return;
         int cur = getDegree();
         if (cur > 0) spnDegree.getValueFactory().setValue(cur - 1);
@@ -280,7 +266,7 @@ public class RootController {
                 ? f.getMax() : 0;
     }
 
-    private void showError(String title, String msg) {
+    public void showError(String title, String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setTitle(title);
         a.setHeaderText(title);
@@ -319,7 +305,7 @@ public class RootController {
 
         Stage dialog = new Stage(StageStyle.UTILITY);
         dialog.initModality(Modality.APPLICATION_MODAL);
-        
+
         dialog.setScene(new Scene(box));
         dialog.setTitle("Loading...");
         dialog.setResizable(false);
@@ -356,6 +342,14 @@ public class RootController {
         spnDegree.requestFocus();
     }
 
+    public Boolean getArchitectureSelected() {
+        return architectureSelected;
+    }
+
+    public void setArchitectureSelected(Boolean architectureSelected) {
+        this.architectureSelected = architectureSelected;
+    }
+
     public void refreshInstructions(){
         instructionsController.refresh(getDegree());
     }
@@ -365,4 +359,43 @@ public class RootController {
             instructionsController.markAsExecuted(executed);
         }
     }
+
+    public void updateUserDisplay() {
+        if (lblUserName != null && userService != null) {
+            String username = userService.getCurrentUsername();
+            lblUserName.setText(username != null ? username : "Guest");
+        }
+
+        if (lblCreditsNumber != null) {
+            if (credits < 0){
+                credits = 0;
+            }
+            lblCreditsNumber.setText(String.valueOf(credits));
+        }
+    }
+
+    public void setPreviousScene(Scene scene) {
+        this.previousScene = scene;
+    }
+
+
+    @FXML
+    private void onReturnToDashboard() {
+        Stage stage = (Stage) lblUserName.getScene().getWindow();
+
+        if (previousScene != null) {
+            // חזור ל-Scene הקיים
+            stage.setScene(previousScene);
+            stage.setTitle("Dashboard");
+
+            // רענן את ה-dashboard עם הנתונים המעודכנים
+            if (dashboardController != null) {
+                dashboardController.setCredits(credits);
+                dashboardController.refreshUI(); // אם יש מתודת refresh
+            }
+        } else {
+            showError("Error", "Cannot return to previous screen");
+        }
+    }
 }
+

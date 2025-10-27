@@ -108,7 +108,7 @@ public class DashboardController {
 
     private int credits = 0;
     private ProgramService programService;
-    private RootController rootController;
+    private RootController rootController = new RootController();
     private UserStatsService userStatsService;
     private ProgramStatsService programStatsService;
     private FunctionStateService functionStateService;
@@ -116,6 +116,7 @@ public class DashboardController {
     private Timeline refreshUsersTimeline;
     private Timeline refreshProgramsTimeline;
     private UserService userService;
+    private Scene thisScene = null;
 
     // ============== Initialize ==============
     @FXML
@@ -195,6 +196,33 @@ public class DashboardController {
         updateCreditsField();
     }
 
+    public void refreshUI() {
+        // רענן את התצוגה אם צריך
+        if (creditsField != null) {
+            creditsField.setText(String.valueOf(credits));
+        }
+        // רענן טבלאות, נתונים וכו'
+        refreshAvailablePrograms();
+        startRefreshUsersLoop();
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
+        userService.updateCredits(credits);
+    }
+
+    public void decreaseCredits(int creditsToDecrease) {
+        this.credits = this.credits + creditsToDecrease;
+        if (credits < 0){
+            credits = 0;
+        }
+        userService.updateCredits(credits);
+    }
+
+    public void setThisScene(Scene thisScene) {
+        this.thisScene = thisScene;
+    }
+
     // ============== Dependency Injection ==============
     public void setRootController(RootController rootController) {
         this.rootController = rootController;
@@ -248,7 +276,7 @@ public class DashboardController {
     }
 
     @FXML
-    private void onChargeCredits() {
+    public void onChargeCredits() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Charge Credits");
         dialog.setHeaderText(null);
@@ -266,6 +294,8 @@ public class DashboardController {
                 showError("Please enter a positive integer.");
             }
         });
+        rootController.setCredits(credits);
+        rootController.updateUserDisplay();
     }
 
     @FXML
@@ -293,6 +323,16 @@ public class DashboardController {
 
             Parent root = loader.load();
 
+            // 5. קבלת ה-controller והגדרת הנתונים - אחרי ה-load!
+            rootController = loader.getController();
+            rootController.setUserService(userService);
+            rootController.setCredits(credits); // שים לב: setCredit (לא setCredits)
+
+            // 6. עדכון ידני של ה-Labels
+
+            rootController.setDashboardController(this);
+            rootController.setPreviousScene(thisScene);
+            rootController.updateUserDisplay(); // נוסיף מתודה חדשה
             Scene scene = new Scene(root);
             Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
             stage.setScene(scene);

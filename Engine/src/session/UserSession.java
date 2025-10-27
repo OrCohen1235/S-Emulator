@@ -9,6 +9,7 @@ public class UserSession {
     private final String sessionId;
     private String username;
     private Engine currentEngine;
+    private int creditsNumber;
 
     public UserSession(String sessionId) {
         this.sessionId = sessionId;
