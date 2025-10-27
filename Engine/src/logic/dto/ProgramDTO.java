@@ -14,8 +14,6 @@ import program.ProgramView;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ProgramDTO {
     private static final Pattern X_VAR = Pattern.compile("\\b(x\\w*)\\b");
@@ -181,8 +179,12 @@ public class ProgramDTO {
         return program;
     }
 
-    public Long runProgramExecutor(int degree) {
-        return program.getProgramExecutor().run(); // Parameter "degree" currently not used
+    public Long runProgramExecutor(int currentCredits) {
+        try {
+            return program.getProgramExecutor().run(currentCredits); // Parameter "degree" currently not used
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Function> getFunctions() {
@@ -194,8 +196,13 @@ public class ProgramDTO {
         program.setFunctions(allFunctions);
     }
 
-    public Long runProgramExecutorDebugger(int level) {
-        return program.getProgramExecutor().runDebugger(level); // Parameter "degree" currently not used
+    public Long runProgramExecutorDebugger(int level, int currentCredits) throws Exception {
+        try {
+            return program.getProgramExecutor().runDebugger(level,currentCredits); // Parameter "degree" currently not used
+        }
+        catch (Exception e){
+            throw e;
+        }
     }
 
     public void loadInputVars(List<Long> input) {

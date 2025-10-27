@@ -79,6 +79,7 @@ public class ExecutionController {
         }
         else{
             parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
+            parent.clearHighlightedRows();
         }
         varsTableController.clearVarsTable();
         onClear();
@@ -109,6 +110,10 @@ public class ExecutionController {
             parent.showError("Error", "Not Enough Credits, You Need:"+parent.getSumOfCurrentArchitecture() +" credits");
             return;
         }
+        else{
+            parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
+            parent.clearHighlightedRows();
+        }
         if (programService.isFinishedDebugging()){
             programService.resetDebugger();
             programService.resetCycles();
@@ -130,10 +135,16 @@ public class ExecutionController {
     @FXML
     private void onStepOver() {
         if (!debugging) return;
-
         output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
-
+        if (output == -1){
+            parent.showError("Error", "Not enough credits to run!");
+            parent.onReturnToDashboard();
+            return;
+        }
+        int sumInstruction = programService.getCycles();
+        parent.decreaseCredits(sumInstruction - sumOfCyclesDebugging);
         sumOfCyclesDebugging = programService.getCycles();
+
 
         lblCycles.setText(String.valueOf(sumOfCyclesDebugging));
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));
@@ -159,6 +170,7 @@ public class ExecutionController {
         varsTableController.setdebugger(false);
 
     }
+
 
     @FXML
     private void onStop() {
@@ -219,7 +231,12 @@ public class ExecutionController {
     }
 
     private void doRun() {
-        long y = programService.executeProgram(parent.getDegree());
+        long  y = programService.executeProgram(parent.getDegree());
+        if (y == -1){
+            parent.showError("Error", "Not enough credits to run!");
+            parent.onReturnToDashboard();
+            return;
+        }
         lblCycles.setText(String.valueOf(programService.getCycles()));
         parent.decreaseCredits(programService.getCycles());
         varsTableController.setItems(FXCollections.observableArrayList(programService.getVarsAtEndRun()));

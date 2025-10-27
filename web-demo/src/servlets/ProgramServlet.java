@@ -407,8 +407,15 @@ public class ProgramServlet extends BaseServlet {
             else            engine.getProgramDTO().setProgramViewToOriginal();
             UserManager userManager = getUserManager();
             userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
-
-            long result = engine.getProgramDTO().runProgramExecutor(degree);
+            int currentCredits = userManager.getUser(getUserSession(req).getUsername()).getCreditsCurrent();
+            long result=0;
+            try {
+                 result = engine.getProgramDTO().runProgramExecutor(currentCredits);
+            }
+            catch (Exception e) {
+                writeJson(response, HttpServletResponse.SC_OK, Response.error(e.getMessage()));
+                return;
+            }
             System.out.println(engine.getProgramDTO().getVariablesValues());
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
@@ -466,8 +473,15 @@ public class ProgramServlet extends BaseServlet {
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else            engine.getProgramDTO().setProgramViewToOriginal();
 
-            long result = engine.getProgramDTO().runProgramExecutorDebugger(level);
-
+            int currentCredits = userManager.getUser(getUserSession(req).getUsername()).getCreditsCurrent();
+            long result=0;
+            try {
+                result = engine.getProgramDTO().runProgramExecutorDebugger(degree,currentCredits);
+            }
+            catch (Exception e) {
+                writeJson(response, HttpServletResponse.SC_OK, Response.error(e.getMessage()));
+                return;
+            }
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
 

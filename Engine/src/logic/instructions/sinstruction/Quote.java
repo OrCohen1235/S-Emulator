@@ -45,8 +45,8 @@ public class Quote extends Instruction implements SyntheticInstruction {
         function.setMainProgram(mainProgram);
     }
 
-    public long calcQuotationValue() {
-        long y = function.getProgramExecutor().run();
+    public long calcQuotationValue() throws Exception {
+        long y = function.getProgramExecutor().run(-1);
         cycles+= function.getProgramExecutor().getSumOfCycles();
         return y;
     }
@@ -135,7 +135,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
 
     @Override
-    public Label calculateInstruction() {
+    public Label calculateInstruction() throws Exception {
         putVarsInMapsFromFather(false);
 
         String processedArgs = processNestedCalls(functionArguments != null ? functionArguments : "");
@@ -151,7 +151,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return FixedLabel.EMPTY;
     }
 
-    private String processNestedCalls(String arguments) {
+    private String processNestedCalls(String arguments) throws Exception {
         if (arguments == null || arguments.trim().isEmpty()) {
             return arguments;
         }
@@ -204,7 +204,7 @@ public class Quote extends Instruction implements SyntheticInstruction {
         return result;
     }
 
-    private String processNestedCall(String nestedCall) {
+    private String processNestedCall(String nestedCall) throws Exception {
         String inner = nestedCall.substring(1, nestedCall.length() - 1);
 
         String functionName = extractFunctionNameFromCall(inner);

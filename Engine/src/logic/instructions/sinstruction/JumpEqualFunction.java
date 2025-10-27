@@ -30,7 +30,7 @@ public class JumpEqualFunction extends Instruction implements SyntheticInstructi
     }
 
     @Override
-    public Label calculateInstruction() {
+    public Label calculateInstruction() throws Exception {
         long yFromQuote = funcToQuote.calcQuotationValue();
         long varValue = super.getVarValueFromMap();
         if (yFromQuote == varValue) {

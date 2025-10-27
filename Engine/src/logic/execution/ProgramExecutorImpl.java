@@ -31,7 +31,7 @@ public class ProgramExecutorImpl {
         this.sumOfCycles = 0; // Reset cycle counter
     }
 
-    public long run() {
+    public long run(int currentCredits) throws Exception {
         int index = 0; // Start from the first instruction
         Label nextLabel;
 
@@ -40,7 +40,9 @@ public class ProgramExecutorImpl {
 
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
-
+            if (currentInstruction.getCycles() > currentCredits && currentCredits!=-1) {
+                throw new Exception("Not enough credits!");
+            }
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction
@@ -57,10 +59,9 @@ public class ProgramExecutorImpl {
         return program.getY(); // Return output value after execution
     }
 
-    public long runDebugger(int level) {
+    public long runDebugger(int level,int currentCredits) throws Exception {
         int index = currentIndex;
         Label nextLabel;
-
         if (level == -1)
         {
             isFinishDebugging=true;
@@ -71,7 +72,9 @@ public class ProgramExecutorImpl {
 
             nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
             sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
-
+            if (currentInstruction.getCycles() > currentCredits) {
+                throw new Exception("Not enough credits!");
+            }
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction

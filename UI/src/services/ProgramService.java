@@ -462,7 +462,7 @@ public class ProgramService {
                     executeOutput = resp.result;
                     history.addHistory(resp.programName,executeOutput, degree, resp.cycles, getVarsAtEndRun());
                 } else {
-                    System.err.println("Server error: " + resp.error + " from: executeProgram");
+                    return -1;
                 }
             } else {
                 System.err.println("HTTP error: " + response.statusCode() + " from: executeProgram");
@@ -491,7 +491,7 @@ public class ProgramService {
                         history.addHistory(resp.programName,executeOutput, degree, resp.cycles, getVarsAtEndRun());
                     }
                 } else {
-                    System.err.println("Server error: " + resp.error + " from: executeProgramDebugger");
+                    return -1;
                 }
             } else {
                 System.err.println("HTTP error: " + response.statusCode() + " from: executeProgramDebugger");

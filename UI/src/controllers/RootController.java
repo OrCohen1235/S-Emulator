@@ -380,7 +380,7 @@ public class RootController {
 
 
     @FXML
-    private void onReturnToDashboard() {
+    public void onReturnToDashboard() {
         Stage stage = (Stage) lblUserName.getScene().getWindow();
 
         if (previousScene != null) {
@@ -396,6 +396,10 @@ public class RootController {
         } else {
             showError("Error", "Cannot return to previous screen");
         }
+    }
+
+    public void clearHighlightedRows() {
+        instructionsController.clearAllHighlightColors();
     }
 }
 

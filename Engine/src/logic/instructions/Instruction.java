@@ -33,7 +33,7 @@ public abstract class Instruction {
 
     public abstract int calcCycles();
 
-    public abstract Label calculateInstruction();
+    public abstract Label calculateInstruction() throws Exception;
 
     public abstract String getCommand();
 
