@@ -76,7 +76,6 @@ public class ProgramRepository {
                         program.getName(),
                         program.getUploaderUsername(),
                         function.getSizeOfInstructions(),
-                        function.getMaxDegree(),
                         function);
                 systemFunctions.add(systemFunction);
             }

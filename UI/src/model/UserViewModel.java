@@ -45,4 +45,8 @@ public class UserViewModel {
         runs.set(other.getRuns());
     }
 
+    public void increaseRuns(){
+        runs.set(runs.get() + 1);
+    }
+
 }

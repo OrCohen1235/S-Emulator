@@ -3,6 +3,7 @@ package users;
 import engine.Engine;
 import logic.dto.ProgramDTO;
 import logic.function.Function;
+import logic.instructions.Instruction;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -15,6 +16,7 @@ public class SystemProgram {
     private final String name;
     private final String uploaderUsername;
     List<Function> functions = new ArrayList<>();
+    List<Instruction> instructions = new ArrayList<>();
 
     // ה-XML הגולמי - שמור בזיכרון!
     private final byte[] xmlContent;

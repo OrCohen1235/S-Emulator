@@ -13,6 +13,7 @@ import logic.label.Label;
 import logic.variable.Variable;
 import logic.variable.VariableImpl;
 import logic.variable.VariableType;
+import users.ProgramRepository;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -43,6 +44,13 @@ public class Program {
         programExecutor = new ProgramExecutorImpl(this);
         expanderExecute = new ExpanderExecute(this);
         this.isMainProgram = isMainProgram;
+    }
+
+    public Program(List<Instruction> instructions, List<Function> functions) {
+        programLoad = new ProgramLoad(this);
+        programExecutor = new ProgramExecutorImpl(this);
+        expanderExecute = new ExpanderExecute(this);
+        this.isMainProgram = true;
     }
 
     public Program() {

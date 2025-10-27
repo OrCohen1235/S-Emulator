@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import logic.dto.InstructionDTO;
 import users.ProgramRepository;
 import users.SystemProgram;
+import users.UserManager;
 import utils.ServletsUtills;
 
 import java.io.BufferedReader;
@@ -404,7 +405,8 @@ public class ProgramServlet extends BaseServlet {
             int degree = Integer.parseInt(degreeStr);
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else            engine.getProgramDTO().setProgramViewToOriginal();
-
+            UserManager userManager = getUserManager();
+            userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
 
             long result = engine.getProgramDTO().runProgramExecutor(degree);
             System.out.println(engine.getProgramDTO().getVariablesValues());
@@ -456,15 +458,16 @@ public class ProgramServlet extends BaseServlet {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Missing 'level' query parameter"));
                 return;
             }
-
+            UserManager userManager = getUserManager();
+            userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
             int degree = Integer.parseInt(degreeStr);
             int level  = Integer.parseInt(levelStr);
 
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else            engine.getProgramDTO().setProgramViewToOriginal();
 
-            engine.getProgramDTO().loadExpansionByDegree(degree);
             long result = engine.getProgramDTO().runProgramExecutorDebugger(level);
+
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
 

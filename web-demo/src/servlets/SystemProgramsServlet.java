@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(urlPatterns = {"/get-system-programs", "/get-system-functions"})
+@WebServlet(urlPatterns = {"/get-system-programs", "/get-system-functions-dtos"})
 public class SystemProgramsServlet extends HttpServlet {
 
     private static final Gson gson = new Gson();
@@ -30,7 +30,7 @@ public class SystemProgramsServlet extends HttpServlet {
         try {
             if ("/get-system-programs".equals(path)) {
                 handleGetSystemPrograms(response, result);
-            } else if ("/get-system-functions".equals(path)) {
+            } else if ("/get-system-functions-dtos".equals(path)) {
                 handleGetSystemFunctions(response, result);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

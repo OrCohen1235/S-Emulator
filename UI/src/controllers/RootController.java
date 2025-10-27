@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -38,7 +39,9 @@ public class RootController {
     @FXML private Label lblStatus;
     @FXML private Spinner<Integer> spnDegree;
 
-    @FXML private Label lblFilePath;
+    @FXML private Label lblUserName;
+    @FXML private TextField tfUserName;
+    @FXML private Label lblCreditNumber;
     @FXML private Label lblMaxDegree;
 
     @FXML private Button btnExpand;
@@ -69,9 +72,10 @@ public class RootController {
             });
         }
 
-        if (lblFilePath  != null) lblFilePath.setText("-");
+
         if (lblMaxDegree != null) lblMaxDegree.setText("/ 0");
 
+        //if (lblUserName != null) lblUserName.setText()
         if (instructionsController != null) instructionsController.refresh(getDegree());
         if (executionController != null) executionController.onProgramLoaded();
         if (historyController != null) historyController.clearHistory();
@@ -315,7 +319,7 @@ public class RootController {
 
         Stage dialog = new Stage(StageStyle.UTILITY);
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.initOwner(lblFilePath != null ? lblFilePath.getScene().getWindow() : null);
+        
         dialog.setScene(new Scene(box));
         dialog.setTitle("Loading...");
         dialog.setResizable(false);

@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import services.FunctionStateService;
 import services.ProgramStatsService;
 import services.UserService;
 import services.UserStatsService;
@@ -26,12 +27,14 @@ public class LoginController {
     private UserService userService;
     private UserStatsService userStatsService;
     private ProgramStatsService programStatsService;
+    private FunctionStateService functionStateService;
 
     // ← הוסף את המתודה הזו ←
-    public void setServices(UserService userService, UserStatsService userStatsService, ProgramStatsService programStatsService) {
+    public void setServices(UserService userService, UserStatsService userStatsService, ProgramStatsService programStatsService, FunctionStateService functionStateService) {
         this.userService = userService;
         this.userStatsService = userStatsService;
         this.programStatsService = programStatsService;
+        this.functionStateService = functionStateService;
     }
 
     @FXML
@@ -97,6 +100,7 @@ public class LoginController {
             dashboardController.setUserService(userService);
             dashboardController.setUserStatsService(userStatsService); // ← הוסף את השורה הזו ←
             dashboardController.setProgramStatsService(programStatsService);
+            dashboardController.setFunctionStatsService(functionStateService);
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setScene(new Scene(root));

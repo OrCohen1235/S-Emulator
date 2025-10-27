@@ -18,14 +18,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import model.FunctionViewModel;
 import model.HistoryRow;
 import model.ProgramViewModel;
 import model.UserViewModel;
 import program.ProgramLoadException;
-import services.ProgramService;
-import services.ProgramStatsService;
-import services.UserService;
-import services.UserStatsService;
+import services.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +62,15 @@ public class DashboardController {
     // -------- BR: Available Functions --------
     @FXML private ListView<String> functionsListView;
 
+    // -------- BR: Available Functions --------
+    @FXML private TableView<FunctionViewModel> functionsTable;
+    @FXML private TableColumn<FunctionViewModel, String> colFnName;
+    @FXML private TableColumn<FunctionViewModel, String> colFnUploadProgram;
+    @FXML private TableColumn<FunctionViewModel, String> colFnUploader;
+    @FXML private TableColumn<FunctionViewModel, Number> colFnInstrCount;
+    @FXML private TableColumn<FunctionViewModel, Number> colFnMaxDegree;
+
+
     // -------- TL: Connected Users table --------
     @FXML private TableView<UserViewModel> connectedUsersTable;
     @FXML private TableColumn<UserViewModel, String> colCUName;
@@ -74,7 +81,7 @@ public class DashboardController {
     @FXML private TableColumn<UserViewModel, Number> colCURuns;
 
     // -------- Model-like state --------
-    private final ObservableList<String> functions = FXCollections.observableArrayList();
+
     private final ObservableList<HistoryRow> history = FXCollections.observableArrayList();
 
     private final ObservableList<UserViewModel> connectedUsers =
@@ -82,6 +89,15 @@ public class DashboardController {
                     u.nameProperty(), u.mainProgramsProperty(), u.functionsProperty(),
                     u.creditsCurrentProperty(), u.creditsUsedProperty(), u.runsProperty()
             });
+
+    // -------- Model-like state --------
+    private final ObservableList<FunctionViewModel> functions =
+            FXCollections.observableArrayList(f -> new Observable[]{
+                    f.FunctionNameProperty(), f.UploadProgramNameProperty(),
+                    f.uploaderProperty(), f.instructionCountProperty(),
+                    f.MaxDegreeProperty()
+            });
+
 
     private final ObservableList<ProgramViewModel> programs =
             FXCollections.observableArrayList(p -> new Observable[]{
@@ -95,6 +111,8 @@ public class DashboardController {
     private RootController rootController;
     private UserStatsService userStatsService;
     private ProgramStatsService programStatsService;
+    private FunctionStateService functionStateService;
+    private Timeline refreshFunctionsTimeline;
     private Timeline refreshUsersTimeline;
     private Timeline refreshProgramsTimeline;
     private UserService userService;
@@ -109,7 +127,26 @@ public class DashboardController {
             historyTable.setItems(history);
         }
 
-        if (functionsListView != null) functionsListView.setItems(functions);
+        if (functionsTable != null) {
+            functionsTable.setItems(functions);
+
+            if (colFnName != null)
+                colFnName.setCellValueFactory(c -> c.getValue().FunctionNameProperty());
+
+            if (colFnUploadProgram != null)
+                colFnUploadProgram.setCellValueFactory(c -> c.getValue().UploadProgramNameProperty());
+
+            if (colFnUploader != null)
+                colFnUploader.setCellValueFactory(c -> c.getValue().uploaderProperty());
+
+            if (colFnInstrCount != null)
+                colFnInstrCount.setCellValueFactory(c -> c.getValue().instructionCountProperty());
+
+            if (colFnMaxDegree != null)
+                colFnMaxDegree.setCellValueFactory(c -> c.getValue().MaxDegreeProperty());
+        }
+
+        //if (functionsListView != null) functionsListView.setItems(functions);
 
         if (loadFileButton != null) loadFileButton.setOnAction(e -> onLoadFile());
         if (chargeCreditsButton != null) chargeCreditsButton.setOnAction(e -> onChargeCredits());
@@ -180,6 +217,10 @@ public class DashboardController {
         }
     }
 
+    public void setFunctionStatsService(FunctionStateService functionStateService) {
+        this.functionStateService = functionStateService;
+    }
+
     // ============== Actions ==============
     @FXML
     private void onLoadFile() {
@@ -198,7 +239,7 @@ public class DashboardController {
                 programService.loadXml(Path.of(f.getPath()));
 
         } catch (Exception ex) {
-            showError(ex.getMessage() + f.getName());
+            showError("Already loaded file: " + f.getName());
         }
 
             // רענון מיידי של טבלת התוכניות אחרי העלאה
@@ -252,7 +293,6 @@ public class DashboardController {
 
             Parent root = loader.load();
 
-            // 5. החלפת הסצנה
             Scene scene = new Scene(root);
             Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
             stage.setScene(scene);
@@ -323,6 +363,7 @@ public class DashboardController {
         if (refreshProgramsTimeline != null) refreshProgramsTimeline.stop();
 
         refreshProgramsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailablePrograms()));
+
         refreshProgramsTimeline.setCycleCount(Animation.INDEFINITE);
         refreshProgramsTimeline.play();
 
@@ -333,6 +374,7 @@ public class DashboardController {
     private void refreshAvailablePrograms() {
         new Thread(() -> {
             try {
+                startRefreshFunctionsLoop();
                 List<ProgramViewModel> snapshot = programStatsService.fetchAllPrograms();
                 if (snapshot == null) snapshot = List.of();
                 final List<ProgramViewModel> finalSnapshot = snapshot;
@@ -359,6 +401,55 @@ public class DashboardController {
     private int findProgramIndexByName(String name) {
         for (int i = 0; i < programs.size(); i++) {
             if (programs.get(i).getProgramName().equals(name)) return i;
+        }
+        return -1;
+    }
+
+    // ============== [NEW] Available Functions refresh ==============
+    private void startRefreshFunctionsLoop() {
+        if (functionStateService == null) {
+            System.err.println("functionStatsService is null – functions refresh loop not started");
+            return;
+        }
+        if (refreshFunctionsTimeline != null) refreshFunctionsTimeline.stop();
+
+        refreshFunctionsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailableFunctions()));
+        refreshFunctionsTimeline.setCycleCount(Animation.INDEFINITE);
+        refreshFunctionsTimeline.play();
+
+        // רענון ראשוני מיידי
+        refreshAvailableFunctions();
+    }
+
+    private void refreshAvailableFunctions() {
+        new Thread(() -> {
+            try {
+                List<FunctionViewModel> snapshot = functionStateService.fetchAllFunction();
+                if (snapshot == null) snapshot = List.of();
+                final List<FunctionViewModel> finalSnapshot = snapshot;
+                Platform.runLater(() -> mergeFunctionsSnapshot(finalSnapshot));
+            } catch (Exception ex) {
+                System.err.println("Failed to refresh functions: " + ex.getMessage());
+            }
+        }, "FunctionStatsRefresh").start();
+    }
+
+    private void mergeFunctionsSnapshot(List<FunctionViewModel> snapshot) {
+        for (FunctionViewModel incoming : snapshot) {
+            int idx = findFunctionIndexByName(incoming.getProgramName());
+            if (idx < 0) {
+                functions.add(incoming);
+            } else {
+                functions.get(idx).updateFrom(incoming);
+            }
+        }
+        functions.removeIf(curr ->
+                snapshot.stream().noneMatch(s -> s.getProgramName().equals(curr.getProgramName())));
+    }
+
+    private int findFunctionIndexByName(String name) {
+        for (int i = 0; i < functions.size(); i++) {
+            if (functions.get(i).getProgramName().equals(name)) return i;
         }
         return -1;
     }

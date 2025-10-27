@@ -98,6 +98,7 @@ public class ExecutionController {
     private void onDebug() {
         if (programService.isFinishedDebugging()){
             programService.resetDebugger();
+            programService.resetCycles();
             onProgramLoaded();
         }
         if (debuggerLevel==0){

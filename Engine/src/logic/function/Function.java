@@ -18,6 +18,7 @@ public class Function extends Program  {
        }
        super.clearAndSetInstructions(instructionList);
        super.resetMapVariables();
+
    }
 
    public Variable getFreshWORK(){

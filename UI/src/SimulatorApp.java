@@ -20,6 +20,7 @@ public class SimulatorApp extends Application {
         userService = new UserService();
         userStatsService = new RemoteUserStatsService(serverUrl);
         ProgramStatsService programStatsService= new RemoteProgramStatsService(serverUrl);
+        FunctionStateService functionStateService= new RemoteFunctionStatsService(serverUrl);
 
         URL url = Objects.requireNonNull(
                 SimulatorApp.class.getResource("viewFXML/login.fxml"),
@@ -29,7 +30,7 @@ public class SimulatorApp extends Application {
         Scene scene = new Scene(loader.load());
 
         LoginController loginController = loader.getController();
-        loginController.setServices(userService, userStatsService,programStatsService);
+        loginController.setServices(userService, userStatsService,programStatsService,functionStateService);
 
         stage.setScene(scene);
         stage.setMinWidth(800);

@@ -8,7 +8,7 @@ public class User {
     private final String username;
 
     // סטטיסטיקות
-    private int creditsCurrent = 100;        // מתחיל עם 100 קרדיטים
+    private int creditsCurrent = 0;
     private int creditsUsed = 0;
     private int mainProgramsUploaded = 0;
     private int functionsContributed = 0;

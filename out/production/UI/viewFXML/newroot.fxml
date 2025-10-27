@@ -102,7 +102,15 @@
             <TitledPane text="Available Functions" collapsible="false"
                         GridPane.rowIndex="1" GridPane.columnIndex="1">
                 <content>
-                    <ListView fx:id="functionsListView"/>
+                    <TableView fx:id="functionsTable">
+                        <columns>
+                            <TableColumn fx:id="colFnName" text="Function Name" prefWidth="150"/>
+                            <TableColumn fx:id="colFnUploadProgram" text="Upload Program" prefWidth="150"/>
+                            <TableColumn fx:id="colFnUploader" text="Uploader" prefWidth="120"/>
+                            <TableColumn fx:id="colFnInstrCount" text="Instructions" prefWidth="100"/>
+                            <TableColumn fx:id="colFnMaxDegree" text="Max Degree" prefWidth="100"/>
+                        </columns>
+                    </TableView>
                 </content>
             </TitledPane>
 
