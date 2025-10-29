@@ -69,6 +69,7 @@ public class DashboardController {
     @FXML private TableColumn<FunctionViewModel, String> colFnUploader;
     @FXML private TableColumn<FunctionViewModel, Number> colFnInstrCount;
     @FXML private TableColumn<FunctionViewModel, Number> colFnMaxDegree;
+    @FXML private Button executeFunctionButton;
 
 
     // -------- TL: Connected Users table --------
@@ -127,6 +128,11 @@ public class DashboardController {
         if (historyTable != null) {
             historyTable.setItems(history);
         }
+
+        executeFunctionButton.disableProperty().bind(
+                functionsTable.getSelectionModel().selectedItemProperty().isNull()
+        );
+        executeFunctionButton.setOnAction(e -> onExecuteFunction());
 
         if (functionsTable != null) {
             functionsTable.setItems(functions);
@@ -194,6 +200,59 @@ public class DashboardController {
 
         programService = new ProgramService();
         updateCreditsField();
+    }
+
+    private void onExecuteFunction() {
+
+        FunctionViewModel functionViewModel = (functionsTable != null)
+                ? functionsTable.getSelectionModel().getSelectedItem()
+                : null;
+
+        if (functionViewModel == null) return;
+
+        try {
+            // 1. התחלת התוכנית בשרת
+            programService.startProgram(functionViewModel.getUploadProgramName());
+
+            // 2. לוג פעולה
+            logAction(currentUserOrDash(), "Executed program: " + functionViewModel.getProgramName());
+
+            // 3. עצירת refresh loops
+            dispose();
+
+            // 4. טעינת root.fxml
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/viewFXML/root.fxml")
+            );
+
+            Parent root = loader.load();
+
+            // 5. קבלת ה-controller והגדרת הנתונים - אחרי ה-load!
+            rootController = loader.getController();
+            rootController.onFunctionSelector1(functionViewModel.getProgramName(), 0);
+            rootController.setUserService(userService);
+            rootController.setCredits(credits); // שים לב: setCredit (לא setCredits)
+
+            // 6. עדכון ידני של ה-Labels
+
+            rootController.setDashboardController(this);
+            rootController.setPreviousScene(thisScene);
+            rootController.updateUserDisplay(); // נוסיף מתודה חדשה
+
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Program Execution - " + functionViewModel.getProgramName());
+            stage.show();
+
+        } catch (ProgramLoadException e) {
+            showError("Failed to start program: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            showError("Failed to load execution view: " + e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
     public void refreshUI() {

@@ -47,6 +47,9 @@ public class Engine {
         programDTO = new ProgramDTO(program);
     }
 
+    public void setProgram(Program program) {
+        this.program = program;
+    }
 
     public Engine(){};
 

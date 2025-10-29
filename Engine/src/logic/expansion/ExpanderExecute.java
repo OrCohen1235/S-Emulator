@@ -22,7 +22,7 @@ public class ExpanderExecute {
     public ExpanderExecute(Program program) {
         this.program = program;
         if (!program.getIsMainProgram()) {
-            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex()+1, getMaxLabelNumber() + 1);
+            expansionContext = new ExpansionContext(program, program.getMaxWorkIndex()+1, 10);
         }// Start degree=1; next free label
         else {
             expansionContext = new ExpansionContext(program, program.getMaxWorkIndex()+1, getMaxLabelNumber() + 1);

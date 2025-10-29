@@ -3,76 +3,102 @@ package utils;
 import engine.Engine;
 import jakarta.servlet.ServletContext;
 import logic.dto.SystemFunctionDTO;
-import logic.function.Function;
 import users.ProgramRepository;
 import users.SystemFunction;
-import users.SystemProgramsManager;
+import users.SystemProgram; // ✅ שינוי מ-SystemProgramsManager
 
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.*;
 
 public class ServletsUtills {
-    private static final String USER_MANAGER_ATTRIBUTE_NAME = "userManager";
-    private static final String ENGINE_MANAGER_ATTRIBUTE_NAME = "engineManager";
+    private static final String PROGRAM_REPOSITORY_ATTRIBUTE = "programRepository";
 
-    private static final Object userManagerLock = new Object();
-    private static final Object engineManagerLock = new Object();
+    private static final Object repositoryLock = new Object();
 
-    public static Engine getEngineManager(ServletContext context, String programName) {
-        synchronized (engineManagerLock) {
-            SystemProgramsManager programsManager = (SystemProgramsManager) context.getAttribute(programName);
-            return programsManager.getEngine();
-        }
-    }
 
-    public static Engine createNewSystemProgram(ServletContext context, InputStream fileContext, String userName) {
-        synchronized (engineManagerLock) {
-            Engine checkEngine = new Engine(fileContext);
-            SystemProgramsManager systemProgram = (SystemProgramsManager) context.getAttribute(checkEngine.getProgramDTO().getProgramName());
-            if (fileContext != null) {
-                String programName = checkEngine.getProgramDTO().getProgramName();
-                systemProgram = new SystemProgramsManager(userName, checkEngine);
-                System.out.println("System program created: " + programName);
-                context.setAttribute(programName, systemProgram);
-            } else if (checkEngine == null) {
-                throw new IllegalStateException("Engine not initialized – upload a file first.");
+    /**
+     * יוצר תוכנית חדשה ומוסיף אותה ל-Repository
+     */
+    public static SystemProgram createNewSystemProgram(ServletContext context, InputStream fileContext, String userName) { // ✅ שינוי
+        synchronized (repositoryLock) {
+            if (fileContext == null) {
+                throw new IllegalArgumentException("File context cannot be null");
             }
-            return checkEngine;
-        }
-    }
 
-    public static List<SystemProgramsManager> getAllSystemPrograms(ServletContext context) {
-        List<SystemProgramsManager> programs = new ArrayList<>();
+            ProgramRepository repository = getProgramRepository(context);
 
-        Enumeration<String> names = context.getAttributeNames();
-        while (names.hasMoreElements()) {
-            String name = names.nextElement();
-            Object value = context.getAttribute(name);
+            try {
+                // ✅ השתמש ב-uploadProgram של ה-Repository
+                SystemProgram newProgram = repository.uploadProgram(userName, fileContext);
 
-            if (value instanceof SystemProgramsManager spm) {
-                programs.add(spm);
+                System.out.println("✓ System program created: " + newProgram.getName() + " by user: " + userName);
+
+                return newProgram;
+
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to create program: " + e.getMessage(), e);
             }
         }
-
-        return programs;
     }
 
-
-    public static List<SystemFunctionDTO> getAllSystemFunctions(ServletContext servletContext) {
-        ProgramRepository programRepository =(ProgramRepository) servletContext.getAttribute("programRepository");
-        List<SystemFunctionDTO> systemFunctions = new ArrayList<>();
-        for (SystemFunction systemFunction :programRepository.getSystemFunctions()){
-            SystemFunctionDTO systemFunctionDTO = new SystemFunctionDTO(systemFunction);
-            systemFunctions.add(systemFunctionDTO);
+    /**
+     * מחזיר את כל התוכניות מה-Repository
+     */
+    public static List<SystemProgram> getAllSystemPrograms(ServletContext context) { // ✅ שינוי
+        synchronized (repositoryLock) {
+            ProgramRepository repository = getProgramRepository(context);
+            return new ArrayList<>(repository.getAllPrograms());
         }
-        return systemFunctions;
+    }
+
+    /**
+     * מחזיר את כל הפונקציות מכל התוכניות
+     */
+    public static List<SystemFunctionDTO> getAllSystemFunctions(ServletContext context) {
+        synchronized (repositoryLock) {
+            ProgramRepository repository = getProgramRepository(context);
+            List<SystemFunctionDTO> systemFunctions = new ArrayList<>();
+
+            for (SystemFunction systemFunction : repository.getSystemFunctions()) {
+                systemFunctions.add(new SystemFunctionDTO(systemFunction));
+            }
+
+            return systemFunctions;
+        }
+    }
+
+    /**
+     * Helper method - מחזיר את ה-ProgramRepository
+     */
+    private static ProgramRepository getProgramRepository(ServletContext context) {
+        ProgramRepository repository = (ProgramRepository) context.getAttribute(PROGRAM_REPOSITORY_ATTRIBUTE);
+        if (repository == null) {
+            throw new IllegalStateException("ProgramRepository not initialized in ServletContext");
+        }
+        return repository;
+    }
+
+    /**
+     * מחזיר תוכנית ספציפית לפי שם
+     */
+    public static SystemProgram getSystemProgram(ServletContext context, String programName) { // ✅ שינוי
+        synchronized (repositoryLock) {
+            ProgramRepository repository = getProgramRepository(context);
+            SystemProgram p = repository.getProgram(programName);
+            return p;
+        }
+    }
+
+    /**
+     * מוחק תוכנית לפי שם
+     */
+    public static boolean removeSystemProgram(ServletContext context, String programName) {
+        synchronized (repositoryLock) {
+            ProgramRepository repository = getProgramRepository(context);
+            SystemProgram removed = repository.removeProgram(programName); // ✅ שינוי
+            return removed != null;
+        }
     }
 }
-
-
-
-
-
-
-

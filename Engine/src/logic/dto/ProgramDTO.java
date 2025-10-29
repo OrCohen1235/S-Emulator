@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public class ProgramDTO {
     private static final Pattern X_VAR = Pattern.compile("\\b(x\\w*)\\b");
     private Program program;
-    private final Program mainProgram;
+    private Program mainProgram;
 
     public ProgramDTO(Program program) {
         this.program = Objects.requireNonNull(program, "program must not be null");
@@ -295,7 +295,9 @@ public class ProgramDTO {
             this.program=mainProgram;
             return;
         }
-
-        this.program = program.getFunctionByName(functionName);
+        Function func = program.getFunctionByName(functionName);
+        func.getProgramLoad().loadInputVars(this.program.getXVarsValuesFromXMap());
+        this.program = func;
+        this.mainProgram=func;
     }
 }

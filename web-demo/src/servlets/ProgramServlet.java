@@ -1,6 +1,9 @@
 package servlets;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import engine.Engine;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,7 +11,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.dto.InstructionDTO;
+import logic.function.Function;
+import session.UserSession;
 import users.ProgramRepository;
+import users.SystemFunction;
 import users.SystemProgram;
 import users.UserManager;
 import utils.ServletsUtills;
@@ -18,10 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @WebServlet(urlPatterns = {
@@ -123,36 +126,64 @@ public class ProgramServlet extends BaseServlet {
 
     private void startProgram(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            // נקרא את גוף הבקשה כטקסט
-            String programName = readRequestBody(req).trim();
-
-            if (programName == null || programName.isBlank()) {
-                sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
-                        "Missing or empty programName in request body");
+            // קריאת JSON מה-body
+            String jsonBody = readRequestBody(req).trim();
+            if (jsonBody == null || jsonBody.isBlank()) {
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Missing request body");
                 return;
             }
 
-            // הסרת גרשיים אם קיימים (למקרה של JSON string)
-            programName = programName.replace("\"", "");
+            // המרה מ-JSON לאובייקט
+            JsonObject json = GSON.fromJson(jsonBody, JsonObject.class);
 
+            if (!json.has("programName")) {
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Missing 'programName' field in request body");
+                return;
+            }
+
+            String programName = json.get("programName").getAsString().trim();
+            if (programName.isEmpty()) {
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "programName cannot be empty");
+                return;
+            }
+
+            // קבלת Repository ופונקציות
             ProgramRepository repo = getProgramRepository();
-            SystemProgram program = repo.getProgram(programName);
 
+            // בדיקה שהתוכנית קיימת
+            SystemProgram program = repo.getProgram(programName);
             if (program == null) {
-                sendError(resp, HttpServletResponse.SC_NOT_FOUND,
-                        "Program not found: " + programName);
+                sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Program not found: " + programName);
                 return;
             }
 
+            List<Function> allFunctions = new ArrayList<>();
+            for (SystemProgram program1 : repo.getAllPrograms()){
+                program1.createFreshEngine();
+                allFunctions.addAll(program1.getFunctions());
+            }
             Engine userEngine = program.createFreshEngine();
+            userEngine.getProgramDTO().setFunctions(allFunctions);
+
+
+            // שמירת ה-Engine ב-session
             getUserSession(req).setCurrentEngine(userEngine);
 
-            resp.setStatus(HttpServletResponse.SC_OK);
+            System.out.println("[StartProgram] ✓ Program started: " + programName +
+                    " for user: " + getUserSession(req).getUsername());
 
+            // החזרת ok בלבד
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("text/plain; charset=UTF-8");
+            resp.getWriter().write("ok");
+
+        } catch (JsonSyntaxException e) {
+            sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format: " + e.getMessage());
+        } catch (NoSuchElementException e) {
+            sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Program not found: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Failed to start program: " + e.getMessage());
+            sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to start program: " + e.getMessage());
         }
     }
 
@@ -284,18 +315,18 @@ public class ProgramServlet extends BaseServlet {
                 indexInt = Integer.parseInt(index);
             } catch (NumberFormatException nfe) {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
-                        ProgramServlet.Response.error("'index' must be an integer"));
+                        Response.error("'index' must be an integer"));
                 return;
             }
 
             List<InstructionDTO> expandInstruction = engine.getProgramDTO().getExpandDTO(indexInt);
 
             // מחזיר את הרשימה במבנה {status: "ok", error: null, data: [...]}
-            writeJson(response, HttpServletResponse.SC_OK, ProgramServlet.Response.ok(expandInstruction));
+            writeJson(response, HttpServletResponse.SC_OK, Response.ok(expandInstruction));
 
         } catch (Exception e) {
             writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    ProgramServlet.Response.error(e.getMessage()));
+                    Response.error(e.getMessage()));
         } finally {
             RW_LOCK.readLock().unlock();
         }
@@ -404,10 +435,15 @@ public class ProgramServlet extends BaseServlet {
             }
             int degree = Integer.parseInt(degreeStr);
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
-            else            engine.getProgramDTO().setProgramViewToOriginal();
+            else engine.getProgramDTO().setProgramViewToOriginal();
             UserManager userManager = getUserManager();
             userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
-            int currentCredits = userManager.getUser(getUserSession(req).getUsername()).getCreditsCurrent();
+            int currentCredits =0;
+            synchronized (userManager) {
+                 currentCredits = userManager
+                        .getUser(getUserSession(req).getUsername())
+                        .getCreditsCurrent();
+            }
             long result=0;
             try {
                  result = engine.getProgramDTO().runProgramExecutor(currentCredits);
@@ -419,7 +455,7 @@ public class ProgramServlet extends BaseServlet {
             System.out.println(engine.getProgramDTO().getVariablesValues());
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
-
+            updateProgramStats(programName, cycles);
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("'degree' must be an integer"));
@@ -457,6 +493,7 @@ public class ProgramServlet extends BaseServlet {
 
             String degreeStr = req.getParameter("degree");
             String levelStr  = req.getParameter("level");
+            String isFinishDebugger = req.getParameter("isFinishDebugger");
             if (degreeStr == null || degreeStr.isBlank()) {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Missing 'degree' query parameter"));
                 return;
@@ -466,9 +503,9 @@ public class ProgramServlet extends BaseServlet {
                 return;
             }
             UserManager userManager = getUserManager();
-            userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
             int degree = Integer.parseInt(degreeStr);
             int level  = Integer.parseInt(levelStr);
+            Boolean isFinishedDebugger = Boolean.parseBoolean(isFinishDebugger);
 
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else            engine.getProgramDTO().setProgramViewToOriginal();
@@ -476,7 +513,7 @@ public class ProgramServlet extends BaseServlet {
             int currentCredits = userManager.getUser(getUserSession(req).getUsername()).getCreditsCurrent();
             long result=0;
             try {
-                result = engine.getProgramDTO().runProgramExecutorDebugger(degree,currentCredits);
+                result = engine.getProgramDTO().runProgramExecutorDebugger(level,currentCredits);
             }
             catch (Exception e) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(e.getMessage()));
@@ -484,6 +521,9 @@ public class ProgramServlet extends BaseServlet {
             }
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
+            if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
+                updateProgramStats(programName, cycles);
+            }
 
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
@@ -583,20 +623,28 @@ public class ProgramServlet extends BaseServlet {
 
             StringBuilder body = new StringBuilder();
             try (BufferedReader reader = req.getReader()) {
-                String line; while ((line = reader.readLine()) != null) body.append(line);
+                String line;
+                while ((line = reader.readLine()) != null) body.append(line);
             }
             String raw = body.toString().trim();
 
             String functionName;
             try {
-                // אם הגיע JSON: "Foo" או {"name":"Foo"}
-                var el = com.google.gson.JsonParser.parseString(raw);
+                var el = JsonParser.parseString(raw);
                 if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+                    // JSON פרימיטיבי: "Foo"
                     functionName = el.getAsString();
-                } else if (el.isJsonObject() && el.getAsJsonObject().has("name")) {
-                    functionName = el.getAsJsonObject().get("name").getAsString();
+                } else if (el.isJsonObject()) {
+                    JsonObject obj = el.getAsJsonObject();
+                    // ✓ תמיכה בשני השדות: "functionName" או "name"
+                    if (obj.has("functionName")) {
+                        functionName = obj.get("functionName").getAsString();
+                    } else if (obj.has("name")) {
+                        functionName = obj.get("name").getAsString();
+                    } else {
+                        functionName = raw;
+                    }
                 } else {
-                    // לא JSON פרימיטיבי/אובייקט, ננסה כטקסט פשוט
                     functionName = raw;
                 }
             } catch (Exception ignore) {
@@ -605,14 +653,30 @@ public class ProgramServlet extends BaseServlet {
             }
 
             if (functionName == null || functionName.isBlank()) {
-                writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Function name is required in body"));
+                writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
+                        new ErrorResp("Function name is required in body"));
                 return;
             }
+            ProgramRepository p = getProgramRepository();
+            Function funcToCopy = null;
+            for (Function func : p.getAllFunctions()){
+                if (func.getName().equals(functionName)){
+                    funcToCopy = func;
+                }
+            }
+            String programName = funcToCopy.getMainProgram().getName();
+            SystemProgram systemProgram = p.getProgram(programName);
+            Engine newEngine = systemProgram.createFreshEngine();
+            Function func = newEngine.getProgram().getFunctionByName(functionName);
+            newEngine.setProgram(func);
+            newEngine.getProgramDTO().switchToFunction(functionName);
+            getUserSession(req).setCurrentEngine(newEngine);
 
-            engine.getProgramDTO().switchToFunction(functionName);
+
             writeJson(response, HttpServletResponse.SC_OK, new OkOnly());
         } catch (Exception e) {
-            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, new ErrorResp(e.getMessage()));
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    new ErrorResp(e.getMessage()));
         } finally {
             RW_LOCK.writeLock().unlock();
         }
@@ -700,5 +764,15 @@ public class ProgramServlet extends BaseServlet {
         final String status = "ok";
         final Map<String, String> inputVarsValues;
         OkInputVarsValues(Map<String, String> m) { this.inputVarsValues = m; }
+    }
+
+    public void updateProgramStats(String programName, int cycles) throws IOException {
+        try {
+            SystemFunction function = getProgramRepository().getFunction(programName);
+
+        } catch (NoSuchElementException e) {
+            SystemProgram program = ServletsUtills.getSystemProgram(getServletContext(), programName);
+            program.addRun(cycles);
+        }
     }
 }

@@ -15,6 +15,7 @@ public class UserSession {
         this.sessionId = sessionId;
     }
 
+
     public void setCurrentEngine(Engine currentEngine) {
         this.currentEngine = currentEngine;
     }

@@ -85,8 +85,8 @@ public class User {
     /**
      * הוספת תרומת פונקציה
      */
-    public synchronized void addFunctionContribution() {
-        functionsContributed++;
+    public synchronized void addFunctionContribution(int functionsContributed) {
+        functionsContributed+=functionsContributed;
     }
 
     @Override

@@ -42,7 +42,6 @@
         <!-- Second row below toolbar -->
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 8;">
           <children>
-            <Button text="Program\Function selector" onAction="#onFunctionSelector"/>
             <Separator orientation="VERTICAL" prefHeight="30.0"/>
             <Button fx:id="btnCollapse" onAction="#onCollapse" text="Collapse"/>
             <HBox spacing="6" alignment="CENTER_LEFT">

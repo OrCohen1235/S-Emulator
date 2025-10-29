@@ -2,14 +2,17 @@ package services;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
@@ -30,25 +33,32 @@ public class ProgramService {
     public void startProgram(String programName) {
         try {
             String url = SERVER_URL + "start-program";
-            String jsonBody = GSON.toJson(programName);
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
-                    header("Content-Type", "application/json").
-                    POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+            // שלח את programName כאובייקט JSON
+            Map<String, String> body = new HashMap<>();
+            body.put("programName", programName);
+            String jsonBody = GSON.toJson(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                ProgramService.Response resp = GSON.fromJson(response.body(), ProgramService.Response.class);
+                String responseBody = response.body(); // "ok"
+                System.out.println("✓ Program started successfully: " + programName);
             } else {
-                System.err.println("HTTP error: " + response.statusCode() + "from: executProgram");
+                System.err.println("✗ HTTP error: " + response.statusCode() + " from: startProgram");
+                System.err.println("Response: " + response.body());
             }
         } catch (IOException | InterruptedException e) {
+            System.err.println("✗ Failed to start program: " + programName);
             e.printStackTrace();
         }
     }
-    //public final static Gson gson = new Gson();
-    //private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private static class UploadResponse {
         String status;
@@ -197,13 +207,15 @@ public class ProgramService {
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                Response resp = GSON.fromJson(response.body(), Response.class);
+                JsonObject jsonObject = GSON.fromJson(response.body(), JsonObject.class);
+                String status = jsonObject.get("status").getAsString();
 
-                if ("ok".equalsIgnoreCase(resp.status)) {
-                    String dataJson = GSON.toJson(resp.data);
-                    return GSON.fromJson(dataJson, new TypeToken<List<InstructionDTO>>(){}.getType());
+                if ("ok".equalsIgnoreCase(status)) {
+                    JsonElement dataElement = jsonObject.get("data");
+                    return GSON.fromJson(dataElement, new TypeToken<List<InstructionDTO>>(){}.getType());
                 } else {
-                    System.err.println("Server error: " + resp.error + " from: getInstructionsDTO");
+                    String error = jsonObject.has("error") ? jsonObject.get("error").getAsString() : "Unknown error";
+                    System.err.println("Server error: " + error + " from: getInstructionsDTO");
                     return List.of();
                 }
             } else {
@@ -503,6 +515,28 @@ public class ProgramService {
         return executeOutput;
     }
 
+    public void addRunWhenFinishDebugging() {
+        try {
+            String url = SERVER_URL + "/add-run-when-finish-debugging";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()  // ✅ Changed from POST to GET
+                    .build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("✓ Debug run recorded successfully");
+            } else {
+                System.err.println("✗ HTTP error: " + response.statusCode() + " from: addRunWhenFinishDebugging");
+                System.err.println("Response: " + response.body());
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addHistory(int degree, long y){
         try {
             String url = SERVER_URL + "get-program-name-and-cycles";
@@ -737,24 +771,27 @@ public class ProgramService {
     }
 
     public void switchToFunction(String functionName) {
-        try{
-            String url = SERVER_URL + "switch-to-function";
-            String jsonBody = GSON.toJson(functionName);
+        try {
+            String url = SERVER_URL + "/switch-to-function";
 
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
-                    header("Content-Type", "application/json").
-                    POST(HttpRequest.BodyPublishers.ofString(jsonBody)).build();
+            // Create proper JSON object matching server expectations
+            JsonObject json = new JsonObject();
+            json.addProperty("functionName", functionName);
+            String jsonBody = GSON.toJson(json);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                Response resp = GSON.fromJson(response.body(), Response.class);
-
-                if (!("ok".equalsIgnoreCase(resp.status))) {
-                    System.err.println("Server error: " + resp.error + " from: switchToFunction");
-                }
+                System.out.println("✓ Switched to function: " + functionName);
             } else {
-                System.err.println("HTTP error: " + response.statusCode() + "from: switchToFunction");
+                System.err.println("✗ HTTP error: " + response.statusCode() + " from: switchToFunction");
+                System.err.println("Response: " + response.body());
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

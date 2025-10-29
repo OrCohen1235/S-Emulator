@@ -102,17 +102,25 @@
             <TitledPane text="Available Functions" collapsible="false"
                         GridPane.rowIndex="1" GridPane.columnIndex="1">
                 <content>
-                    <TableView fx:id="functionsTable">
-                        <columns>
-                            <TableColumn fx:id="colFnName" text="Function Name" prefWidth="150"/>
-                            <TableColumn fx:id="colFnUploadProgram" text="Upload Program" prefWidth="150"/>
-                            <TableColumn fx:id="colFnUploader" text="Uploader" prefWidth="120"/>
-                            <TableColumn fx:id="colFnInstrCount" text="Instructions" prefWidth="100"/>
-                            <TableColumn fx:id="colFnMaxDegree" text="Max Degree" prefWidth="100"/>
-                        </columns>
-                    </TableView>
+                    <VBox spacing="8" fillWidth="true">
+                        <TableView fx:id="functionsTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colFnName" text="Function Name" prefWidth="150"/>
+                                <TableColumn fx:id="colFnUploadProgram" text="Upload Program" prefWidth="150"/>
+                                <TableColumn fx:id="colFnUploader" text="Uploader" prefWidth="120"/>
+                                <TableColumn fx:id="colFnInstrCount" text="Instructions" prefWidth="100"/>
+                                <TableColumn fx:id="colFnMaxDegree" text="Max Degree" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+
+                        <!-- חדש: כפתור Execute כמו ב-Programs -->
+                        <HBox alignment="CENTER_RIGHT">
+                            <Button fx:id="executeFunctionButton" text="Execute Function"/>
+                        </HBox>
+                    </VBox>
                 </content>
             </TitledPane>
+
 
         </GridPane>
     </center>

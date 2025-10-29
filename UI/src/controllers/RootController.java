@@ -317,23 +317,15 @@ public class RootController {
         dialog.show();
     }
 
-    public void onFunctionSelector(ActionEvent actionEvent) {
-        List<String> functions = programService.getFunctionsNames();
+//    public void onFunctionSelector() {
+//        programService.switchToFunction();
+//        instructionsController.refresh(0);
+//        int maxDegree = programService.getMaxDegree();
+//        setMaxDegree(maxDegree);
+//        spnDegree.requestFocus();
+//    }
 
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(functions.get(0), functions);
-        dialog.setTitle("Choose Function");
-        dialog.setHeaderText("Function to show");
-        dialog.setContentText("Function:");
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(programService::switchToFunction);
-        instructionsController.refresh(0);
-        int maxDegree = programService.getMaxDegree();
-        setMaxDegree(maxDegree);
-        spnDegree.requestFocus();
-    }
-
-    public void onFunctionSelector(String functionName,int degree) {
+    public void onFunctionSelector1(String functionName,int degree) {
 
         programService.switchToFunction(functionName);
         instructionsController.refresh(degree);

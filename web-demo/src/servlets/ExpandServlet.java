@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static utils.ServletsUtills.getEngineManager;
 
 
 @WebServlet(urlPatterns = {"/load-expansion-by-degree"})

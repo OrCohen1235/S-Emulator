@@ -67,6 +67,17 @@ public class ProgramRepository {
         return program;
     }
 
+    public SystemFunction getFunction(String programName) {
+        SystemFunction program = systemFunctions.stream()
+                .filter(f -> f.getFunctionName().equals(programName)) // או איך שהשם נשמר
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Program '" + programName + "' not found in repository"
+                ));
+
+        return program;
+    }
+
     public void createsFunctions(){
         for (SystemProgram program : programs.values()) {
             allFunctions.addAll(program.getFunctions());
