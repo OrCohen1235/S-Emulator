@@ -101,11 +101,10 @@ public class LoadFileServlet extends BaseServlet {
             try (InputStream xmlStream = filePart.getInputStream()) {
 
                 SystemProgram program = repo.uploadProgram(username, xmlStream);
-
+                User user = getUserManager().getUser(getUserSession(req).getUsername());
+                user.addFunctionContribution(program.getFunctions().size());
                 program.getProgramDTO().loadExpansion();
 
-                UserManager userMgr = getUserManager();
-                User user = userMgr.getUser(username);
                 if (user != null) {
                     user.addMainProgram();
                 }

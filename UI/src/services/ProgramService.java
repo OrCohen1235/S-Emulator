@@ -2,23 +2,20 @@ package services;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import logic.dto.EngineDTO;
+import logic.dto.HistoryRowDTO;
 import logic.dto.InstructionDTO;
-import logic.dto.ProgramDTO;
+import model.HistoryRow;
 import program.ProgramLoadException;
 import model.VarRow;
 
@@ -454,7 +451,7 @@ public class ProgramService {
                 Response resp = GSON.fromJson(response.body(), Response.class);
 
                 if ("ok".equalsIgnoreCase(resp.status)) {
-                    history.createHistory(vars);
+
                 } else {
                     System.err.println("Server error: " + resp.error + "from: loadVars");
                 }
@@ -467,11 +464,11 @@ public class ProgramService {
 
     }
 
-    public long executeProgram(int degree) {
+    public long executeProgram(int degree,int sumArchitecture) {
         long executeOutput = 0;
 
         try {
-            String url = SERVER_URL + "execute-program?degree=" + degree;
+            String url = SERVER_URL + "execute-program?degree=" + degree + "&sumArchitecture=" + sumArchitecture;
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -480,7 +477,7 @@ public class ProgramService {
 
                 if ("ok".equalsIgnoreCase(resp.status)) {
                     executeOutput = resp.result;
-                    history.addHistory(resp.programName,executeOutput, degree, resp.cycles, getVarsAtEndRun());
+
                 } else {
                     return -1;
                 }
@@ -494,11 +491,11 @@ public class ProgramService {
         return executeOutput;
     }
 
-    public long executeProgramDebugger(int degree, int level) {
+    public long executeProgramDebugger(int degree, int level,int sumArchitecture) {
         long executeOutput = 0;
 
         try {
-            String url = SERVER_URL + "execute-program-debugger?degree=" + degree + "&level=" + level;
+            String url = SERVER_URL + "execute-program-debugger?degree=" + degree + "&level=" + level + "&sumArchitecture=" + sumArchitecture;
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -508,7 +505,7 @@ public class ProgramService {
                 if ("ok".equalsIgnoreCase(resp.status)) {
                     executeOutput = resp.result;
                     if (isFinishedDebugging()){
-                        history.addHistory(resp.programName,executeOutput, degree, resp.cycles, getVarsAtEndRun());
+
                     }
                 } else {
                     return -1;
@@ -566,6 +563,80 @@ public class ProgramService {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * שולף את רשימת ההיסטוריה של משתמש מהשרת
+     * @param userName שם המשתמש
+     * @return רשימת HistoryRow או רשימה רקה במקרה של שגיאה
+     */
+    public List<HistoryRow> getHistoryRowList(String userName) {
+        if (userName == null || userName.trim().isEmpty()) {
+            System.err.println("Username is null or empty");
+            return List.of();
+        }
+
+        try {
+            // בניית ה-URL עם query parameter
+            String url = SERVER_URL + "api/user-history?username=" + userName;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.noBody()) // POST ללא body כמו בשרת
+                    .build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                // פרסור ישיר של המערך
+                return parseHistoryJson(response.body());
+
+            } else if (response.statusCode() == 404) {
+                System.err.println("User not found: " + userName);
+                return List.of();
+
+            } else {
+                System.err.println("HTTP error: " + response.statusCode() + " from: getHistoryRowList");
+                System.err.println("Response: " + response.body());
+                return List.of();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            System.err.println("Failed to fetch history for user " + userName + ": " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    private List<HistoryRow> parseHistoryJson(String json) {
+        List<HistoryRow> historyList = new ArrayList<>();
+
+        try {
+            // המרה ל-DTO array
+            HistoryRowDTO[] dtoArray = GSON.fromJson(json, HistoryRowDTO[].class);
+
+            // המרה מ-DTO ל-HistoryRow
+            for (HistoryRowDTO dto : dtoArray) {
+                HistoryRow row = new HistoryRow(
+                        dto.getRunNumber(),
+                        dto.isMainProgram(),
+                        dto.getNameOrUserString(),
+                        dto.getArchitecture(),  // זה יעבור דרך Architecture.parse() בבנאי
+                        dto.getDegree(),
+                        dto.getY(),
+                        dto.getCycles()
+                );
+                historyList.add(row);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to parse history JSON: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return historyList;
     }
 
     public int getCurrentInstructionIndex() {
@@ -778,13 +849,14 @@ public class ProgramService {
         }
     }
 
-    public void switchToFunction(String functionName) {
+    public void switchToFunction(String functionName, String uploadProgramName) {
         try {
             String url = SERVER_URL + "/switch-to-function";
 
             // Create proper JSON object matching server expectations
             JsonObject json = new JsonObject();
             json.addProperty("functionName", functionName);
+            json.addProperty("mainProgram", uploadProgramName);
             String jsonBody = GSON.toJson(json);
 
             HttpRequest request = HttpRequest.newBuilder()

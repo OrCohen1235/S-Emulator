@@ -1,6 +1,8 @@
 package session;
 
 import engine.Engine;
+import model.HistoryRow;
+import java.util.*;
 import users.SystemProgram;
 
 
@@ -9,11 +11,13 @@ public class UserSession {
     private final String sessionId;
     private String username;
     private Engine currentEngine;
-    private int creditsNumber;
+
 
     public UserSession(String sessionId) {
         this.sessionId = sessionId;
     }
+
+
 
 
     public void setCurrentEngine(Engine currentEngine) {

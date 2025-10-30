@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -27,12 +28,10 @@ import services.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 
 public class DashboardController {
 
@@ -53,14 +52,15 @@ public class DashboardController {
     @FXML private TableColumn<ProgramViewModel, Number> colProgramAvgCost;
     @FXML private Button executeProgramButton;
 
-    // -------- BL: Users History / Statistics --------
+    // -------- BL: Run History Table --------
     @FXML private TableView<HistoryRow> historyTable;
-    @FXML private TableColumn<HistoryRow, String> colUser;
-    @FXML private TableColumn<HistoryRow, String> colAction;
-    @FXML private TableColumn<HistoryRow, String> colTime;
-
-    // -------- BR: Available Functions --------
-    @FXML private ListView<String> functionsListView;
+    @FXML private TableColumn<HistoryRow, Number> colRunNumber;
+    @FXML private TableColumn<HistoryRow, Boolean> colMainProgram;
+    @FXML private TableColumn<HistoryRow, String> colNameOrUserString;
+    @FXML private TableColumn<HistoryRow, String> colArchitecture;
+    @FXML private TableColumn<HistoryRow, Number> colDegree;
+    @FXML private TableColumn<HistoryRow, Number> colY;
+    @FXML private TableColumn<HistoryRow, Number> colCycles;
 
     // -------- BR: Available Functions --------
     @FXML private TableView<FunctionViewModel> functionsTable;
@@ -70,7 +70,6 @@ public class DashboardController {
     @FXML private TableColumn<FunctionViewModel, Number> colFnInstrCount;
     @FXML private TableColumn<FunctionViewModel, Number> colFnMaxDegree;
     @FXML private Button executeFunctionButton;
-
 
     // -------- TL: Connected Users table --------
     @FXML private TableView<UserViewModel> connectedUsersTable;
@@ -82,7 +81,6 @@ public class DashboardController {
     @FXML private TableColumn<UserViewModel, Number> colCURuns;
 
     // -------- Model-like state --------
-
     private final ObservableList<HistoryRow> history = FXCollections.observableArrayList();
 
     private final ObservableList<UserViewModel> connectedUsers =
@@ -91,14 +89,12 @@ public class DashboardController {
                     u.creditsCurrentProperty(), u.creditsUsedProperty(), u.runsProperty()
             });
 
-    // -------- Model-like state --------
     private final ObservableList<FunctionViewModel> functions =
             FXCollections.observableArrayList(f -> new Observable[]{
                     f.FunctionNameProperty(), f.UploadProgramNameProperty(),
                     f.uploaderProperty(), f.instructionCountProperty(),
                     f.MaxDegreeProperty()
             });
-
 
     private final ObservableList<ProgramViewModel> programs =
             FXCollections.observableArrayList(p -> new Observable[]{
@@ -125,15 +121,48 @@ public class DashboardController {
         if (loadedFilePathField != null) loadedFilePathField.setEditable(false);
         if (creditsField != null) creditsField.setEditable(false);
 
+        // ========== קישור טבלת ההיסטוריה ==========
         if (historyTable != null) {
             historyTable.setItems(history);
+
+            if (colRunNumber != null)
+                colRunNumber.setCellValueFactory(c -> c.getValue().runNumberProperty());
+
+            if (colMainProgram != null) {
+                colMainProgram.setCellValueFactory(c -> c.getValue().mainProgramProperty());
+                // המרה לטקסט Main/Helper
+                colMainProgram.setCellFactory(col -> new TableCell<HistoryRow, Boolean>() {
+                    @Override
+                    protected void updateItem(Boolean item, boolean empty) {
+                        super.updateItem(item, empty);
+                        setText(empty || item == null ? "" : (item ? "Main" : "Helper"));
+                    }
+                });
+            }
+
+            if (colNameOrUserString != null)
+                colNameOrUserString.setCellValueFactory(c -> c.getValue().nameOrUserStringProperty());
+
+            if (colArchitecture != null) {
+                colArchitecture.setCellValueFactory(c ->
+                        Bindings.createStringBinding(() -> {
+                            var arch = c.getValue().getArchitecture();
+                            return arch != null ? arch.name() : "";
+                        }, c.getValue().architectureProperty())
+                );
+            }
+
+            if (colDegree != null)
+                colDegree.setCellValueFactory(c -> c.getValue().degreeProperty());
+
+            if (colY != null)
+                colY.setCellValueFactory(c -> c.getValue().yProperty());
+
+            if (colCycles != null)
+                colCycles.setCellValueFactory(c -> c.getValue().cyclesProperty());
         }
 
-        executeFunctionButton.disableProperty().bind(
-                functionsTable.getSelectionModel().selectedItemProperty().isNull()
-        );
-        executeFunctionButton.setOnAction(e -> onExecuteFunction());
-
+        // ========== Functions Table ==========
         if (functionsTable != null) {
             functionsTable.setItems(functions);
 
@@ -153,12 +182,18 @@ public class DashboardController {
                 colFnMaxDegree.setCellValueFactory(c -> c.getValue().MaxDegreeProperty());
         }
 
-        //if (functionsListView != null) functionsListView.setItems(functions);
+        if (executeFunctionButton != null) {
+            executeFunctionButton.disableProperty().bind(
+                    functionsTable.getSelectionModel().selectedItemProperty().isNull()
+            );
+            executeFunctionButton.setOnAction(e -> onExecuteFunction());
+        }
 
+        // ========== Buttons ==========
         if (loadFileButton != null) loadFileButton.setOnAction(e -> onLoadFile());
         if (chargeCreditsButton != null) chargeCreditsButton.setOnAction(e -> onChargeCredits());
 
-        // Available Programs Table
+        // ========== Available Programs Table ==========
         if (availableProgramsTable != null) {
             availableProgramsTable.setItems(programs);
             if (colProgramName != null)
@@ -187,7 +222,7 @@ public class DashboardController {
             );
         }
 
-        // --- Connected users table bindings ---
+        // ========== Connected Users Table ==========
         if (connectedUsersTable != null) {
             connectedUsersTable.setItems(connectedUsers);
             if (colCUName != null) colCUName.setCellValueFactory(c -> c.getValue().nameProperty());
@@ -196,14 +231,73 @@ public class DashboardController {
             if (colCUCreds != null) colCUCreds.setCellValueFactory(c -> c.getValue().creditsCurrentProperty());
             if (colCUUsed != null) colCUUsed.setCellValueFactory(c -> c.getValue().creditsUsedProperty());
             if (colCURuns != null) colCURuns.setCellValueFactory(c -> c.getValue().runsProperty());
+
+            // ========== User Selection Listener ==========
+            connectedUsersTable.getSelectionModel().selectedItemProperty().addListener(
+                    (observable, oldValue, newValue) -> {
+                        if (newValue != null) {
+                            onUserSelected(newValue);
+                        }
+                    }
+            );
         }
 
         programService = new ProgramService();
         updateCreditsField();
     }
 
-    private void onExecuteFunction() {
+    // ============== User Selection Handler ==============
+    /**
+     * מטפל בלחיצה על משתמש בטבלת המשתמשים
+     * @param user המשתמש שנבחר
+     */
+    private void onUserSelected(UserViewModel user) {
+        if (user == null) return;
 
+        // רענון אסינכרוני של ההיסטוריה
+        refreshUserHistoryAsync(user.getName());
+    }
+
+    /**
+     * מרענן את טבלת ההיסטוריה עבור משתמש ספציפי - גרסה אסינכרונית
+     * @param username שם המשתמש
+     */
+    private void refreshUserHistoryAsync(String username) {
+        new Thread(() -> {
+            try {
+                List<HistoryRow> userHistory = programService.getHistoryRowList(username);
+
+                Platform.runLater(() -> {
+                    history.clear();
+                    history.addAll(userHistory);
+                });
+
+            } catch (Exception ex) {
+                System.err.println("Failed to load history for user " + username + ": " + ex.getMessage());
+                Platform.runLater(() -> showError("Failed to load user history for: " + username));
+            }
+        }, "UserHistoryRefresh-" + username).start();
+    }
+
+    /**
+     * מנקה את טבלת ההיסטוריה
+     */
+    private void clearHistory() {
+        history.clear();
+    }
+
+    /**
+     * מנקה את הבחירה בטבלת המשתמשים
+     */
+    private void clearUserSelection() {
+        if (connectedUsersTable != null) {
+            connectedUsersTable.getSelectionModel().clearSelection();
+        }
+        clearHistory();
+    }
+
+    // ============== Execute Function ==============
+    private void onExecuteFunction() {
         FunctionViewModel functionViewModel = (functionsTable != null)
                 ? functionsTable.getSelectionModel().getSelectedItem()
                 : null;
@@ -211,33 +305,20 @@ public class DashboardController {
         if (functionViewModel == null) return;
 
         try {
-            // 1. התחלת התוכנית בשרת
             programService.startProgram(functionViewModel.getUploadProgramName());
-
-            // 2. לוג פעולה
             logAction(currentUserOrDash(), "Executed program: " + functionViewModel.getProgramName());
-
-            // 3. עצירת refresh loops
             dispose();
 
-            // 4. טעינת root.fxml
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/viewFXML/root.fxml")
-            );
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/viewFXML/root.fxml"));
             Parent root = loader.load();
 
-            // 5. קבלת ה-controller והגדרת הנתונים - אחרי ה-load!
             rootController = loader.getController();
-            rootController.onFunctionSelector1(functionViewModel.getProgramName(), 0);
+            rootController.onFunctionSelector1(functionViewModel.getProgramName(), 0, functionViewModel.getUploadProgramName());
             rootController.setUserService(userService);
-            rootController.setCredits(credits); // שים לב: setCredit (לא setCredits)
-
-            // 6. עדכון ידני של ה-Labels
-
+            rootController.setCredits(credits);
             rootController.setDashboardController(this);
             rootController.setPreviousScene(thisScene);
-            rootController.updateUserDisplay(); // נוסיף מתודה חדשה
+            rootController.updateUserDisplay();
 
             Scene scene = new Scene(root);
             Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
@@ -252,15 +333,13 @@ public class DashboardController {
             showError("Failed to load execution view: " + e.getMessage());
             e.printStackTrace();
         }
-
     }
 
+    // ============== UI Refresh ==============
     public void refreshUI() {
-        // רענן את התצוגה אם צריך
         if (creditsField != null) {
             creditsField.setText(String.valueOf(credits));
         }
-        // רענן טבלאות, נתונים וכו'
         refreshAvailablePrograms();
         startRefreshUsersLoop();
     }
@@ -272,7 +351,7 @@ public class DashboardController {
 
     public void decreaseCredits(int creditsToDecrease) {
         this.credits = this.credits + creditsToDecrease;
-        if (credits < 0){
+        if (credits < 0) {
             credits = 0;
         }
         userService.updateCredits(credits);
@@ -324,12 +403,9 @@ public class DashboardController {
             logAction(currentUserOrDash(), "Loaded file: " + f.getName());
             try {
                 programService.loadXml(Path.of(f.getPath()));
-
-        } catch (Exception ex) {
-            showError("Already loaded file: " + f.getName());
-        }
-
-            // רענון מיידי של טבלת התוכניות אחרי העלאה
+            } catch (Exception ex) {
+                showError("Already loaded file: " + f.getName());
+            }
             refreshAvailablePrograms();
         }
     }
@@ -366,32 +442,20 @@ public class DashboardController {
         if (program == null) return;
 
         try {
-            // 1. התחלת התוכנית בשרת
             programService.startProgram(program.getProgramName());
-
-            // 2. לוג פעולה
             logAction(currentUserOrDash(), "Executed program: " + program.getProgramName());
-
-            // 3. עצירת refresh loops
             dispose();
 
-            // 4. טעינת root.fxml
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/viewFXML/root.fxml")
-            );
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/viewFXML/root.fxml"));
             Parent root = loader.load();
 
-            // 5. קבלת ה-controller והגדרת הנתונים - אחרי ה-load!
             rootController = loader.getController();
             rootController.setUserService(userService);
-            rootController.setCredits(credits); // שים לב: setCredit (לא setCredits)
-
-            // 6. עדכון ידני של ה-Labels
-
+            rootController.setCredits(credits);
             rootController.setDashboardController(this);
             rootController.setPreviousScene(thisScene);
-            rootController.updateUserDisplay(); // נוסיף מתודה חדשה
+            rootController.updateUserDisplay();
+
             Scene scene = new Scene(root);
             Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
             stage.setScene(scene);
@@ -462,11 +526,8 @@ public class DashboardController {
         if (refreshProgramsTimeline != null) refreshProgramsTimeline.stop();
 
         refreshProgramsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailablePrograms()));
-
         refreshProgramsTimeline.setCycleCount(Animation.INDEFINITE);
         refreshProgramsTimeline.play();
-
-        // רענון ראשוני מיידי
         refreshAvailablePrograms();
     }
 
@@ -504,7 +565,7 @@ public class DashboardController {
         return -1;
     }
 
-    // ============== [NEW] Available Functions refresh ==============
+    // ============== Available Functions refresh ==============
     private void startRefreshFunctionsLoop() {
         if (functionStateService == null) {
             System.err.println("functionStatsService is null – functions refresh loop not started");
@@ -515,8 +576,6 @@ public class DashboardController {
         refreshFunctionsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailableFunctions()));
         refreshFunctionsTimeline.setCycleCount(Animation.INDEFINITE);
         refreshFunctionsTimeline.play();
-
-        // רענון ראשוני מיידי
         refreshAvailableFunctions();
     }
 
@@ -556,6 +615,7 @@ public class DashboardController {
     public void dispose() {
         if (refreshUsersTimeline != null) refreshUsersTimeline.stop();
         if (refreshProgramsTimeline != null) refreshProgramsTimeline.stop();
+        if (refreshFunctionsTimeline != null) refreshFunctionsTimeline.stop();
     }
 
     // ============== Program Management ==============
@@ -594,7 +654,6 @@ public class DashboardController {
 
     private void logAction(String user, String action) {
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        // history.add(0, new HistoryRow(user, action, time));
     }
 
     private String currentUserOrDash() {
@@ -624,7 +683,6 @@ public class DashboardController {
                 return (int) program.getAvgCost();
             }
         }
-        return -1; // או 0 אם לא נמצא
+        return -1;
     }
-
 }

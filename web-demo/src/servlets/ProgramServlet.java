@@ -16,12 +16,11 @@ import logic.function.Function;
 import logic.instructions.Instruction;
 import logic.instructions.sinstruction.JumpEqualFunction;
 import logic.instructions.sinstruction.Quote;
+import model.HistoryRow;
 import session.UserSession;
-import users.ProgramRepository;
-import users.SystemFunction;
-import users.SystemProgram;
-import users.UserManager;
+import users.*;
 import utils.ServletsUtills;
+import viewmodel.Architecture;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -447,6 +446,8 @@ public class ProgramServlet extends BaseServlet {
             if (engine == null) return;
 
             String degreeStr = req.getParameter("degree");
+            String sumArchitecture = req.getParameter("sumArchitecture");
+            int architecture = Integer.parseInt(sumArchitecture);
             if (degreeStr == null || degreeStr.isBlank()) {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Missing 'degree' query parameter"));
                 return;
@@ -454,10 +455,11 @@ public class ProgramServlet extends BaseServlet {
             int degree = Integer.parseInt(degreeStr);
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else engine.getProgramDTO().setProgramViewToOriginal();
+            User user = getUserManager().getUser(getUserSession(req).getUsername());
             UserManager userManager = getUserManager();
             userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
             int currentCredits =0;
-            synchronized (userManager) {
+            synchronized (getUserManager()) {
                  currentCredits = userManager
                         .getUser(getUserSession(req).getUsername())
                         .getCreditsCurrent();
@@ -471,17 +473,26 @@ public class ProgramServlet extends BaseServlet {
             catch (Exception e) {
                 isStopped = true;
                 result = engine.getProgramDTO().getStoppedResult();
+
                 isStoppedException = e;
             }
             System.out.println(engine.getProgramDTO().getVariablesValues());
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
             updateProgramStats(programName, (cycles));
+
+            user.useCredits(cycles,architecture);
+            int runNum = user.getRunsCount();
+            String archi = Architecture.getArchitectureNameByCredits(architecture);
             if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
                 System.out.println(result);
+                addHistory(req,runNum,false,programName,archi,degree,result,cycles);
                 return;
             }
+
+            addHistory(req,runNum,true,programName,archi,degree,result,cycles);
+
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("'degree' must be an integer"));
@@ -490,6 +501,35 @@ public class ProgramServlet extends BaseServlet {
         } finally {
             RW_LOCK.writeLock().unlock();
         }
+    }
+
+    public void addHistory(HttpServletRequest req,
+                           int runNumber,
+                           boolean mainProgram,      // true = Main, false = Helper
+                           String nameOrUserString,  // שם התוכנית או הפונקציה
+                           String architectureStr,   // שם הארכיטקטורה כמחרוזת
+                           int degree,              // דרגת הריצה
+                           long y,                  // ערך y סופי
+                           long cycles) {           // מספר מחזורים
+        ProgramRepository p = getProgramRepository();
+        for (Function function : p.getAllFunctions()){
+            if (function.getName().equals(nameOrUserString)){
+                mainProgram = false;
+            }
+        }
+
+        HistoryRow historyRow = new HistoryRow(
+                runNumber,
+                mainProgram,
+                nameOrUserString,
+                architectureStr,
+                degree,
+                y,
+                cycles
+        );
+
+        User user = getUserManager().getUser(getUserSession(req).getUsername());
+        user.addHistoryRow(historyRow);
     }
 
 
@@ -519,6 +559,8 @@ public class ProgramServlet extends BaseServlet {
 
             String degreeStr = req.getParameter("degree");
             String levelStr  = req.getParameter("level");
+            String sumArchitecture = req.getParameter("sumArchitecture");
+            int architecture = Integer.parseInt(sumArchitecture);
             String isFinishDebugger = req.getParameter("isFinishDebugger");
             if (degreeStr == null || degreeStr.isBlank()) {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Missing 'degree' query parameter"));
@@ -552,11 +594,16 @@ public class ProgramServlet extends BaseServlet {
             int cycles = engine.getProgramDTO().getSumOfCycles();
             if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
                 updateProgramStats(programName, cycles);
+                User user = getUserManager().getUser(getUserSession(req).getUsername());
+                user.useCredits(cycles,architecture);
+                int runNum = user.getRunsCount();
+                String archi = Architecture.getArchitectureNameByCredits(architecture);
+                addHistory(req,runNum,true,programName,archi,degree,result,cycles);
             }
+
             if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
                 updateProgramStats(programName, cycles);
-                System.out.println(result);
                 return;
             }
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
@@ -663,6 +710,7 @@ public class ProgramServlet extends BaseServlet {
             String raw = body.toString().trim();
 
             String functionName;
+            String mainProgram="";
             try {
                 var el = JsonParser.parseString(raw);
                 if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
@@ -670,6 +718,7 @@ public class ProgramServlet extends BaseServlet {
                     functionName = el.getAsString();
                 } else if (el.isJsonObject()) {
                     JsonObject obj = el.getAsJsonObject();
+                    mainProgram = obj.get("mainProgram").getAsString();
                     // ✓ תמיכה בשני השדות: "functionName" או "name"
                     if (obj.has("functionName")) {
                         functionName = obj.get("functionName").getAsString();
@@ -691,6 +740,7 @@ public class ProgramServlet extends BaseServlet {
                         new ErrorResp("Function name is required in body"));
                 return;
             }
+
             ProgramRepository p = getProgramRepository();
             Function funcToCopy = null;
             for (Function func : p.getAllFunctions()){
@@ -698,14 +748,12 @@ public class ProgramServlet extends BaseServlet {
                     funcToCopy = func;
                 }
             }
-            String programName = funcToCopy.getMainProgram().getName();
-            SystemProgram systemProgram = p.getProgram(programName);
+            SystemProgram systemProgram = p.getProgram(mainProgram);
             Engine newEngine = systemProgram.createFreshEngine();
             Function func = newEngine.getProgram().getFunctionByName(functionName);
             newEngine.setProgram(func);
             newEngine.getProgramDTO().switchToFunction(functionName);
             getUserSession(req).setCurrentEngine(newEngine);
-
 
             writeJson(response, HttpServletResponse.SC_OK, new OkOnly());
         } catch (Exception e) {
@@ -786,19 +834,8 @@ public class ProgramServlet extends BaseServlet {
         }
     }
 
-    /** החזרת map של שם->ערך בלי עטיפה כללית: { "status":"ok", "variablesValues": { "X1":1, ... } } */
-    static final class OkVariablesValues {
-        final String status = "ok";
-        final Map<String, Long> variablesValues;
-        OkVariablesValues(Map<String, Long> variablesValues) { this.variablesValues = variablesValues; }
-    }
 
-    /** החזרת map של Xn->string value: { "status":"ok", "inputVarsValues": { "X1":"...", ... } } */
-    static final class OkInputVarsValues {
-        final String status = "ok";
-        final Map<String, String> inputVarsValues;
-        OkInputVarsValues(Map<String, String> m) { this.inputVarsValues = m; }
-    }
+
 
     public void updateProgramStats(String programName, int cycles) throws IOException {
         try {

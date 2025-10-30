@@ -2,17 +2,22 @@
 package servlets;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+import logic.dto.HistoryRowDTO;
+import model.HistoryRow;
 import users.ConnectedUserMapper;
 import users.User;
 import users.UserManager;
+import engine.Engine.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @WebServlet(name = "ConnectedUsersServlet", urlPatterns = {
         "/api/connected-users",
@@ -20,9 +25,10 @@ import java.nio.charset.StandardCharsets;
         "/api/update-main-programs",
         "/api/update-functions",
         "/api/update-credits-used",
-        "/api/update-runs"
+        "/api/update-runs",
+        "/api/user-history"
 })
-public class ConnectedUsersServlet extends HttpServlet {
+public class ConnectedUsersServlet extends BaseServlet {
     private UserManager userManager;
     private final Gson gson = new Gson();
 
@@ -61,11 +67,65 @@ public class ConnectedUsersServlet extends HttpServlet {
             case "/api/update-runs":
                 handleUpdateRuns(req, resp);
                 break;
+                case "/api/user-history":
+                    handleHistory(req,resp);
+                    break;
             default:
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 sendErrorResponse(resp, "NOT_FOUND", "Endpoint not found");
         }
     }
+
+    private void handleHistory(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        try {
+            String username = req.getParameter("username");
+
+            if (username == null || username.trim().isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("{\"error\": \"Username parameter is required\"}");
+                return;
+            }
+
+            User user = userManager.getUser(username);
+
+            if (user == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("{\"error\": \"User not found: " + username + "\"}");
+                return;
+            }
+
+            List<HistoryRow> history = user.getHistoryRowList();
+            if (history == null) {
+                history = new ArrayList<>();
+            }
+
+            // המרה ל-DTO
+            List<HistoryRowDTO> dtoList = new ArrayList<>();
+            for (HistoryRow row : history) {
+                dtoList.add(new HistoryRowDTO(row));
+            }
+
+            // המרה ל-JSON
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            String json = gson.toJson(dtoList);
+
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().write(json);
+
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+            e.printStackTrace();
+        }
+    }
+
+
 
     private void handleUpdateCredits(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setCharacterEncoding(StandardCharsets.UTF_8.name());

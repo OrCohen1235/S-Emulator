@@ -1,5 +1,10 @@
 package users;
 
+import model.HistoryRow;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * מייצג משתמש במערכת - הסטטיסטיקות שלו
  */
@@ -13,6 +18,7 @@ public class User {
     private int mainProgramsUploaded = 0;
     private int functionsContributed = 0;
     private int runsCount = 0;
+    private List<HistoryRow> historyRowList = new ArrayList<>();
 
     public User(String username) {
         this.username = username;
@@ -44,6 +50,14 @@ public class User {
         return runsCount;
     }
 
+    public List<HistoryRow> getHistoryRowList() {
+        return historyRowList;
+    }
+
+    public synchronized void addHistoryRow(HistoryRow historyRow) {
+        historyRowList.add(historyRow);
+    }
+
     // ========== Actions ==========
 
     /**
@@ -59,11 +73,11 @@ public class User {
      * שימוש בקרדיטים
      * @return true אם הצליח, false אם אין מספיק
      */
-    public synchronized boolean useCredits(int amount) {
-        if (amount <= 0 || amount > creditsCurrent) {
+    public synchronized boolean useCredits(int amount,int architecture) {
+        if (amount+architecture > creditsCurrent) {
+            creditsUsed += creditsCurrent +architecture;
             return false;
         }
-        creditsCurrent -= amount;
         creditsUsed += amount;
         return true;
     }
@@ -86,7 +100,7 @@ public class User {
      * הוספת תרומת פונקציה
      */
     public synchronized void addFunctionContribution(int functionsContributed) {
-        functionsContributed+=functionsContributed;
+        this.functionsContributed += functionsContributed;
     }
 
     @Override
@@ -95,6 +109,14 @@ public class User {
                 "User{username='%s', credits=%d, used=%d, programs=%d, runs=%d}",
                 username, creditsCurrent, creditsUsed, mainProgramsUploaded, runsCount
         );
+    }
+
+    public synchronized void decreaseCredits(int amount) {
+        if (creditsCurrent - amount < 0){
+            creditsCurrent = 0;
+            return;
+        }
+        creditsCurrent -= amount;
     }
 
     public void setCreditsCurrent(int credits) {

@@ -143,6 +143,7 @@ public class ProgramRepository {
                 systemFunctions.add(systemFunction);
             }
         }
+
         setAllFunctionsToPrograms();
 
     }

@@ -6,35 +6,25 @@ import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import logic.dto.InstructionDTO;
-import program.ProgramLoadException;
 import services.HistoryService;
 import services.ProgramService;
 import services.UserService;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class RootController {
 
@@ -317,17 +307,10 @@ public class RootController {
         dialog.show();
     }
 
-//    public void onFunctionSelector() {
-//        programService.switchToFunction();
-//        instructionsController.refresh(0);
-//        int maxDegree = programService.getMaxDegree();
-//        setMaxDegree(maxDegree);
-//        spnDegree.requestFocus();
-//    }
 
-    public void onFunctionSelector1(String functionName,int degree) {
+    public void onFunctionSelector1(String functionName, int degree, String uploadProgramName) {
 
-        programService.switchToFunction(functionName);
+        programService.switchToFunction(functionName,uploadProgramName);
         instructionsController.refresh(degree);
         int maxDegree = programService.getMaxDegree();
         setMaxDegree(maxDegree);

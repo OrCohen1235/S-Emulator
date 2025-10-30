@@ -119,7 +119,7 @@ public class ExecutionController {
     @FXML
     private void onStepOver() {
         if (!debugging) return;
-        output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel);
+        output = programService.executeProgramDebugger(parent.getDegree(), debuggerLevel,parent.getSumOfCurrentArchitecture());
         if (output == -1){
             parent.showError("Error", "Not enough credits to run!");
             parent.onReturnToDashboard();
@@ -225,9 +225,10 @@ public class ExecutionController {
     }
 
     private void doRun() {
-        long  y = programService.executeProgram(parent.getDegree());
+        long  y = programService.executeProgram(parent.getDegree(),parent.getSumOfCurrentArchitecture());
         if (y == -1){
             parent.showError("Error", "Not enough credits to run!");
+            parent.decreaseCredits(programService.getCycles());
             parent.onReturnToDashboard();
             return;
         }

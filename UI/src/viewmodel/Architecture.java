@@ -101,6 +101,20 @@ public enum Architecture {
         }
     }
 
+    /**
+     * מחזירה את שם הארכיטקטורה לפי מספר הקרדיטים
+     * @param credits מספר הקרדיטים
+     * @return שם הארכיטקטורה (I, II, III, IV) או null אם לא נמצא
+     */
+    public static String getArchitectureNameByCredits(int credits) {
+        for (Architecture arch : Architecture.values()) {
+            if (arch.getCreditsPerRun() == credits) {
+                return arch.name();
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return name() + " (Credits: " + creditsPerRun + ", Operations: " + supportedOperations.size() + ")";

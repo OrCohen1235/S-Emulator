@@ -49,16 +49,19 @@
             <TitledPane text="Connected Users" collapsible="false"
                         GridPane.rowIndex="0" GridPane.columnIndex="0">
                 <content>
-                    <TableView fx:id="connectedUsersTable">
-                        <columns>
-                            <TableColumn fx:id="colCUName" text="Name" prefWidth="140"/>
-                            <TableColumn fx:id="colCUMain" text="Main Programs" prefWidth="120"/>
-                            <TableColumn fx:id="colCUFunctions" text="Functions" prefWidth="100"/>
-                            <TableColumn fx:id="colCUCreds" text="Credits (current)" prefWidth="120"/>
-                            <TableColumn fx:id="colCUUsed" text="Credits Used" prefWidth="110"/>
-                            <TableColumn fx:id="colCURuns" text="Runs (run+debug)" prefWidth="130"/>
-                        </columns>
-                    </TableView>
+                    <ScrollPane fitToWidth="false" fitToHeight="true" pannable="true"
+                                hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED">
+                        <TableView fx:id="connectedUsersTable">
+                            <columns>
+                                <TableColumn fx:id="colCUName" text="Name" prefWidth="140"/>
+                                <TableColumn fx:id="colCUMain" text="Main Programs" prefWidth="120"/>
+                                <TableColumn fx:id="colCUFunctions" text="Functions" prefWidth="100"/>
+                                <TableColumn fx:id="colCUCreds" text="Credits (current)" prefWidth="120"/>
+                                <TableColumn fx:id="colCUUsed" text="Credits Used" prefWidth="110"/>
+                                <TableColumn fx:id="colCURuns" text="Runs (run+debug)" prefWidth="130"/>
+                            </columns>
+                        </TableView>
+                    </ScrollPane>
                 </content>
             </TitledPane>
 
@@ -67,16 +70,20 @@
                         GridPane.rowIndex="0" GridPane.columnIndex="1">
                 <content>
                     <VBox spacing="8" fillWidth="true">
-                        <TableView fx:id="availableProgramsTable" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="colProgramName" text="Program Name" prefWidth="120"/>
-                                <TableColumn fx:id="colProgramUploader" text="Uploader" prefWidth="100"/>
-                                <TableColumn fx:id="colProgramInstructions" text="Instructions" prefWidth="90"/>
-                                <TableColumn fx:id="colProgramMaxLevel" text="Max Level" prefWidth="80"/>
-                                <TableColumn fx:id="colProgramRunCount" text="Run Count" prefWidth="80"/>
-                                <TableColumn fx:id="colProgramAvgCost" text="Avg Cost" prefWidth="80"/>
-                            </columns>
-                        </TableView>
+                        <ScrollPane fitToWidth="false" fitToHeight="true" pannable="true"
+                                    hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
+                                    VBox.vgrow="ALWAYS">
+                            <TableView fx:id="availableProgramsTable">
+                                <columns>
+                                    <TableColumn fx:id="colProgramName" text="Program Name" prefWidth="120"/>
+                                    <TableColumn fx:id="colProgramUploader" text="Uploader" prefWidth="100"/>
+                                    <TableColumn fx:id="colProgramInstructions" text="Instructions" prefWidth="90"/>
+                                    <TableColumn fx:id="colProgramMaxLevel" text="Max Level" prefWidth="80"/>
+                                    <TableColumn fx:id="colProgramRunCount" text="Run Count" prefWidth="80"/>
+                                    <TableColumn fx:id="colProgramAvgCost" text="Avg Cost" prefWidth="80"/>
+                                </columns>
+                            </TableView>
+                        </ScrollPane>
                         <HBox alignment="CENTER_RIGHT">
                             <Button fx:id="executeProgramButton" text="Execute Program"/>
                         </HBox>
@@ -84,17 +91,28 @@
                 </content>
             </TitledPane>
 
-            <!-- Bottom-Left: Users History / Statistics Table -->
-            <TitledPane text="Users History / Statistics Table" collapsible="false"
+            <!-- Bottom-Left: Run History Table -->
+            <TitledPane text="Run History" collapsible="false"
                         GridPane.rowIndex="1" GridPane.columnIndex="0">
                 <content>
-                    <TableView fx:id="historyTable" prefHeight="200" prefWidth="200">
-                        <columns>
-                            <TableColumn fx:id="colUser" text="User" prefWidth="120"/>
-                            <TableColumn fx:id="colAction" text="Action" prefWidth="160"/>
-                            <TableColumn fx:id="colTime" text="Time" prefWidth="180"/>
-                        </columns>
-                    </TableView>
+                    <AnchorPane>
+                        <ScrollPane fitToWidth="false" fitToHeight="true" pannable="true"
+                                    hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
+                                    AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
+                                    AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+                            <TableView fx:id="historyTable">
+                                <columns>
+                                    <TableColumn fx:id="colRunNumber" text="Run #" prefWidth="50"/>
+                                    <TableColumn fx:id="colMainProgram" text="Type" prefWidth="70"/>
+                                    <TableColumn fx:id="colNameOrUserString" text="Program / Function" prefWidth="150"/>
+                                    <TableColumn fx:id="colArchitecture" text="Arch" prefWidth="60"/>
+                                    <TableColumn fx:id="colDegree" text="Degree" prefWidth="70"/>
+                                    <TableColumn fx:id="colY" text="y (final)" prefWidth="100"/>
+                                    <TableColumn fx:id="colCycles" text="Cycles" prefWidth="100"/>
+                                </columns>
+                            </TableView>
+                        </ScrollPane>
+                    </AnchorPane>
                 </content>
             </TitledPane>
 
@@ -103,24 +121,25 @@
                         GridPane.rowIndex="1" GridPane.columnIndex="1">
                 <content>
                     <VBox spacing="8" fillWidth="true">
-                        <TableView fx:id="functionsTable" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="colFnName" text="Function Name" prefWidth="150"/>
-                                <TableColumn fx:id="colFnUploadProgram" text="Upload Program" prefWidth="150"/>
-                                <TableColumn fx:id="colFnUploader" text="Uploader" prefWidth="120"/>
-                                <TableColumn fx:id="colFnInstrCount" text="Instructions" prefWidth="100"/>
-                                <TableColumn fx:id="colFnMaxDegree" text="Max Degree" prefWidth="100"/>
-                            </columns>
-                        </TableView>
-
-                        <!-- חדש: כפתור Execute כמו ב-Programs -->
+                        <ScrollPane fitToWidth="false" fitToHeight="true" pannable="true"
+                                    hbarPolicy="AS_NEEDED" vbarPolicy="AS_NEEDED"
+                                    VBox.vgrow="ALWAYS">
+                            <TableView fx:id="functionsTable">
+                                <columns>
+                                    <TableColumn fx:id="colFnName" text="Function Name" prefWidth="150"/>
+                                    <TableColumn fx:id="colFnUploadProgram" text="Upload Program" prefWidth="150"/>
+                                    <TableColumn fx:id="colFnUploader" text="Uploader" prefWidth="120"/>
+                                    <TableColumn fx:id="colFnInstrCount" text="Instructions" prefWidth="100"/>
+                                    <TableColumn fx:id="colFnMaxDegree" text="Max Degree" prefWidth="100"/>
+                                </columns>
+                            </TableView>
+                        </ScrollPane>
                         <HBox alignment="CENTER_RIGHT">
                             <Button fx:id="executeFunctionButton" text="Execute Function"/>
                         </HBox>
                     </VBox>
                 </content>
             </TitledPane>
-
 
         </GridPane>
     </center>

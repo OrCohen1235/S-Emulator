@@ -9,28 +9,22 @@ import program.Program;
 import java.util.List;
 
 public class HistoryService {
-    private ObservableList<HistoryRow> history =  FXCollections.observableArrayList();
+    private ObservableList<HistoryRow> history = FXCollections.observableArrayList();
 
     public ObservableList<HistoryRow> getHistory() {
         return history;
     }
 
-    public void addHistory(String currentProgramName, long executeOutput, int degree, int cycles, List<VarRow> vars){
+    public void addHistory(String currentProgramName, long executeOutput, int degree, int cycles, List<VarRow> vars) {
         String y = String.valueOf(executeOutput);
         String deg = String.valueOf(degree);
         String cyc = String.valueOf(cycles);
-        String  runNumber = String.valueOf(history.size());
-        history.getLast().setAllRemainingHistory(currentProgramName,runNumber, y, deg, cyc, vars);
+        String runNumber = String.valueOf(history.size());
     }
-
-    public void createHistory(List<Long> statingInput) {
-        HistoryRow newHistory = new HistoryRow(statingInput);
-        this.history.add(newHistory);
-    }
-
-
-
-
-
-
 }
+
+
+
+
+
+
