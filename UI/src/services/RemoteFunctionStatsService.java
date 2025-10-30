@@ -21,8 +21,8 @@ import java.util.List;
 
 public class RemoteFunctionStatsService implements FunctionStateService {
 
-    private final String baseUrl;             // למשל: http://localhost:8080
-    private final String statsPath;           // למשל: /get-system-functions-dtos או /get-system-functions
+    private final String baseUrl;
+    private final String statsPath;
     private final HttpClient client;
     private final Gson gson = new Gson();
     private final Type listType = new TypeToken<List<FunctionStatsDTO>>(){}.getType();
@@ -61,14 +61,11 @@ public class RemoteFunctionStatsService implements FunctionStateService {
             List<FunctionStatsDTO> dtoList = new ArrayList<>();
 
             if (root.isJsonArray()) {
-                // מערך חשוף: [ {...}, {...} ]
                 dtoList = gson.fromJson(root, listType);
 
             } else if (root.isJsonObject()) {
-                // עטיפה: { status, count, functions: [...] } או עטיפות אחרות
                 JsonObject obj = root.getAsJsonObject();
 
-                // חפש מפתחות סבירים של אוסף
                 String[] candidates = {"functions", "items", "data"};
                 for (String key : candidates) {
                     if (obj.has(key) && obj.get(key).isJsonArray()) {
@@ -77,32 +74,38 @@ public class RemoteFunctionStatsService implements FunctionStateService {
                     }
                 }
 
-                // fallback: אם חזר אובייקט יחיד של פונקציה
                 if (dtoList.isEmpty()) {
                     try {
                         FunctionStatsDTO single = gson.fromJson(obj, FunctionStatsDTO.class);
                         if (single != null) dtoList.add(single);
-                    } catch (Exception ignore) { /* not a single DTO */ }
+                    } catch (Exception ignore) { }
                 }
             }
 
             if (dtoList == null || dtoList.isEmpty()) return Collections.emptyList();
 
-            // מיפוי ל-ViewModel עם קואלאציה של שמות שדות שונים
-            List<FunctionViewModel> vms = new ArrayList<>(dtoList.size());
+            List<FunctionViewModel> vms = new ArrayList<>();
             for (FunctionStatsDTO dto : dtoList) {
                 String name              = firstNonNull(dto.functionName, dto.name);
                 String uploadProgramName = firstNonNull(dto.uploaderProgramName, dto.uploadProgramName);
                 String uploaderUsername  = firstNonNull(dto.uploaderUserName, dto.uploaderUsername);
                 Integer instrCount       = firstNonNull(dto.numberOfInstructions, dto.instructionCount);
-                Integer maxDegree        = dto.maxDegree; // זהה בשני הצדדים
+                Integer maxDegree        = dto.maxDegree;
 
-                if (name == null) name = ""; // הגנה קלה
+                // *** השינוי החשוב: דלג על אובייקטים ריקים או לא תקינים ***
+                if (name == null || name.trim().isEmpty()) {
+                    continue; // דלג על פונקציות ללא שם
+                }
+
+                // אופציונלי: דלג גם אם אין נתונים חשובים נוספים
+                if (uploadProgramName == null || uploadProgramName.trim().isEmpty()) {
+                    continue;
+                }
 
                 vms.add(new FunctionViewModel(
                         name,
-                        uploadProgramName,
-                        uploaderUsername,
+                        uploadProgramName != null ? uploadProgramName : "",
+                        uploaderUsername != null ? uploaderUsername : "",
                         instrCount != null ? instrCount : 0,
                         maxDegree != null ? maxDegree : 0
                 ));
@@ -119,25 +122,19 @@ public class RemoteFunctionStatsService implements FunctionStateService {
         return a != null ? a : b;
     }
 
-    // DTO עם תמיכה בשמות שדות חלופיים מהשרת
     static class FunctionStatsDTO {
-        // שם הפונקציה
-        @SerializedName("functionName")  String functionName;   // גרסת השרת A
-        @SerializedName("name")          String name;           // גרסת השרת B
+        @SerializedName("functionName")  String functionName;
+        @SerializedName("name")          String name;
 
-        // שם התוכנית שהעלתה
-        @SerializedName("uploaderProgramName") String uploaderProgramName; // A
-        @SerializedName("uploadProgramName")   String uploadProgramName;   // B
+        @SerializedName("uploaderProgramName") String uploaderProgramName;
+        @SerializedName("uploadProgramName")   String uploadProgramName;
 
-        // מעלה הפונקציה
-        @SerializedName("uploaderUserName") String uploaderUserName; // A
-        @SerializedName("uploaderUsername") String uploaderUsername; // B
+        @SerializedName("uploaderUserName") String uploaderUserName;
+        @SerializedName("uploaderUsername") String uploaderUsername;
 
-        // כמות הוראות
-        @SerializedName("numberOfInstructions") Integer numberOfInstructions; // A
-        @SerializedName("instructionCount")     Integer instructionCount;     // B
+        @SerializedName("numberOfInstructions") Integer numberOfInstructions;
+        @SerializedName("instructionCount")     Integer instructionCount;
 
-        // דרגה מקסימלית
         @SerializedName("maxDegree") Integer maxDegree;
     }
 }

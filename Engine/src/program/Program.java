@@ -46,7 +46,15 @@ public class Program {
         this.isMainProgram = isMainProgram;
     }
 
-    public Program(List<Instruction> instructions, List<Function> functions) {
+    public Program(ReadSemulatorXml readSem,Boolean isMainProgram,List<ReadSemulatorXml> allReadSem) {
+        programLoad = new ProgramLoad(this);
+        programLoad.loadProgram(readSem,allReadSem);
+        programExecutor = new ProgramExecutorImpl(this);
+        expanderExecute = new ExpanderExecute(this);
+        this.isMainProgram = isMainProgram;
+    }
+
+    public Program(List<Function> functions) {
         programLoad = new ProgramLoad(this);
         programExecutor = new ProgramExecutorImpl(this);
         expanderExecute = new ExpanderExecute(this);

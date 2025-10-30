@@ -10,8 +10,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jaxbsprogram.ReadSemulatorXml;
 import logic.dto.InstructionDTO;
 import logic.function.Function;
+import logic.instructions.Instruction;
+import logic.instructions.sinstruction.JumpEqualFunction;
+import logic.instructions.sinstruction.Quote;
 import session.UserSession;
 import users.ProgramRepository;
 import users.SystemFunction;
@@ -158,15 +162,29 @@ public class ProgramServlet extends BaseServlet {
             }
 
             List<Function> allFunctions = new ArrayList<>();
+            List < ReadSemulatorXml> allReads= new ArrayList<>();
+
             for (SystemProgram program1 : repo.getAllPrograms()){
+                allReads.add(program1.getEngine().getReadSem());
                 program1.createFreshEngine();
-                allFunctions.addAll(program1.getFunctions());
+                for (Function function : program1.getFunctions()){
+                    boolean found = false;
+                    for (Function function1 : allFunctions){
+                        if (function.getName().equals(function1.getName())){
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found){
+                        allFunctions.add(function);
+                    }
+                }
             }
-            Engine userEngine = program.createFreshEngine();
-            userEngine.getProgramDTO().setFunctions(allFunctions);
+            Engine userEngine = program.createFreshEngine(allReads);
 
 
-            // שמירת ה-Engine ב-session
+
+
             getUserSession(req).setCurrentEngine(userEngine);
 
             System.out.println("[StartProgram] ✓ Program started: " + programName +
@@ -445,17 +463,25 @@ public class ProgramServlet extends BaseServlet {
                         .getCreditsCurrent();
             }
             long result=0;
+            boolean isStopped =false;
+            Exception isStoppedException = null;
             try {
-                 result = engine.getProgramDTO().runProgramExecutor(currentCredits);
+                result = engine.getProgramDTO().runProgramExecutor(currentCredits);
             }
             catch (Exception e) {
-                writeJson(response, HttpServletResponse.SC_OK, Response.error(e.getMessage()));
-                return;
+                isStopped = true;
+                result = engine.getProgramDTO().getStoppedResult();
+                isStoppedException = e;
             }
             System.out.println(engine.getProgramDTO().getVariablesValues());
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
-            updateProgramStats(programName, cycles);
+            updateProgramStats(programName, (cycles));
+            if (isStopped) {
+                writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
+                System.out.println(result);
+                return;
+            }
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("'degree' must be an integer"));
@@ -512,19 +538,27 @@ public class ProgramServlet extends BaseServlet {
 
             int currentCredits = userManager.getUser(getUserSession(req).getUsername()).getCreditsCurrent();
             long result=0;
+            boolean isStopped =false;
+            Exception isStoppedException = null;
             try {
                 result = engine.getProgramDTO().runProgramExecutorDebugger(level,currentCredits);
             }
             catch (Exception e) {
-                writeJson(response, HttpServletResponse.SC_OK, Response.error(e.getMessage()));
-                return;
+                isStopped = true;
+                result = engine.getProgramDTO().getStoppedResult();
+                isStoppedException = e;
             }
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
             if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
                 updateProgramStats(programName, cycles);
             }
-
+            if (isStopped) {
+                writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
+                updateProgramStats(programName, cycles);
+                System.out.println(result);
+                return;
+            }
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("'degree' and 'level' must be integers"));

@@ -1,6 +1,9 @@
 package users;
 
 import logic.function.Function;
+import logic.instructions.Instruction;
+import logic.instructions.sinstruction.JumpEqualFunction;
+import logic.instructions.sinstruction.Quote;
 import program.Program;
 
 import java.io.InputStream;
@@ -26,6 +29,55 @@ public class ProgramRepository {
             throw new IllegalArgumentException(
                     "Program '" + programName + "' already exists in the system"
             );
+        }
+
+        List<Function> functions = program.getFunctions();
+
+        for (Function function : functions) {
+            for (Function function2 : allFunctions) {
+                if (function.getName().equals(function2.getName())) {
+                    throw new IllegalArgumentException("Program '" + programName + "' Contains function: " + function.getName() +  " that already exists in the system");
+                }
+            }
+        }
+
+        List<Instruction> instructions = program.getInstructions();
+        Set<Function> tempFunctionSet = new HashSet<>();
+        tempFunctionSet.addAll(allFunctions);
+        tempFunctionSet.addAll(functions);
+
+        for (Instruction instruction : instructions) {
+            if (instruction instanceof Quote) {
+                String functionName = ((Quote) instruction).getFunctionName();
+                boolean functionExists = false;
+
+                for (Function function : tempFunctionSet) {
+                    if (function.getName().equals(functionName)) {
+                        functionExists = true;
+                        break;
+                    }
+                }
+
+                if (!functionExists) {
+                    throw new IllegalArgumentException("Program '" + programName +
+                            "' use function: " + functionName + " that does not exist in the system");
+                }
+            } else if (instruction instanceof JumpEqualFunction) {
+                String funcName = ((JumpEqualFunction) instruction).getFuncName();
+                boolean functionExists = false;
+
+                for (Function function : tempFunctionSet) {
+                    if (function.getName().equals(funcName)) {
+                        functionExists = true;
+                        break;
+                    }
+                }
+
+                if (!functionExists) {
+                    throw new IllegalArgumentException("Program '" + programName +
+                            "' uses a function: " + funcName + " that does not exist in the system");
+                }
+            }
         }
 
         // 3. שמירה במאגר

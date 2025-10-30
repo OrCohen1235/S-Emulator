@@ -101,7 +101,8 @@ public class ProgramService {
 
             if (res.statusCode() != 200) {
                 if (res.statusCode() == 409) {
-                    throw new IllegalStateException("Program is already loaded");
+                    String errorMessage = parseErrorMessage(res.body());
+                    throw new IllegalArgumentException(errorMessage);
                 }
                 throw new ProgramLoadException("HTTP " + res.statusCode() + ": " + res.body());
             }
@@ -119,14 +120,21 @@ public class ProgramService {
                 throw new ProgramLoadException("Unexpected status: " + r.status);
             }
 
-            // הצלחה!
-            System.out.println("✅ Program uploaded successfully: " + r.programName);
-            System.out.println("   Max Degree: " + r.maxDegree);
-            System.out.println("   Instructions: " + r.instructionCount);
-
         } catch (IOException | InterruptedException e) {
             throw new ProgramLoadException("Failed to send HTTP request", e);
         }
+    }
+
+    private String parseErrorMessage(String responseBody) {
+        try {
+            JsonObject json = GSON.fromJson(responseBody, JsonObject.class);
+            if (json.has("message")) {
+                return json.get("message").getAsString();
+            }
+        } catch (Exception e) {
+            // אם זה לא JSON תקין, החזר את כל ה-body
+        }
+        return responseBody;
     }
 
 

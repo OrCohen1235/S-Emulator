@@ -20,7 +20,6 @@ public class InstructionsViewModel {
     private int sumCycles = 0;
     private int countI = 0, countII = 0, countIII = 0, countIV = 0;
 
-    /** לכל ארכיטקטורה: סט האינדקסים של שורות שאינן נתמכות */
     private final EnumMap<Architecture, Set<Integer>> unsupportedByArch =
             new EnumMap<>(Architecture.class);
 
@@ -66,12 +65,10 @@ public class InstructionsViewModel {
             root.getChildren().add(new TreeItem<>(dto));
         }
 
-        // חישוב מונים נתמכים לכל ארכיטקטורה
         int size = root.getChildren().size();
         countI   = size - unsupportedByArch.get(Architecture.I).size();
         countII  = size - unsupportedByArch.get(Architecture.II).size();
         countIII = size - unsupportedByArch.get(Architecture.III).size();
-        // ב-UI כתוב "IV", ב-enum זה IX
         countIV  = size - unsupportedByArch.get(Architecture.IV).size();
 
         if (expandroot == null) expandroot = new TreeItem<>();
@@ -115,7 +112,7 @@ public class InstructionsViewModel {
     /** תקציר */
     public String buildSummary(ProgramService ps) {
         int size = (root == null) ? 0 : root.getChildren().size();
-        return "Program loaded hello"
+        return "Program loaded: " + ps.getProgramName()
                 + " | Instructions: " + size
                 + " | I: " + countI + "/" + size
                 + " | II: " + countII + "/" + size

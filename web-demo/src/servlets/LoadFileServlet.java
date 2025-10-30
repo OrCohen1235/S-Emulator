@@ -96,31 +96,26 @@ public class LoadFileServlet extends BaseServlet {
             System.out.println("[LoadFileServlet] Uploading file: " + fileName +
                     " by user: " + username);
 
-            // 5. העלאה למאגר תוכניות
             ProgramRepository repo = getProgramRepository();
 
             try (InputStream xmlStream = filePart.getInputStream()) {
 
-                // יצירת SystemProgram חדש (שומר את ה-XML!)
                 SystemProgram program = repo.uploadProgram(username, xmlStream);
 
-                // 6. טעינת expansions (אם צריך)
                 program.getProgramDTO().loadExpansion();
 
-                // 7. עדכון סטטיסטיקות משתמש
                 UserManager userMgr = getUserManager();
                 User user = userMgr.getUser(username);
                 if (user != null) {
                     user.addMainProgram();
                 }
 
-                // 8. תשובה מוצלחת
                 SystemProgramDTO dto = new SystemProgramDTO(program);
 
                 UploadResponse uploadResp = new UploadResponse(
                         dto.getName(),
                         dto.getMaxDegree(),
-                        dto.getInstructionCount(),  // ✅ תוקן - לא 0
+                        dto.getInstructionCount(),
                         fileName
                 );
 
@@ -132,9 +127,14 @@ public class LoadFileServlet extends BaseServlet {
                 }
 
             } catch (IllegalArgumentException e) {
-                // תוכנית כבר קיימת
-                sendError(resp, HttpServletResponse.SC_CONFLICT,
-                        "Program already exists: " + e.getMessage());
+                System.out.println("=== DEBUG: IllegalArgumentException message = " + e.getMessage());
+                sendError(resp, HttpServletResponse.SC_CONFLICT, e.getMessage());
+
+            } catch (Exception e) {
+                System.out.println("=== DEBUG: Other Exception message = " + e.getMessage());
+                e.printStackTrace();
+                sendError(resp, HttpServletResponse.SC_BAD_REQUEST,
+                        "Error uploading program: " + e.getMessage());
             }
 
         } catch (ServletException e) {
@@ -148,9 +148,6 @@ public class LoadFileServlet extends BaseServlet {
         }
     }
 
-    /**
-     * חילוץ שם הקובץ מה-Part
-     */
     private static String getSubmittedFileName(Part part) {
         String contentDisposition = part.getHeader("content-disposition");
 

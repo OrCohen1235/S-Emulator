@@ -7,65 +7,52 @@
 <?import javafx.collections.FXCollections?>
 
 <BorderPane stylesheets="@semulator.css"
-            prefWidth="1200.0" prefHeight="800.0"
-            minWidth="1000.0" minHeight="600.0"
+            prefWidth="1400.0" prefHeight="900.0"
             xmlns="http://javafx.com/javafx/24.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="controllers.RootController">
 
   <!-- TOP -->
   <top>
-    <VBox spacing="8" BorderPane.alignment="CENTER_LEFT">
+    <VBox spacing="8">
       <children>
 
         <!-- Toolbar -->
         <ToolBar prefHeight="48">
           <items>
             <Separator orientation="VERTICAL"/>
-
-            <!-- User name -->
             <Label text="UserName:"/>
-            <Label fx:id="lblUserName" textOverrun="LEADING_ELLIPSIS"/>
-
-            <!-- Space before variable -->
+            <Label fx:id="lblUserName" textOverrun="ELLIPSIS"/>
             <Region prefWidth="12"/>
-
-            <!-- Spacer pushes credits to right -->
             <Pane HBox.hgrow="ALWAYS"/>
-
-            <!-- Credits -->
             <Label text="Credits:"/>
-            <Label fx:id="lblCreditsNumber" textOverrun="LEADING_ELLIPSIS"/>
+            <Label fx:id="lblCreditsNumber" textOverrun="ELLIPSIS"/>
           </items>
         </ToolBar>
 
-        <!-- Second row below toolbar -->
+        <!-- Second row -->
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 8;">
           <children>
             <Separator orientation="VERTICAL" prefHeight="30.0"/>
             <Button fx:id="btnCollapse" onAction="#onCollapse" text="Collapse"/>
             <HBox spacing="6" alignment="CENTER_LEFT">
               <children>
-                <Label alignment="CENTER" prefHeight="30.0" prefWidth="45.0" text="Degree:"/>
-                <Spinner fx:id="spnDegree" editable="true">
+                <Label text="Degree:"/>
+                <Spinner fx:id="spnDegree" editable="true" prefWidth="80">
                   <valueFactory>
                     <SpinnerValueFactory.IntegerSpinnerValueFactory initialValue="0" max="0" min="0"/>
                   </valueFactory>
                 </Spinner>
-                <Label fx:id="lblMaxDegree" prefHeight="31.0" text="/ 0"/>
+                <Label fx:id="lblMaxDegree" text="/ 0"/>
               </children>
             </HBox>
             <Button fx:id="btnExpand" onAction="#onExpand" text="Expand"/>
             <Separator orientation="VERTICAL" prefHeight="30.0"/>
-            <Button fx:id="btnHighlightSelector" mnemonicParsing="false"
-                    onAction="#onHighLight"
+            <Button fx:id="btnHighlightSelector" onAction="#onHighLight"
                     text="Variable\Label Selector"/>
             <Pane HBox.hgrow="ALWAYS"/>
-
             <Label text="Architecture:" />
-            <ComboBox fx:id="cmbArchitecture"
-                      promptText="Select Architecture"
-                      prefWidth="120">
+            <ComboBox fx:id="cmbArchitecture" promptText="Select Architecture" prefWidth="120">
               <items>
                 <FXCollections fx:factory="observableArrayList">
                   <String fx:value="Choose" />
@@ -76,13 +63,9 @@
                 </FXCollections>
               </items>
             </ComboBox>
-
-            <!-- Return to Dashboard Button -->
             <Button text="← Dashboard" onAction="#onReturnToDashboard"
                     style="-fx-background-color: #4CAF50; -fx-text-fill: white;">
-              <tooltip>
-                <Tooltip text="Return to Dashboard"/>
-              </tooltip>
+              <tooltip><Tooltip text="Return to Dashboard"/></tooltip>
             </Button>
           </children>
         </HBox>
@@ -93,12 +76,12 @@
 
   <!-- CENTER -->
   <center>
-    <SplitPane dividerPositions="0.62" VBox.vgrow="ALWAYS">
+    <SplitPane dividerPositions="0.5">
       <items>
         <fx:include fx:id="instructions" source="instructions.fxml"/>
-        <VBox spacing="8" VBox.vgrow="ALWAYS">
+        <VBox spacing="8">
           <children>
-            <fx:include fx:id="execution" source="execution.fxml"/>
+            <fx:include fx:id="execution" source="execution.fxml" VBox.vgrow="ALWAYS"/>
           </children>
         </VBox>
       </items>

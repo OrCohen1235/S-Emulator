@@ -129,7 +129,12 @@ public class ProgramDTO {
         int cycles = instr.getCycles();
         String instructionName = instr.getName();
 
-        return new InstructionDTO(displayIndex, type, label, command, cycles, 0, instructionName);
+        String architecture = "";
+        if (instr.getInstructionData() != null) {
+            architecture = instr.getArchitecture();
+        }
+
+        return new InstructionDTO(displayIndex, type, label, command, cycles, 0, instructionName, architecture);
     }
 
     public List<InstructionDTO> getExpandDTO(int index){
@@ -187,6 +192,10 @@ public class ProgramDTO {
         }
     }
 
+    public Long getStoppedResult(){
+        return program.getProgramExecutor().getStoppedResult();
+    }
+
     public List<Function> getFunctions() {
         return program.getFunctions();
     }
@@ -194,6 +203,12 @@ public class ProgramDTO {
     public void setFunctions(List<Function> allFunctions) {
         program.getFunctions().clear();
         program.setFunctions(allFunctions);
+    }
+
+    public void setAllFathersFuctions() {
+        for (Function func : program.getFunctions() ) {
+            func.setMainProgram(program);
+        }
     }
 
     public Long runProgramExecutorDebugger(int level, int currentCredits) throws Exception {

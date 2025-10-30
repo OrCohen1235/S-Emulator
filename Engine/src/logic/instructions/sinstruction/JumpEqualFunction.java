@@ -39,6 +39,10 @@ public class JumpEqualFunction extends Instruction implements SyntheticInstructi
         return FixedLabel.EMPTY;
     }
 
+    public Quote getFuncToQuote() {
+        return funcToQuote;
+    }
+
     @Override
     public String getCommand() {
         String command;

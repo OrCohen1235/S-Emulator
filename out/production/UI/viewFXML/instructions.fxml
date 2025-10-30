@@ -17,22 +17,20 @@
       <content>
         <VBox spacing="0" minHeight="200">
           <children>
-            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
-              <content>
-                <TreeTableView fx:id="trvInstructions" minHeight="200" VBox.vgrow="ALWAYS">
-                  <columns>
-                    <TreeTableColumn fx:id="colIndex" text="#" minWidth="50" prefWidth="60"/>
-                    <TreeTableColumn fx:id="colType" text="B/S" minWidth="50" prefWidth="80"/>
-                    <TreeTableColumn fx:id="colLabel" text="Label" minWidth="80" prefWidth="120"/>
-                    <TreeTableColumn fx:id="colCycles" text="Cycles" minWidth="60" prefWidth="80"/>
-                    <TreeTableColumn fx:id="colInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
-                  </columns>
-                  <columnResizePolicy>
-                    <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                  </columnResizePolicy>
-                </TreeTableView>
-              </content>
-            </ScrollPane>
+            <TreeTableView fx:id="trvInstructions" minHeight="200"
+                           VBox.vgrow="ALWAYS">
+              <columns>
+                <TreeTableColumn fx:id="colIndex" text="#" minWidth="50" prefWidth="60"/>
+                <TreeTableColumn fx:id="colType" text="B/S" minWidth="50" prefWidth="80"/>
+                <TreeTableColumn fx:id="colLabel" text="Label" minWidth="80" prefWidth="120"/>
+                <TreeTableColumn fx:id="colCycles" text="Cycles" minWidth="60" prefWidth="80"/>
+                <TreeTableColumn fx:id="colInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
+                <TreeTableColumn fx:id="colArchitecture" text="Architecture" minWidth="100" prefWidth="120"/>
+              </columns>
+              <columnResizePolicy>
+                <TreeTableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
+              </columnResizePolicy>
+            </TreeTableView>
 
             <HBox spacing="8">
               <children>
@@ -52,22 +50,20 @@
       <content>
         <VBox spacing="0" minHeight="200">
           <children>
-            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
-              <content>
-                <TreeTableView fx:id="trvInstructionHistory" minHeight="200" VBox.vgrow="ALWAYS">
-                  <columns>
-                    <TreeTableColumn fx:id="colExIndex" text="#" minWidth="50" prefWidth="60"/>
-                    <TreeTableColumn fx:id="colExType" text="B/S" minWidth="50" prefWidth="80"/>
-                    <TreeTableColumn fx:id="colExLabel" text="Label" minWidth="80" prefWidth="120"/>
-                    <TreeTableColumn fx:id="colExCycles" text="Cycles" minWidth="60" prefWidth="80"/>
-                    <TreeTableColumn fx:id="colExInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
-                  </columns>
-                  <columnResizePolicy>
-                    <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                  </columnResizePolicy>
-                </TreeTableView>
-              </content>
-            </ScrollPane>
+            <TreeTableView fx:id="trvInstructionHistory" minHeight="200"
+                           VBox.vgrow="ALWAYS">
+              <columns>
+                <TreeTableColumn fx:id="colExIndex" text="#" minWidth="50" prefWidth="60"/>
+                <TreeTableColumn fx:id="colExType" text="B/S" minWidth="50" prefWidth="80"/>
+                <TreeTableColumn fx:id="colExLabel" text="Label" minWidth="80" prefWidth="120"/>
+                <TreeTableColumn fx:id="colExCycles" text="Cycles" minWidth="60" prefWidth="80"/>
+                <TreeTableColumn fx:id="colExInstruction" text="Instruction" minWidth="150" prefWidth="300"/>
+                <TreeTableColumn fx:id="colExArchitecture" text="Architecture" minWidth="100" prefWidth="120"/>
+              </columns>
+              <columnResizePolicy>
+                <TreeTableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
+              </columnResizePolicy>
+            </TreeTableView>
           </children>
         </VBox>
       </content>

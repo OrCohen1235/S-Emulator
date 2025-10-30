@@ -143,4 +143,9 @@ public abstract class Instruction {
     public Program getInstruncionProgram() {
         return program;
     }
+
+    public String getArchitecture() {
+        return instructionData.getArchitecture();
+    }
+
 }

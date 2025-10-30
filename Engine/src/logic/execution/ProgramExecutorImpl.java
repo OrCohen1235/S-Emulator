@@ -5,6 +5,7 @@ import logic.instructions.sinstruction.Quote;
 import program.Program;
 import logic.label.*;
 import logic.label.Label;
+import users.UserManager;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -16,6 +17,7 @@ public class ProgramExecutorImpl {
     private int sumOfCycles;
     private int currentIndex=0;
     private Boolean isFinishDebugging=false;
+    private long stoppedResult=0;
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
@@ -31,6 +33,10 @@ public class ProgramExecutorImpl {
         this.sumOfCycles = 0; // Reset cycle counter
     }
 
+    public long getStoppedResult() {
+        return stoppedResult;
+    }
+
     public long run(int currentCredits) throws Exception {
         int index = 0; // Start from the first instruction
         Label nextLabel;
@@ -38,10 +44,15 @@ public class ProgramExecutorImpl {
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
 
-            nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
-            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
-            if (currentInstruction.getCycles() > currentCredits && currentCredits!=-1) {
-                throw new Exception("Not enough credits!");
+            nextLabel = currentInstruction.calculateInstruction();
+            int currentCyclesInstruction = currentInstruction.getCycles();// Execute and get next label
+            sumOfCycles += currentCyclesInstruction;  // Add cycles of current instruction
+            if (currentCredits!= -1){
+                if (currentInstruction.getCycles() > currentCredits) {
+                    stoppedResult = program.getY();
+                    throw new Exception("Not enough credits!");
+                }
+                currentCredits -= currentCyclesInstruction;
             }
 
             if (nextLabel == FixedLabel.EMPTY) {
@@ -70,10 +81,15 @@ public class ProgramExecutorImpl {
         do {
             Instruction currentInstruction = program.getActiveInstruction(index);
 
-            nextLabel = currentInstruction.calculateInstruction(); // Execute and get next label
-            sumOfCycles += currentInstruction.getCycles(); // Add cycles of current instruction
-            if (currentInstruction.getCycles() > currentCredits) {
-                throw new Exception("Not enough credits!");
+            nextLabel = currentInstruction.calculateInstruction();
+            int currentCyclesInstruction = currentInstruction.getCycles();// Execute and get next label
+            sumOfCycles += currentCyclesInstruction;  // Add cycles of current instruction
+            if (currentCredits!= -1){
+                if (currentInstruction.getCycles() > currentCredits) {
+                    stoppedResult = program.getY();
+                    throw new Exception("Not enough credits!");
+                }
+                currentCredits -= currentCyclesInstruction;
             }
 
             if (nextLabel == FixedLabel.EMPTY) {
@@ -113,5 +129,7 @@ public class ProgramExecutorImpl {
         currentIndex=0;
         sumOfCycles=0;
     }
+
+
 
 }

@@ -11,8 +11,9 @@ public class InstructionDTO {
     private int cycles;
     private int father;
     private final String instructionName;
+    private final String architecture;
 
-    public InstructionDTO(int displayIndex, String type, String label, String command, int cycles,int father, String instructionName) {
+    public InstructionDTO(int displayIndex, String type, String label, String command, int cycles,int father, String instructionName,  String architecture) {
         this.displayIndex = displayIndex;
         this.type = type;
         this.label = label;
@@ -20,6 +21,7 @@ public class InstructionDTO {
         this.cycles = cycles;
         this.father = father;
         this.instructionName = instructionName;
+        this.architecture = architecture;
     }
     public int getDisplayIndex() {
         return displayIndex;
@@ -32,6 +34,8 @@ public class InstructionDTO {
     public String getLabel() {
         return label;
     }
+
+    public String getArchitecture() { return architecture; }
 
     public String getCommand() {
         return command;

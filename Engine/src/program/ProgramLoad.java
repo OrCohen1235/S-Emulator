@@ -75,6 +75,54 @@ public class ProgramLoad {
         }
     }
 
+    public void loadProgram(ReadSemulatorXml read, List<ReadSemulatorXml> allReads) {
+        Objects.requireNonNull(read, "ReadSemulatorXml must not be null\n"); // Defensive null-check
+
+        try {
+            program.setNameOfProgram(Objects.requireNonNull(read.getProgramName(), "Program name must not be null\n"));
+
+            var sInstructions = Objects.requireNonNull(
+                    read.getSInstructionList(),
+                    "S-instruction list must not be null\n"
+            );
+
+            List<SFunction> sFunctions = new ArrayList<>();
+            for (ReadSemulatorXml rs : allReads) {
+                for (SFunction sFunction : rs.getSFunctionList()) {
+                    sFunctions.add(sFunction);
+                }
+            }
+
+            try {
+                if (!sFunctions.isEmpty()) {
+                    for (SFunction sFunction : sFunctions) {
+                        Function f = createFunction(sFunction);
+                        program.addSingleFunction(f);
+                    }
+                    for (Function f : program.getFunctions()) {
+                        f.setFunctions(program.getFunctions());
+                    }
+                }
+                Instruction[] instructionBuilt = sInstructions.stream()
+                        .map(this::createInstruction) // Parse each SInstruction into an Instruction
+                        .toArray(Instruction[]::new);
+                program.setInstructions(instructionBuilt); // Load all parsed instructions
+            } catch (ProgramLoadException e) {
+                throw new ProgramLoadException(e.getMessage());
+            }
+
+
+            program.initAllVariablesToZero(variables);
+
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // Wrap parsing/validation errors with program context
+            throw new ProgramLoadException("Failed to load program '" + read.getProgramName() + "': " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            // Fallback for unexpected runtime issues
+            throw new ProgramLoadException(e.getMessage() + "\n" + "Cant Load: " + read.getProgramName() + " File");
+        }
+    }
+
 
 
     public void loadInputVars(List<Long> varsInput) {

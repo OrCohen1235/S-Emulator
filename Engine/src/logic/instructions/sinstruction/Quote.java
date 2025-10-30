@@ -31,7 +31,6 @@ public class Quote extends Instruction implements SyntheticInstruction {
         function = program.getFunctionByName(functionName);
         function.resetMapVariables();
         function.setMainProgram(getProgram());
-
     }
 
 
@@ -53,6 +52,21 @@ public class Quote extends Instruction implements SyntheticInstruction {
 
     public void resetSumOfCycles() {
         this.cycles = 0;
+        function.getProgramExecutor().resetSumOfCycles();
+        for (Instruction instruction : function.getInstructionList()) {
+            if (instruction instanceof Quote) {
+                Quote quote = (Quote) instruction;
+                quote.cycles = cycles;
+                quote.getFunction().getProgramExecutor().resetSumOfCycles();
+            }
+        }
+        for (Instruction instruction : function.getActiveInstructions()) {
+            if (instruction instanceof Quote) {
+                Quote q = (Quote) instruction;
+                q.resetSumOfCycles();
+                q.getFunction().getProgramExecutor().resetSumOfCycles();
+            }
+        }
     }
 
     @Override

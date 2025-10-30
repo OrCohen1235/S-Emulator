@@ -21,6 +21,17 @@ public class Function extends Program  {
 
    }
 
+    public Function(String name, String userName, List<Instruction> instructionList,Program newMainProgram) {
+        super.setNameOfProgram(name);
+        this.userName = userName;
+        for (Instruction instruction : instructionList) {
+            instruction.setProgram(this);
+        }
+        super.clearAndSetInstructions(instructionList);
+        super.resetMapVariables();
+
+    }
+
    public Variable getFreshWORK(){
        return mainProgram.getExpanderExecute().getFreshWork();
    }
@@ -29,8 +40,9 @@ public class Function extends Program  {
        super.setNameOfProgram(name);
        this.userName = name;
        super.clearAndSetInstructions(lst);
-
    }
+
+
 
     public List<Instruction> getInstructionList() {
         return super.getActiveInstructions();

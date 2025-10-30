@@ -1,6 +1,7 @@
 package users;
 
 import engine.Engine;
+import jaxbsprogram.ReadSemulatorXml;
 import logic.dto.ProgramDTO;
 import logic.function.Function;
 import logic.instructions.Instruction;
@@ -20,7 +21,7 @@ public class SystemProgram {
 
     // ה-XML הגולמי - שמור בזיכרון!
     private final byte[] xmlContent;
-    Engine engine;
+    private Engine engine;
 
     // מטא-דאטה על התוכנית
     private final ProgramDTO programDTO;
@@ -70,6 +71,13 @@ public class SystemProgram {
         return newEngine;
     }
 
+    public Engine createFreshEngine(List<ReadSemulatorXml> allReadSem) {
+        Engine newEngine = new Engine(new ByteArrayInputStream(xmlContent),allReadSem);
+        this.engine = newEngine;
+        this.functions.addAll(programDTO.getFunctions());
+        return newEngine;
+    }
+
     // ========== Getters - מידע בסיסי ==========
 
     public String getName() {
@@ -93,6 +101,9 @@ public class SystemProgram {
         this.engine.getProgramDTO().setFunctions(functionList);
     }
 
+    public Engine getEngine() {
+        return engine;
+    }
 
     // ========== Getters - מידע מחושב ==========
 
@@ -116,6 +127,10 @@ public class SystemProgram {
 
     public double getAverageCost() {
         return runCount > 0 ? totalCreditsCost / runCount : 0.0;
+    }
+
+    public List<Instruction> getInstructions() {
+        return instructions;
     }
 
     // ========== Actions ==========

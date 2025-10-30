@@ -393,5 +393,9 @@ public class RootController {
     public void clearHighlightedRows() {
         instructionsController.clearAllHighlightColors();
     }
+
+    public int getAvrageProgram(String programName) {
+        return dashboardController.getAvrageProgramSum(programName);
+    }
 }
 

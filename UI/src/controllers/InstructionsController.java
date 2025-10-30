@@ -25,10 +25,10 @@ public class InstructionsController {
 
 
     @FXML private TreeTableView<InstructionDTO> trvInstructions;
-    @FXML private TreeTableColumn<InstructionDTO, String> colIndex, colType, colLabel, colCycles, colInstruction;
+    @FXML private TreeTableColumn<InstructionDTO, String> colIndex, colType, colLabel, colCycles, colInstruction, colArchitecture;
 
     @FXML private TreeTableView<InstructionDTO> trvInstructionHistory;
-    @FXML private TreeTableColumn<InstructionDTO, String> colExIndex, colExType, colExLabel, colExCycles, colExInstruction;
+    @FXML private TreeTableColumn<InstructionDTO, String> colExIndex, colExType, colExLabel, colExCycles, colExInstruction , colExArchitecture;
 
     @FXML private Label lblSummary;
 
@@ -56,6 +56,7 @@ public class InstructionsController {
         colLabel.setCellValueFactory(new TreeItemPropertyValueFactory<>("label"));
         colCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
+        colArchitecture.setCellValueFactory(new TreeItemPropertyValueFactory<>("architecture"));
 
         trvInstructionHistory.setShowRoot(false);
         colExIndex.setCellValueFactory(new TreeItemPropertyValueFactory<>("displayIndex"));
@@ -63,6 +64,7 @@ public class InstructionsController {
         colExLabel.setCellValueFactory(new TreeItemPropertyValueFactory<>("label"));
         colExCycles.setCellValueFactory(new TreeItemPropertyValueFactory<>("cycles"));
         colExInstruction.setCellValueFactory(new TreeItemPropertyValueFactory<>("command"));
+        colExArchitecture.setCellValueFactory(new TreeItemPropertyValueFactory<>("architecture"));
 
 
         colCycles.setCellFactory(column -> new TreeTableCell<InstructionDTO, String>() {

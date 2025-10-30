@@ -73,14 +73,6 @@ public class ExecutionController {
 
     @FXML
     private void onRun() {
-        if (parent.getSumOfCurrentArchitecture() > parent.getCredits()){
-            parent.showError("Error", "Not Enough Credits, You Need:"+parent.getSumOfCurrentArchitecture() +" credits");
-            return;
-        }
-        else{
-            parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
-            parent.clearHighlightedRows();
-        }
         varsTableController.clearVarsTable();
         onClear();
         inputsContainer.setDisable(false);
@@ -106,14 +98,6 @@ public class ExecutionController {
 
     @FXML
     private void onDebug() {
-        if (parent.getSumOfCurrentArchitecture() > parent.getCredits()){
-            parent.showError("Error", "Not Enough Credits, You Need:"+parent.getSumOfCurrentArchitecture() +" credits");
-            return;
-        }
-        else{
-            parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
-            parent.clearHighlightedRows();
-        }
         if (programService.isFinishedDebugging()){
             programService.resetDebugger();
             programService.resetCycles();
@@ -193,6 +177,16 @@ public class ExecutionController {
             checkInputs(e);
             return;
         }
+
+        if (parent.getSumOfCurrentArchitecture() + parent.getAvrageProgram(programService.getProgramName()) > parent.getCredits()){
+            parent.showError("Error", "Credits lower than average needed + architecture required!");
+            return;
+        }
+        else{
+            parent.decreaseCredits(parent.getSumOfCurrentArchitecture());
+            parent.clearHighlightedRows();
+        }
+
         inputsContainer.setDisable(true);
         hBoxStart.setVisible(false);
         hBoxStart.getStyleClass().add("highlight");

@@ -617,4 +617,14 @@ public class DashboardController {
         a.setTitle("Error");
         a.showAndWait();
     }
+
+    public int getAvrageProgramSum(String programName) {
+        for (ProgramViewModel program : availableProgramsTable.getItems()) {
+            if (program.getProgramName().equalsIgnoreCase(programName)) {
+                return (int) program.getAvgCost();
+            }
+        }
+        return -1; // או 0 אם לא נמצא
+    }
+
 }

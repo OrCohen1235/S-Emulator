@@ -16,16 +16,13 @@ public class ReadSemulatorXml {
 
     private SProgram simulator;
     private InputStream fileContext;// Holds the unmarshalled program data
-     // XML file reference
+    // XML file reference
 
     /** New: constructor that accepts a raw path string and validates it */
     public ReadSemulatorXml(InputStream fileContext) {
         this.fileContext = fileContext;
         loadFiles();
     }
-
-    /** Original constructor kept (still validates existence/isFile implicitly by JAXB load) */
-
 
     private void loadFiles() {
         try {
@@ -66,66 +63,6 @@ public class ReadSemulatorXml {
                 .filter(lbl -> list.stream().noneMatch(i -> Objects.equals(i.getSLabel(), lbl)))
                 .reduce((first, second) -> second)
                 .orElse("");
-    }
-
-    public String checkFunctionValidity() {
-        List<SFunction> functions = getSFunctionList();
-        List<SInstruction> mainInstructions = getSInstructionList();
-
-        Set<String> definedFunctions = new HashSet<>();
-        for (SFunction func : functions) {
-            definedFunctions.add(func.getName());
-        }
-
-        String error = checkInstructionsForUndefinedFunctions(mainInstructions, definedFunctions, "main program");
-        if (!error.isEmpty()) {
-            return error;
-        }
-
-        for (SFunction function : functions) {
-            List<SInstruction> functionInstructions = function.getSInstructions().getSInstruction();
-            error = checkInstructionsForUndefinedFunctions(
-                    functionInstructions,
-                    definedFunctions,
-                    "function '" + function.getName() + "'"
-            );
-            if (!error.isEmpty()) {
-                return error;
-            }
-        }
-
-        return "";
-    }
-
-    private String checkInstructionsForUndefinedFunctions(
-            List<SInstruction> instructions,
-            Set<String> definedFunctions,
-            String context) {
-
-        for (SInstruction inst : instructions) {
-            if (inst.getSInstructionArguments() == null) {
-                continue;
-            }
-
-            List<SInstructionArgument> args = inst.getSInstructionArguments().getSInstructionArgument();
-            String instructionName = inst.getName();
-
-            if ("QUOTE".equals(instructionName) || "JUMP_EQUAL_FUNCTION".equals(instructionName)) {
-                if (!args.isEmpty()) {
-                    String functionName = args.get(0).getValue();
-
-                    if (checkIfLabel(functionName)) {
-                        continue; // זו תווית, לא פונקציה - הכל בסדר
-                    }
-
-                    if (!definedFunctions.contains(functionName)) {
-                        return "Error in " + context + ": Function '" + functionName + "' is not defined";
-                    }
-                }
-            }
-        }
-
-        return "";
     }
 
     private boolean checkIfLabel(String str) {
