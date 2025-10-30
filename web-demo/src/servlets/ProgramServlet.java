@@ -592,17 +592,21 @@ public class ProgramServlet extends BaseServlet {
             }
             String programName = engine.getProgramDTO().getProgramName();
             int cycles = engine.getProgramDTO().getSumOfCycles();
+            User user = getUserManager().getUser(getUserSession(req).getUsername());
+
+
+            String archi = Architecture.getArchitectureNameByCredits(architecture);
+            int runNum = user.getRunsCount();
             if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
                 updateProgramStats(programName, cycles);
-                User user = getUserManager().getUser(getUserSession(req).getUsername());
                 user.useCredits(cycles,architecture);
-                int runNum = user.getRunsCount();
-                String archi = Architecture.getArchitectureNameByCredits(architecture);
                 addHistory(req,runNum,true,programName,archi,degree,result,cycles);
             }
 
             if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
+                addHistory(req,runNum,true,programName,archi,degree,result,cycles);
+                user.useCredits(cycles,architecture);
                 updateProgramStats(programName, cycles);
                 return;
             }

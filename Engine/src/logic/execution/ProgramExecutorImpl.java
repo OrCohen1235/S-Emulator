@@ -46,7 +46,7 @@ public class ProgramExecutorImpl {
 
             nextLabel = currentInstruction.calculateInstruction();
             int currentCyclesInstruction = currentInstruction.getCycles();// Execute and get next label
-            sumOfCycles += currentCyclesInstruction;  // Add cycles of current instruction
+              // Add cycles of current instruction
             if (currentCredits!= -1){
                 if (currentInstruction.getCycles() > currentCredits) {
                     stoppedResult = program.getY();
@@ -54,6 +54,7 @@ public class ProgramExecutorImpl {
                 }
                 currentCredits -= currentCyclesInstruction;
             }
+            sumOfCycles += currentCyclesInstruction;
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction
@@ -83,7 +84,7 @@ public class ProgramExecutorImpl {
 
             nextLabel = currentInstruction.calculateInstruction();
             int currentCyclesInstruction = currentInstruction.getCycles();// Execute and get next label
-            sumOfCycles += currentCyclesInstruction;  // Add cycles of current instruction
+              // Add cycles of current instruction
             if (currentCredits!= -1){
                 if (currentInstruction.getCycles() > currentCredits) {
                     stoppedResult = program.getY();
@@ -91,6 +92,7 @@ public class ProgramExecutorImpl {
                 }
                 currentCredits -= currentCyclesInstruction;
             }
+            sumOfCycles += currentCyclesInstruction;
 
             if (nextLabel == FixedLabel.EMPTY) {
                 index++; // Move to next instruction

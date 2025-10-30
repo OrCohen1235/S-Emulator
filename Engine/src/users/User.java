@@ -75,7 +75,7 @@ public class User {
      */
     public synchronized boolean useCredits(int amount,int architecture) {
         if (amount+architecture > creditsCurrent) {
-            creditsUsed += creditsCurrent +architecture;
+            creditsUsed += Math.abs((amount+architecture)-creditsCurrent);
             return false;
         }
         creditsUsed += amount;
