@@ -17,6 +17,7 @@ import logic.instructions.Instruction;
 import logic.instructions.sinstruction.JumpEqualFunction;
 import logic.instructions.sinstruction.Quote;
 import model.HistoryRow;
+import model.VarRow;
 import session.UserSession;
 import users.*;
 import utils.ServletsUtills;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns = {
         "/get-inputs-vars",
@@ -153,7 +155,7 @@ public class ProgramServlet extends BaseServlet {
             // קבלת Repository ופונקציות
             ProgramRepository repo = getProgramRepository();
 
-            // בדיקה שהתוכנית קיימת
+
             SystemProgram program = repo.getProgram(programName);
             if (program == null) {
                 sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Program not found: " + programName);
@@ -484,14 +486,21 @@ public class ProgramServlet extends BaseServlet {
             user.useCredits(cycles,architecture);
             int runNum = user.getRunsCount();
             String archi = Architecture.getArchitectureNameByCredits(architecture);
+            List<String> xVariables = engine.getProgramDTO().getXVariables();
+            Map<String, Long> values = new LinkedHashMap<>(engine.getProgramDTO().getVariablesValues());
+            Map<String, Long> newValues = new LinkedHashMap<>();
+            for (String xVariable : xVariables) {
+                String newXVarString = "X"+xVariable.substring(1);
+                long newValue = values.get(newXVarString);
+                newValues.put(xVariable, newValue);
+            }
             if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
                 System.out.println(result);
-                addHistory(req,runNum,false,programName,archi,degree,result,cycles);
+                addHistory(req,runNum,false,programName,archi,degree,result,cycles,values,newValues);
                 return;
             }
-
-            addHistory(req,runNum,true,programName,archi,degree,result,cycles);
+            addHistory(req,runNum,true,programName,archi,degree,result,cycles,values,newValues);
 
             writeJson(response, HttpServletResponse.SC_OK, new OkExecute(result, programName, cycles));
         } catch (NumberFormatException nfe) {
@@ -510,13 +519,19 @@ public class ProgramServlet extends BaseServlet {
                            String architectureStr,   // שם הארכיטקטורה כמחרוזת
                            int degree,              // דרגת הריצה
                            long y,                  // ערך y סופי
-                           long cycles) {           // מספר מחזורים
+                           long cycles,
+                           Map<String,Long> vals,
+                           Map<String,Long>inputsToCreate) {           // מספר מחזורים
         ProgramRepository p = getProgramRepository();
         for (Function function : p.getAllFunctions()){
             if (function.getName().equals(nameOrUserString)){
                 mainProgram = false;
             }
         }
+        List<Long> inputs = inputsToCreate.entrySet().stream()
+                .sorted(Comparator.comparingInt(entry -> Integer.parseInt(entry.getKey().substring(1))))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
 
         HistoryRow historyRow = new HistoryRow(
                 runNumber,
@@ -525,11 +540,36 @@ public class ProgramServlet extends BaseServlet {
                 architectureStr,
                 degree,
                 y,
-                cycles
+                cycles,
+                getVarsAtEndRun(vals),inputs
         );
 
         User user = getUserManager().getUser(getUserSession(req).getUsername());
         user.addHistoryRow(historyRow);
+    }
+
+    public List<VarRow> getVarsAtEndRun(Map<String,Long> vals) {
+        List<VarRow> rows = new ArrayList<>();
+        Map<String, Long> values = vals;
+
+        for (Map.Entry<String, Long> entry : values.entrySet()) {
+            String name = entry.getKey();
+            String varName = name.toUpperCase();
+            String type;
+
+            if (!name.isEmpty() && Character.toLowerCase(name.charAt(0)) == 'x') {
+                type = "INPUT";
+            } else if (Character.toLowerCase(name.charAt(0)) == 'y') {
+                type = "OUTPUT";
+            } else {
+                type = "WORK";
+            }
+
+            String valueStr = String.valueOf(entry.getValue());
+            rows.add(new VarRow(varName, type, valueStr));
+
+        }
+        return rows;
     }
 
 
@@ -597,15 +637,24 @@ public class ProgramServlet extends BaseServlet {
 
             String archi = Architecture.getArchitectureNameByCredits(architecture);
             int runNum = user.getRunsCount();
+            List<String> xVariables = engine.getProgramDTO().getXVariables();
+            Map<String, Long> values = new LinkedHashMap<>(engine.getProgramDTO().getVariablesValues());
+            Map<String, Long> newValues = new LinkedHashMap<>();
+            for (String xVariable : xVariables) {
+                String newXVarString = "X"+xVariable.substring(1);
+                long newValue = values.get(newXVarString);
+                newValues.put(xVariable, newValue);
+            }
+
             if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
                 updateProgramStats(programName, cycles);
                 user.useCredits(cycles,architecture);
-                addHistory(req,runNum,true,programName,archi,degree,result,cycles);
+                addHistory(req,runNum,true,programName,archi,degree,result,cycles,values,newValues);
             }
 
             if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
-                addHistory(req,runNum,true,programName,archi,degree,result,cycles);
+                addHistory(req,runNum,true,programName,archi,degree,result,cycles,values,newValues);
                 user.useCredits(cycles,architecture);
                 updateProgramStats(programName, cycles);
                 return;

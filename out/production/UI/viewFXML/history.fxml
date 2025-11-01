@@ -17,7 +17,6 @@
     <content>
         <VBox spacing="8">
             <children>
-                <!-- השארתי את הסקרולר בדיוק כמו שביקשת -->
                 <ScrollPane fitToWidth="false" fitToHeight="true"
                             hbarPolicy="AS_NEEDED" vbarPolicy="NEVER"
                             VBox.vgrow="ALWAYS">

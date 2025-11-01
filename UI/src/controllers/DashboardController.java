@@ -9,29 +9,27 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.Window;
+import javafx.stage.*;
 import javafx.util.Duration;
-import model.FunctionViewModel;
-import model.HistoryRow;
-import model.ProgramViewModel;
-import model.UserViewModel;
+import model.*;
 import program.ProgramLoadException;
 import services.*;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class DashboardController {
 
@@ -80,6 +78,8 @@ public class DashboardController {
     @FXML private TableColumn<UserViewModel, Number> colCUUsed;
     @FXML private TableColumn<UserViewModel, Number> colCURuns;
 
+    @FXML private Button btnShowStatus, btnReRun;
+
     // -------- Model-like state --------
     private final ObservableList<HistoryRow> history = FXCollections.observableArrayList();
 
@@ -114,6 +114,7 @@ public class DashboardController {
     private Timeline refreshProgramsTimeline;
     private UserService userService;
     private Scene thisScene = null;
+    private Boolean isClickedOnOtherUser =true;
 
     // ============== Initialize ==============
     @FXML
@@ -151,6 +152,18 @@ public class DashboardController {
                         }, c.getValue().architectureProperty())
                 );
             }
+
+            // במתודת initialize או במקום מתאים אחר
+            historyTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+                if (newSelection != null) {
+                    btnShowStatus.setDisable(false);
+                    btnReRun.setDisable(false);
+                } else {
+                    // אם אין בחירה (למשל לחצו על תא ריק)
+                    btnShowStatus.setDisable(true);
+                    btnReRun.setDisable(true);
+                }
+            });
 
             if (colDegree != null)
                 colDegree.setCellValueFactory(c -> c.getValue().degreeProperty());
@@ -238,9 +251,16 @@ public class DashboardController {
                         if (newValue != null) {
                             onUserSelected(newValue);
                         }
+                        if (newValue==null) {
+                            isClickedOnOtherUser=true;
+                        }
                     }
             );
+
+
         }
+        unChooseHistoryRow();
+        unChooseUsersRow();
 
         programService = new ProgramService();
         updateCreditsField();
@@ -254,8 +274,58 @@ public class DashboardController {
     private void onUserSelected(UserViewModel user) {
         if (user == null) return;
 
-        // רענון אסינכרוני של ההיסטוריה
+        if (!user.getName().equals(userService.getCurrentUsername())){
+            isClickedOnOtherUser=false;
+        }
         refreshUserHistoryAsync(user.getName());
+
+    }
+
+    private void unChooseUsersRow() {
+        connectedUsersTable.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) return;
+            newScene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, ev -> {
+                javafx.scene.Node t = (javafx.scene.Node) ev.getTarget();
+                if (isAncestorOf(t, connectedUsersTable)) return;
+                if (isAncestorOf(t, btnShowStatus) || isAncestorOf(t, btnReRun)) return;
+                connectedUsersTable.getSelectionModel().clearSelection();
+                if (!isAncestorOf(t, historyTable)){
+                isClickedOnOtherUser=true;
+                refreshUserHistoryAsync(userNameLabel.getText());
+                }
+
+            });
+        });
+    }
+
+    private void unChooseHistoryRow() {
+        historyTable.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) return;
+            newScene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, ev -> {
+                javafx.scene.Node t = (javafx.scene.Node) ev.getTarget();
+                if (isAncestorOf(t, historyTable)) return;
+                if (isAncestorOf(t, btnShowStatus) || isAncestorOf(t, btnReRun)) return;
+
+                historyTable.getSelectionModel().clearSelection();
+            });
+        });
+
+    }
+
+
+
+    private boolean isAncestorOf(javafx.scene.Node target, javafx.scene.Node candidateAncestor) {
+        javafx.scene.Node n = target;
+        while (n != null) {
+            if (n == candidateAncestor) return true;
+            n = n.getParent();
+        }
+        return false;
+    }
+
+    private void onUserSelected(String userName) {
+        connectedUsersTable.getSelectionModel().clearSelection();
+        refreshUserHistoryAsync(userName);
     }
 
     /**
@@ -267,14 +337,41 @@ public class DashboardController {
             try {
                 List<HistoryRow> userHistory = programService.getHistoryRowList(username);
 
+                // CountDownLatch כדי לחכות שה-UI יתעדכן
+                CountDownLatch latch = new CountDownLatch(1);
+
                 Platform.runLater(() -> {
-                    history.clear();
-                    history.addAll(userHistory);
+                    try {
+                        history.clear();
+                        history.addAll(userHistory);
+                    } finally {
+                        latch.countDown(); // שחרר את ה-Thread
+                    }
                 });
 
+                // חכה עד שה-UI סיים להתעדכן
+                latch.await();
+
+            } catch (InterruptedException ex) {
+                System.err.println("History refresh interrupted for user " + username);
+                Thread.currentThread().interrupt();
             } catch (Exception ex) {
                 System.err.println("Failed to load history for user " + username + ": " + ex.getMessage());
-                Platform.runLater(() -> showError("Failed to load user history for: " + username));
+
+                CountDownLatch errorLatch = new CountDownLatch(1);
+                Platform.runLater(() -> {
+                    try {
+                        showError("Failed to load user history for: " + username);
+                    } finally {
+                        errorLatch.countDown();
+                    }
+                });
+
+                try {
+                    errorLatch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }, "UserHistoryRefresh-" + username).start();
     }
@@ -290,10 +387,7 @@ public class DashboardController {
      * מנקה את הבחירה בטבלת המשתמשים
      */
     private void clearUserSelection() {
-        if (connectedUsersTable != null) {
-            connectedUsersTable.getSelectionModel().clearSelection();
-        }
-        clearHistory();
+        onUserSelected(userService.getCurrentUsername());
     }
 
     // ============== Execute Function ==============
@@ -325,6 +419,8 @@ public class DashboardController {
             stage.setScene(scene);
             stage.setTitle("Program Execution - " + functionViewModel.getProgramName());
             stage.show();
+            stage.sizeToScene();
+            javafx.application.Platform.runLater(stage::centerOnScreen);
 
         } catch (ProgramLoadException e) {
             showError("Failed to start program: " + e.getMessage());
@@ -401,13 +497,23 @@ public class DashboardController {
         if (f != null) {
             if (loadedFilePathField != null) loadedFilePathField.setText(f.getAbsolutePath());
             logAction(currentUserOrDash(), "Loaded file: " + f.getName());
+
             try {
                 programService.loadXml(Path.of(f.getPath()));
+                showSuccess("Program loaded successfully: " + f.getName());
             } catch (Exception ex) {
-                showError("Already loaded file: " + f.getName());
+                showError(ex.getMessage());
             }
             refreshAvailablePrograms();
         }
+    }
+
+    private void showSuccess(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Success");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML
@@ -461,7 +567,8 @@ public class DashboardController {
             stage.setScene(scene);
             stage.setTitle("Program Execution - " + program.getProgramName());
             stage.show();
-
+            stage.sizeToScene();
+            javafx.application.Platform.runLater(stage::centerOnScreen);
         } catch (ProgramLoadException e) {
             showError("Failed to start program: " + e.getMessage());
             e.printStackTrace();
@@ -572,7 +679,9 @@ public class DashboardController {
             return;
         }
         if (refreshFunctionsTimeline != null) refreshFunctionsTimeline.stop();
-
+        if (isClickedOnOtherUser) {
+            refreshUserHistoryAsync(userNameLabel.getText());
+        }
         refreshFunctionsTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshAvailableFunctions()));
         refreshFunctionsTimeline.setCycleCount(Animation.INDEFINITE);
         refreshFunctionsTimeline.play();
@@ -684,5 +793,93 @@ public class DashboardController {
             }
         }
         return -1;
+    }
+
+    @FXML public void onShowStatus() {
+        HistoryRow row = historyTable.getSelectionModel().getSelectedItem();
+        if (row == null) return;
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/viewFXML/varsTable.fxml"));
+            Parent content = loader.load();
+
+            VarsTableController ctrl = loader.getController();
+            ObservableList<VarRow> vars = row.getVars();
+            ctrl.setItems(vars);
+
+            Scene scene = new Scene(content, 420, 480);
+            Stage stage = new Stage(StageStyle.DECORATED);
+
+            stage.setTitle("Variables Status");
+            stage.initOwner(historyTable.getScene().getWindow());
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.setResizable(true);
+            stage.setScene(scene);
+
+            stage.showAndWait();
+
+        } catch (IOException e){
+            new Alert(Alert.AlertType.ERROR,
+                    "Failed to open variables dialog:\n" + e.getMessage()).showAndWait();
+        }
+    }
+
+    @FXML public void onRerun() {
+        HistoryRow row = historyTable.getSelectionModel().getSelectedItem();
+        if (row == null) return;
+
+        try {
+            String programName = row.getNameOrUserString();
+            if (!row.isMainProgram()){
+
+                for (FunctionViewModel func : functions) {
+                    if (row.getNameOrUserString().equals(func.getProgramName())) {
+                        programName = func.getUploadProgramName();
+                    }
+                }
+            }
+            programService.startProgram(programName);
+            if (!row.isMainProgram()) {
+                programService.switchToFunction(row.getNameOrUserString(),programName);
+            }
+
+            logAction(currentUserOrDash(), "Executed program: " + row.getNameOrUserString());
+            dispose();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/viewFXML/root.fxml"));
+            Parent root = loader.load();
+
+            rootController = loader.getController();
+            rootController.setUserService(userService);
+            rootController.setCredits(credits);
+            rootController.setDashboardController(this);
+            rootController.setPreviousScene(thisScene);
+            rootController.updateUserDisplay();
+            ExecutionController executionController = rootController.getExecutionController();
+            rootController.setSpnDegree(row.getDegree());
+
+
+            executionController.NewRunOrDebugChoiceFromReRunButton();
+
+            if (executionController != null) {
+                executionController.setPendingRerunInputs(
+                        new java.util.ArrayList<>(row.getStatingInput()));
+            }
+
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) availableProgramsTable.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Program Execution - " + row.getNameOrUserString());
+            stage.show();
+
+        } catch (ProgramLoadException e) {
+            showError("Failed to start program: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            showError("Failed to load execution view: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
     }
 }

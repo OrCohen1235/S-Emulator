@@ -17,6 +17,7 @@ public class ProgramRepository {
     private Set<SystemFunction> systemFunctions = new HashSet<>();
     private Set<Function> allFunctions = new HashSet<>();
 
+
     public synchronized SystemProgram uploadProgram(String uploaderUsername, InputStream xmlStream) throws Exception {
 
         // 1. יצירת SystemProgram חדש
@@ -41,7 +42,7 @@ public class ProgramRepository {
             }
         }
 
-        List<Instruction> instructions = program.getInstructions();
+        List<Instruction> instructions = program.getInstructions1();
         Set<Function> tempFunctionSet = new HashSet<>();
         tempFunctionSet.addAll(allFunctions);
         tempFunctionSet.addAll(functions);

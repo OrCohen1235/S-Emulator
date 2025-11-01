@@ -78,6 +78,10 @@ public class SystemProgram {
         return newEngine;
     }
 
+    public List<Instruction> getInstructions1() {
+        return programDTO.getProgram().getActiveInstructions();
+    }
+
     // ========== Getters - מידע בסיסי ==========
 
     public String getName() {

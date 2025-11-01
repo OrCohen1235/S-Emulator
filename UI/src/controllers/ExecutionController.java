@@ -159,7 +159,7 @@ public class ExecutionController {
     @FXML
     private void onStop() {
         debuggerLevel =Math.max(0, debuggerLevel - 2);
-        programService.addHistory(parent.getDegree(), output);
+       // programService.addHistory(parent.getDegree(), output);
         programService.resetDebugger();
         debugging = false;
         debuggerLevel = 0;

@@ -107,6 +107,8 @@ public class LoginController {
             dashboardController.setThisScene(scene);
             stage.setScene(scene);
             stage.setTitle("S-Emulator - " + username);
+            stage.sizeToScene();
+            javafx.application.Platform.runLater(stage::centerOnScreen);
 
         } catch (IOException e) {
             loginButton.setDisable(false);

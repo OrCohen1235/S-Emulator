@@ -44,7 +44,6 @@ public class RootController {
 
     @FXML private InstructionsController instructionsController;
     @FXML private ExecutionController executionController;
-    @FXML private HistoryController historyController;
 
     private final ProgramService programService = new ProgramService();
     private final HistoryService historyService = new HistoryService();
@@ -94,16 +93,12 @@ public class RootController {
         }
         if (instructionsController != null) instructionsController.refresh(getDegree());
         if (executionController != null) executionController.onProgramLoaded();
-        if (historyController != null) historyController.clearHistory();
         if (spnDegree != null) {
             spnDegree.setDisable(false);
             spnDegree.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 0, 0));
         }
         setMaxDegree(programService.getMaxDegree());
         programService.setHistory(historyService);
-        if (historyController != null) {
-            historyController.init(historyService, this, executionController);
-        }
     }
 
     public void switchArchitectureToNON(){
@@ -307,6 +302,13 @@ public class RootController {
         dialog.show();
     }
 
+//    public void onFunctionSelector() {
+//        programService.switchToFunction();
+//        instructionsController.refresh(0);
+//        int maxDegree = programService.getMaxDegree();
+//        setMaxDegree(maxDegree);
+//        spnDegree.requestFocus();
+//    }
 
     public void onFunctionSelector1(String functionName, int degree, String uploadProgramName) {
 

@@ -15,11 +15,13 @@ import com.google.gson.reflect.TypeToken;
 
 import logic.dto.HistoryRowDTO;
 import logic.dto.InstructionDTO;
+import logic.dto.VarRowDTO;
 import model.HistoryRow;
 import program.ProgramLoadException;
 import model.VarRow;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static services.Constants.*;
 
@@ -451,7 +453,7 @@ public class ProgramService {
                 Response resp = GSON.fromJson(response.body(), Response.class);
 
                 if ("ok".equalsIgnoreCase(resp.status)) {
-
+                    history.createHistory(vars);
                 } else {
                     System.err.println("Server error: " + resp.error + "from: loadVars");
                 }
@@ -477,7 +479,7 @@ public class ProgramService {
 
                 if ("ok".equalsIgnoreCase(resp.status)) {
                     executeOutput = resp.result;
-
+                    history.addHistory(getVarsAtEndRun());
                 } else {
                     return -1;
                 }
@@ -505,7 +507,7 @@ public class ProgramService {
                 if ("ok".equalsIgnoreCase(resp.status)) {
                     executeOutput = resp.result;
                     if (isFinishedDebugging()){
-
+                        history.addHistory(getVarsAtEndRun());
                     }
                 } else {
                     return -1;
@@ -542,28 +544,6 @@ public class ProgramService {
         }
     }
 
-    public void addHistory(int degree, long y){
-        try {
-            String url = SERVER_URL + "get-program-name-and-cycles";
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                ExecuteProgramResponse resp = GSON.fromJson(response.body(), ExecuteProgramResponse.class);
-
-                if ("ok".equalsIgnoreCase(resp.status)) {
-                    history.addHistory(resp.programName,y, degree, resp.cycles, getVarsAtEndRun());
-
-                } else {
-                    System.err.println("Server error: " + resp.error + " from: addHistory");
-                }
-            } else {
-                System.err.println("HTTP error: " + response.statusCode() + " from: addHistory");
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * שולף את רשימת ההיסטוריה של משתמש מהשרת
@@ -619,6 +599,14 @@ public class ProgramService {
 
             // המרה מ-DTO ל-HistoryRow
             for (HistoryRowDTO dto : dtoArray) {
+                // המרה של VarRowDTO ל-VarRow
+                List<model.VarRow> varRows = null;
+                if (dto.getVars() != null) {
+                    varRows = dto.getVars().stream()
+                            .map(VarRowDTO::toVarRow)
+                            .collect(Collectors.toList());
+                }
+
                 HistoryRow row = new HistoryRow(
                         dto.getRunNumber(),
                         dto.isMainProgram(),
@@ -626,7 +614,9 @@ public class ProgramService {
                         dto.getArchitecture(),  // זה יעבור דרך Architecture.parse() בבנאי
                         dto.getDegree(),
                         dto.getY(),
-                        dto.getCycles()
+                        dto.getCycles(),
+                        varRows,
+                        dto.getStartingInput()// עכשיו זה List<VarRow> ולא List<VarRowDTO>
                 );
                 historyList.add(row);
             }

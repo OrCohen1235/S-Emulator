@@ -1,5 +1,7 @@
 package logic.dto;
 import model.HistoryRow;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class HistoryRowDTO {
     private int runNumber;
@@ -9,6 +11,12 @@ public class HistoryRowDTO {
     private int degree;
     private long y;
     private long cycles;
+    private List<VarRowDTO> vars;
+    private List<Long> startingInput;
+
+    // Default constructor for Gson
+    public HistoryRowDTO() {
+    }
 
     public HistoryRowDTO(HistoryRow row) {
         this.runNumber = row.getRunNumber();
@@ -18,6 +26,14 @@ public class HistoryRowDTO {
         this.degree = row.getDegree();
         this.y = row.getY();
         this.cycles = row.getCycles();
+        this.vars = row.getVars() != null
+                ? row.getVars().stream().map(VarRowDTO::new).collect(Collectors.toList())
+                : null;
+        this.startingInput = row.getStatingInput();
+    }
+
+    public List<Long> getStartingInput() {
+        return startingInput;
     }
 
     public int getRunNumber() {
@@ -47,4 +63,9 @@ public class HistoryRowDTO {
     public long getCycles() {
         return cycles;
     }
+
+    public List<VarRowDTO> getVars() {
+        return vars;
+    }
+
 }

@@ -6,30 +6,24 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import viewmodel.Architecture;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HistoryRow {
 
-    // 1) מס' הריצה (מתחיל מ־1)
     private final IntegerProperty runNumber = new SimpleIntegerProperty();
-
-    // 2) האם זו תוכנית ראשית או פונקציית עזר
     private final BooleanProperty mainProgram = new SimpleBooleanProperty();
-
-    // 3) שם תוכנית או user string של פונקציה
     private final StringProperty nameOrUserString = new SimpleStringProperty();
-
-    // 4) סוג הארכיטקטורה
     private final ObjectProperty<Architecture> architecture = new SimpleObjectProperty<>();
-
-    // 5) דרגת ההרצה
     private final IntegerProperty degree = new SimpleIntegerProperty();
-
-    // 6) ערכו של y בגמר הריצה
     private final LongProperty y = new SimpleLongProperty();
-
-    // 7) כמות המחזורים שההרצה צרכה
     private final LongProperty cycles = new SimpleLongProperty();
+    private List<Long> statingInput =  new ArrayList();
+    private final ObservableList<VarRow> vars = FXCollections.observableArrayList();
 
     public HistoryRow(int runNumber,
                       boolean mainProgram,
@@ -37,7 +31,9 @@ public class HistoryRow {
                       Architecture architecture,
                       int degree,
                       long y,
-                      long cycles) {
+                      long cycles,
+                      List<VarRow> vars,
+                      List<Long> statingInput) {
         this.runNumber.set(runNumber);
         this.mainProgram.set(mainProgram);
         this.nameOrUserString.set(nameOrUserString);
@@ -45,6 +41,8 @@ public class HistoryRow {
         this.degree.set(degree);
         this.y.set(y);
         this.cycles.set(cycles);
+        this.vars.addAll(vars);
+        this.statingInput.addAll(statingInput);
     }
 
     // בנאי עזר אם מגיע מחרוזת ארכיטקטורה (משתמש ב-Architecture.parse)
@@ -54,8 +52,10 @@ public class HistoryRow {
                       String architectureStr,
                       int degree,
                       long y,
-                      long cycles) {
-        this(runNumber, mainProgram, nameOrUserString, Architecture.parse(architectureStr), degree, y, cycles);
+                      long cycles,
+                      List<VarRow> vars,
+                      List<Long> statingInput) {
+        this(runNumber, mainProgram, nameOrUserString, Architecture.parse(architectureStr), degree, y, cycles,vars,statingInput);
     }
 
     // --- Properties (ל-TableView) ---
@@ -85,4 +85,26 @@ public class HistoryRow {
     public void setDegree(int value) { degree.set(value); }
     public void setY(long value) { y.set(value); }
     public void setCycles(long value) { cycles.set(value); }
+
+    public List<Long> getStatingInput() {
+        return statingInput;
+    }
+
+    public void setStatingInput(List<Long> statingInput) {
+        this.statingInput = statingInput;
+    }
+
+    public ObservableList<VarRow> getVars() {
+        return vars;
+    }
+
+    public HistoryRow(List<Long>  statingInput) {
+        this.statingInput.addAll(statingInput);
+    }
+
+    public void setAllRemainingHistory(List<VarRow> vars){
+        this.vars.setAll(vars);
+    }
+
+
 }
