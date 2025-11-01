@@ -45,4 +45,6 @@ public class SystemFunction {
     public int getMaxDegree() {
         return maxDegree;
     }
+
+
 }

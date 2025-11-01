@@ -78,7 +78,7 @@ public class User {
             creditsUsed += Math.abs((amount+architecture)-creditsCurrent);
             return false;
         }
-        creditsUsed += amount;
+        creditsUsed += (amount +architecture);
         return true;
     }
 

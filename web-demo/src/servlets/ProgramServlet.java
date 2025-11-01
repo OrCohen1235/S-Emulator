@@ -601,7 +601,6 @@ public class ProgramServlet extends BaseServlet {
             String levelStr  = req.getParameter("level");
             String sumArchitecture = req.getParameter("sumArchitecture");
             int architecture = Integer.parseInt(sumArchitecture);
-            String isFinishDebugger = req.getParameter("isFinishDebugger");
             if (degreeStr == null || degreeStr.isBlank()) {
                 writeJson(response, HttpServletResponse.SC_BAD_REQUEST, new ErrorResp("Missing 'degree' query parameter"));
                 return;
@@ -613,7 +612,6 @@ public class ProgramServlet extends BaseServlet {
             UserManager userManager = getUserManager();
             int degree = Integer.parseInt(degreeStr);
             int level  = Integer.parseInt(levelStr);
-            Boolean isFinishedDebugger = Boolean.parseBoolean(isFinishDebugger);
 
             if (degree > 0) engine.getProgramDTO().setProgramViewToExpanded();
             else            engine.getProgramDTO().setProgramViewToOriginal();
@@ -646,16 +644,18 @@ public class ProgramServlet extends BaseServlet {
                 newValues.put(xVariable, newValue);
             }
 
-            if (isFinishedDebugger != null && isFinishedDebugger.equals("true")) {
+            if (engine.getProgramDTO().getProgram().getProgramExecutor().getFinishDebugging()) {
                 updateProgramStats(programName, cycles);
                 user.useCredits(cycles,architecture);
+                userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
                 addHistory(req,runNum,true,programName,archi,degree,result,cycles,values,newValues);
             }
 
-            if (isStopped) {
+            else if (isStopped) {
                 writeJson(response, HttpServletResponse.SC_OK, Response.error(isStoppedException.getMessage()));
                 addHistory(req,runNum,true,programName,archi,degree,result,cycles,values,newValues);
                 user.useCredits(cycles,architecture);
+                userManager.getUser(getUserSession(req).getUsername()).incrementRunsCount();
                 updateProgramStats(programName, cycles);
                 return;
             }
